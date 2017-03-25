@@ -12,6 +12,7 @@ lm.ma.default <- function(y=NULL,
                           bootstrap.ci=FALSE,
                           B=100,
                           alpha=0.05,
+                          weights=NULL,
                           ...) {
 
     basis <- match.arg(basis)
@@ -29,7 +30,8 @@ lm.ma.default <- function(y=NULL,
                      deriv.order=deriv.order,
                      p.max=p.max,
                      method=method,
-                     ma.weights=ma.weights)
+                     ma.weights=ma.weights,
+                     weights=weights)
     
     if(bootstrap.ci) {
     
@@ -53,7 +55,8 @@ lm.ma.default <- function(y=NULL,
                                   deriv.order=deriv.order,
                                   p.max=p.max,
                                   method=method,
-                                  ma.weights=Est$ma.weights)
+                                  ma.weights=Est$ma.weights,
+                                  weights=weights)
             boot.mat[,b] <- out.boot$fitted
             if(compute.deriv) for(k in 1:Est$num.x) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
         }
@@ -83,11 +86,14 @@ lm.ma.Est <- function(y=NULL,
                       deriv.order=1,
                       p.max=NULL,
                       method=c("jma","mma"),
-                      ma.weights=NULL) {
+                      ma.weights=NULL,
+                      weights=NULL) {
     
     ## Divide into factors and numeric
 
     xztmp <- splitFrame(data.frame(X))
+    xnames <- xztmp$xnames
+    znames <- xztmp$znames
     x <- xztmp$x
     z <- xztmp$z
     if(!is.null(X.eval)) {
@@ -113,6 +119,7 @@ lm.ma.Est <- function(y=NULL,
     if(compute.deriv) {
         deriv.mat <- array(NA,c(if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},p.max,num.x))
         deriv <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},num.x)
+        colnames(deriv) <- xnames
     }
 
     K <- numeric(length=p.max)
@@ -128,7 +135,8 @@ lm.ma.Est <- function(y=NULL,
                                                                      z,
                                                                      K=cbind(rep(p,num.x),rep(1,num.x)),
                                                                      I=include,
-                                                                     basis=basis)$model)
+                                                                     basis=basis,
+                                                                     weights=weights)$model)
             
             K[p] <- model.ma$rank
 
@@ -143,7 +151,8 @@ lm.ma.Est <- function(y=NULL,
                                                                        zeval=zeval,
                                                                        K=cbind(rep(p,num.x),rep(1,num.x)),
                                                                        I=include,
-                                                                       basis=basis)$fitted.values[,1])
+                                                                       basis=basis,
+                                                                       weights=weights)$fitted.values[,1])
         
         if(compute.deriv) {
             for(k in 1:num.x) {
@@ -156,7 +165,8 @@ lm.ma.Est <- function(y=NULL,
                                                                           zeval=zeval,
                                                                           basis=basis,
                                                                           deriv.index=k,
-                                                                          deriv=deriv.order)[,1])
+                                                                          deriv=deriv.order,
+                                                                          weights=weights)[,1])
         
                 deriv.mat[,p,k] <- model.deriv
             }

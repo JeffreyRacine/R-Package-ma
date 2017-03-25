@@ -23,6 +23,7 @@ lm.ma(...)
       bootstrap.ci=FALSE,
       B=100,
       alpha=0.05,
+      weights=NULL,
       ...)
 
 \method{lm.ma}{formula}(formula,
@@ -39,6 +40,7 @@ lm.ma(...)
       bootstrap.ci=FALSE,
       B=100,
       alpha=0.05,
+      weights=NULL,
       ...)
 
 }
@@ -71,6 +73,8 @@ lm.ma(...)
   \item{B}{the number of bootstrap replications desired}
   
   \item{alpha}{value in (0,1) used to compute 1-alpha\% confidence intervals}
+  
+  \item{weights}{an optional vector of weights to be used in the fitting process. Should be ‘NULL’ or a numeric vector; if non-NULL, weighted least squares is used with weights ‘weights’ (that is, minimizing ‘sum(w*e^2)’); otherwise ordinary least squares is used}
   
   \item{...}{optional arguments to be passed}
 
@@ -199,9 +203,9 @@ data(wage1)
 model.lm <- lm(lwage ~ factor(female) + factor(married) + educ + exper + tenure, data = wage1)
 summary(model.lm)$r.squared
 
-## Compare with the model average estimator
+## Compare with the model average estimator (female and married are factors)
 
-model <- lm.ma(lwage ~ factor(female) + factor(married) + educ + exper + tenure, compute.deriv = TRUE, data = wage1)
+model <- lm.ma(lwage ~ female + married + educ + exper + tenure, compute.deriv = TRUE, data = wage1)
 summary(model)
 
 ## Compare coefficients from the linear model with the mean values from model averaging 
