@@ -249,8 +249,8 @@ summary.lm.ma <- function(object,
 
   cat("Call:\n")
   print(object$call)
-  cat("\nModel Averaging Regression\n",sep="")
-
+  cat("\nModel Averaging Linear Regression\n",sep="")
+  cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
   cat("\n\n")
 
 }

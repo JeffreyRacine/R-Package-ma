@@ -12,32 +12,32 @@ A function similar to \code{\link{lm}} that averages over a set of candidate mod
 lm.ma(...)
 
 \method{lm.ma}{default}(y=NULL,
-         X=NULL,
-         X.eval=NULL,
-         basis=c("glp","tensor","additive"),
-         compute.deriv=FALSE,
-         p.max=NULL,
-         method=c("jma","mma"),
-         ma.weights=NULL,
-         bootstrap.ci=FALSE,
-         B=100,
-         alpha=0.05,
-         ...)
+      X=NULL,
+      X.eval=NULL,
+      basis=c("glp","tensor","additive"),
+      compute.deriv=FALSE,
+      p.max=NULL,
+      method=c("jma","mma"),
+      ma.weights=NULL,
+      bootstrap.ci=FALSE,
+      B=100,
+      alpha=0.05,
+      ...)
 
 \method{lm.ma}{formula}(formula,
-         data=list(),
-         y=NULL,
-         X=NULL,
-         X.eval=NULL,
-         basis=c("glp","tensor","additive"),
-         compute.deriv=FALSE,
-         p.max=NULL,
-         method=c("jma","mma"),
-         ma.weights=NULL,
-         bootstrap.ci=FALSE,
-         B=100,
-         alpha=0.05,
-         ...)
+      data=list(),
+      y=NULL,
+      X=NULL,
+      X.eval=NULL,
+      basis=c("glp","tensor","additive"),
+      compute.deriv=FALSE,
+      p.max=NULL,
+      method=c("jma","mma"),
+      ma.weights=NULL,
+      bootstrap.ci=FALSE,
+      B=100,
+      alpha=0.05,
+      ...)
 
 }
 
@@ -85,7 +85,7 @@ An object of class "lm.ma" is a list containing at least the following component
   \item{fitted.values}{vector of fitted values}
   \item{deriv}{matrix of derivative vectors for each predictor}
   \item{ma.weights}{model average weights}
-  \item{p.max}{maximum value of p.max for each dimension}
+  \item{p.max}{value of p.max for each dimension}
   \item{fitted.ci.l}{alpha/2 nonparametric confidence value for the fitted/predicted values}
   \item{fitted.ci.u}{1-alpha/2 nonparametric confidence value for the fitted/predicted values}  
   \item{deriv.ci.l}{alpha/2 nonparametric confidence value matrix for
@@ -110,44 +110,46 @@ This codes is in beta status until further notice - proceed accordingly.
 \code{\link{lm}}
 }
 \examples{
+## Example 1
+
 set.seed(42)
 n <- 100
 x <- sort(runif(n))
 dgp <- cos(2*pi*x)
-y <- dgp + rnorm(n,sd=0.25*sd(dgp))
+y <- dgp + rnorm(n,sd=0.5*sd(dgp))
 
 model <- lm.ma(y~x,bootstrap.ci=TRUE,compute.deriv=TRUE)
 model$ma.weights
 
-par(mfrow=c(2,1))
+par(mfrow=c(1,2))
 
 plot(x,y,cex=0.25)
 lines(x,fitted(model))
 lines(x,model$fitted.ci.l,col=2,lty=2)
 lines(x,model$fitted.ci.u,col=2,lty=2)
 
-
-plot(x,model$deriv[,1],ylab="derivative",type="l")
+ylim <- range(c(model$deriv.ci.l[,1],model$deriv.ci.u[,1]))
+plot(x,model$deriv[,1],ylim=ylim,ylab="derivative",type="l")
 lines(x,model$deriv.ci.l[,1],col=2,lty=2)
 lines(x,model$deriv.ci.u[,1],col=2,lty=2)
 
-\dontrun{
+par(mfrow=c(1,1))
+
+## Example 2
+
 require(rgl)
 
 set.seed(42)
 n <- 1000
-x1 <- runif(n,-1,1)
-x2 <- runif(n,-1,1)
+x1 <- runif(n)
+x2 <- runif(n)
 
-#dgp <- x1+x2
-#dgp <- x1**2+x2**2
+dgp <- cos(2*pi*x1)*sin(2*pi*x2)
 
-dgp <- cos(pi*x1)*sin(pi*x2)
-
-y <- dgp + rnorm(n,sd=0.5)
+y <- dgp + rnorm(n,sd=0.5*sd(dgp))
 
 n.eval <- 25
-x.seq <- seq(-1,1,length=n.eval)
+x.seq <- seq(0,1,length=n.eval)
 newdata <- data.frame(expand.grid(x.seq,x.seq))
 names(newdata) <- c("x1","x2")
 
@@ -182,7 +184,6 @@ persp3d(x.seq,x.seq,z=z,
         main="Conditional Mean")
 
 grid3d(c("x", "y+", "z"))
-}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
