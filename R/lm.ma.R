@@ -5,7 +5,7 @@ lm.ma.default <- function(y=NULL,
                           X.eval=NULL,
                           basis=c("glp","tensor","additive"),
                           compute.deriv=FALSE,
-                          deriv.order=deriv.order,
+                          deriv.order=1,
                           p.max=NULL,
                           method=c("jma","mma"),
                           ma.weights=NULL,
@@ -21,8 +21,6 @@ lm.ma.default <- function(y=NULL,
     if(is.null(y) | is.null(X)) stop("You must provide data for y and X")
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
 
-    if(is.null(p.max)) p.max <- round((10/NCOL(X))*(NROW(X)/100)^0.25)
-    
     Est <- lm.ma.Est(y=y,
                      X=X,
                      X.eval=X.eval,
@@ -43,7 +41,7 @@ lm.ma.default <- function(y=NULL,
         }
     
         boot.mat <- matrix(NA,n,B)
-        if(compute.deriv) boot.deriv.array <- array(NA,c(n,B,NCOL(X)))
+        if(compute.deriv) boot.deriv.array <- array(NA,c(n,B,Est$num.x))
     
         for(b in 1:B) {
             ii <- sample(1:n,replace=TRUE)
@@ -57,7 +55,7 @@ lm.ma.default <- function(y=NULL,
                                   method=method,
                                   ma.weights=Est$ma.weights)
             boot.mat[,b] <- out.boot$fitted
-            if(compute.deriv) for(k in 1:NCOL(X)) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
+            if(compute.deriv) for(k in 1:Est$num.x) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
         }
 
         Est$fitted.ci.l <- apply(boot.mat,1,quantile,prob=alpha/2,type=1)
@@ -65,7 +63,7 @@ lm.ma.default <- function(y=NULL,
         
         if(compute.deriv) {
             Est$deriv.ci.l <- Est$deriv.ci.u <- matrix(NA,n,NCOL(X))
-            for(k in 1:NCOL(X)) {
+            for(k in 1:Est$num.x) {
                 Est$deriv.ci.l[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=alpha/2,type=1)
                 Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1)        
             }
@@ -102,6 +100,8 @@ lm.ma.Est <- function(y=NULL,
         xeval <- NULL
         zeval <- NULL
     }
+    num.x <- xztmp$num.x
+    num.z <- xztmp$num.z
     rm(xztmp)
     if(is.null(z)) {
         include <- NULL
@@ -109,10 +109,12 @@ lm.ma.Est <- function(y=NULL,
         include <- rep(1,NCOL(z))
     }
 
+    if(is.null(p.max)) p.max <- round((10/num.x)*(NROW(X)/100)^0.25)
+    
     deriv <- NULL
     if(compute.deriv) {
-        deriv.mat <- array(NA,c(if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},p.max,NCOL(X)))
-        deriv <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},NCOL(X))
+        deriv.mat <- array(NA,c(if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},p.max,num.x))
+        deriv <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},num.x)
     }
 
     K <- numeric(length=p.max)
@@ -146,7 +148,7 @@ lm.ma.Est <- function(y=NULL,
                                                                        basis=basis)$fitted.values[,1])
         
         if(compute.deriv) {
-            for(k in 1:NCOL(X)) {
+            for(k in 1:num.x) {
                 model.deriv <- suppressWarnings(crs:::deriv.factor.spline(x,
                                                                           y,
                                                                           z,
@@ -189,7 +191,7 @@ lm.ma.Est <- function(y=NULL,
         b <- ma.weights
     }
 
-    if(compute.deriv) for(k in 1:NCOL(X)) deriv[,k] <- deriv.mat[,,k]%*%b
+    if(compute.deriv) for(k in 1:num.x) deriv[,k] <- deriv.mat[,,k]%*%b
 
     return(list(fitted.values=fitted.mat%*%b,
                 deriv=deriv,
@@ -200,7 +202,9 @@ lm.ma.Est <- function(y=NULL,
                 compute.deriv=compute.deriv,
                 deriv.order=deriv.order,
                 p.max=p.max,
-                method=method))
+                method=method,
+                num.x=num.x,
+                num.z=num.z))
 
     
 }

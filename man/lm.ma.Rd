@@ -32,7 +32,7 @@ lm.ma(...)
       X.eval=NULL,
       basis=c("glp","tensor","additive"),
       compute.deriv=FALSE,
-      deriv.order=deriv.order,
+      deriv.order=1,
       p.max=NULL,
       method=c("jma","mma"),
       ma.weights=NULL,
