@@ -1,12 +1,14 @@
-lm.ma <- function(y=NULL,
-                  X=NULL,
-                  X.eval=NULL,
-                  basis=c("glp","tensor","additive"),
-                  compute.deriv=TRUE,
-                  p.max=25,
-                  method=c("jma","mma"),
-                  ma.weights=NULL) {
-    
+lm.ma <- function(...) UseMethod("lm.ma")
+
+lm.ma.default <- function(y=NULL,
+                          X=NULL,
+                          X.eval=NULL,
+                          basis=c("glp","tensor","additive"),
+                          compute.deriv=TRUE,
+                          p.max=25,
+                          method=c("jma","mma"),
+                          ma.weights=NULL) {
+
     basis <- match.arg(basis)
     method <- match.arg(method)
 
@@ -14,6 +16,29 @@ lm.ma <- function(y=NULL,
     if(is.null(y) | is.null(X)) stop("You must provide data for y and X")
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
 
+    Est <- lm.ma.Est(y=y,
+                     X=X,
+                     X.eval=X.eval,
+                     basis=basis,
+                     compute.deriv=compute.deriv,
+                     p.max=p.max,
+                     method=method,
+                     ma.weights=ma.weights)
+
+    class(Est) <- "lm.ma"
+    return(Est)
+
+}
+
+lm.ma.Est <- function(y=NULL,
+                      X=NULL,
+                      X.eval=NULL,
+                      basis=c("glp","tensor","additive"),
+                      compute.deriv=TRUE,
+                      p.max=25,
+                      method=c("jma","mma"),
+                      ma.weights=NULL) {
+    
     ## Divide into factors and numeric, if one regressor must be numeric
 
     if(NCOL(X) > 1) {
@@ -116,5 +141,36 @@ lm.ma <- function(y=NULL,
     return(list(fitted=fitted.mat%*%b,
                 deriv=deriv,
                 ma.weights=as.numeric(formatC(b,format="f",digits=4))))
+
+}
+
+lm.ma.formula <- function(formula,
+                          data=list(),
+                          y=NULL,
+                          X=NULL,
+                          X.eval=NULL,
+                          basis=c("glp","tensor","additive"),
+                          compute.deriv=TRUE,
+                          p.max=25,
+                          method=c("jma","mma"),
+                          ma.weights=NULL,
+                          ...) {
+
+
+  mf <- model.frame(formula=formula, data=data)
+  mt <- attr(mf, "terms")
+  tydat <- model.response(mf)
+  txdat <- mf[, attr(attr(mf, "terms"),"term.labels"), drop = FALSE]
+
+  Est <- lm.ma.default(y=tydat,
+                       X=txdat,
+                       X.eval=NULL,
+                       basis=basis,
+                       compute.deriv=compute.deriv,
+                       p.max=p.max,
+                       method=method,
+                       ma.weights=ma.weights)
+
+  return(Est)
 
 }

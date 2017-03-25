@@ -7,7 +7,7 @@ Model Averaging
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-ma(y = NULL, X = NULL, X.eval = NULL, basis = c("glp", "tensor", "additive"), compute.deriv = TRUE, p.max = 25, method = c("jma", "mma"), ma.weights = NULL)
+lm.ma(y = NULL, X = NULL, X.eval = NULL, basis = c("glp", "tensor", "additive"), compute.deriv = TRUE, p.max = 25, method = c("jma", "mma"), ma.weights = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -62,6 +62,8 @@ ma(y = NULL, X = NULL, X.eval = NULL, basis = c("glp", "tensor", "additive"), co
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
+require(rgl)
+
 set.seed(42)
 n <- 1000
 x1 <- runif(n,-1,1)
@@ -83,9 +85,6 @@ out <- lm.ma(y,X,X.eval)
 
 z <- matrix(out$fitted,n.eval,n.eval)
 
-persp(x.seq,x.seq,z)
-
-require(rgl)
 num.colors <- 1000
 colorlut <- topo.colors(num.colors)
 col <- colorlut[ (num.colors-1)*(z-min(z))/(max(z)-min(z)) + 1 ]
