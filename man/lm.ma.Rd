@@ -3,7 +3,7 @@
 \alias{lm.ma.default}
 \alias{lm.ma.formula}
 \title{
-Model Averaging
+Fitting Linear Model Average Models
 }
 \description{
 A function similar to \code{\link{lm}} that averages over a set of candidate models.
@@ -58,7 +58,7 @@ lm.ma(...)
 
   \item{p.max}{maximum value for the basis in each dimension (defaults to \code{round((10/NCOL(X))*(NROW(X)/100)^0.25)}}
 
-  \item{method}{whether to use jackknife model averaging (JMA) or Mallows model averaging (MMA)}
+  \item{method}{whether to use jackknife model averaging (jma) or Mallows model averaging (mma)}
 
   \item{ma.weights}{a vector of weights obtained from a previous invocation (useful for bootstrapping)}
   
@@ -72,9 +72,15 @@ lm.ma(...)
 
 }
 \details{
-Yes...
+Models for lm.ma are specified symbolically. A typical model has the form response ~ terms where response is the (numeric) response vector and terms is a series of terms which specifies a linear predictor for response.
 }
 \value{
+
+lm returns an object of class "lm.ma".
+
+The function summary is used to obtain and print a summary of the results. The generic accessor functions fitted.values and residuals extract various useful features of the value returned by lm.ma.
+
+An object of class "lm.ma" is a list containing at least the following components:
 
   \item{fitted.values}{vector of fitted values}
   \item{deriv}{matrix of derivative vectors for each predictor}
@@ -91,7 +97,7 @@ Yes...
 
 }
 \references{
-YO
+TBD
 }
 \author{
 Jeffrey S. Racine
@@ -104,6 +110,28 @@ This codes is in beta status until further notice - proceed accordingly.
 \code{\link{lm}}
 }
 \examples{
+set.seed(42)
+n <- 100
+x <- sort(runif(n))
+dgp <- cos(2*pi*x)
+y <- dgp + rnorm(n,sd=0.25*sd(dgp))
+
+model <- lm.ma(y~x,bootstrap.ci=TRUE,compute.deriv=TRUE)
+model$ma.weights
+
+par(mfrow=c(2,1))
+
+plot(x,y,cex=0.25)
+lines(x,fitted(model))
+lines(x,model$fitted.ci.l,col=2,lty=2)
+lines(x,model$fitted.ci.u,col=2,lty=2)
+
+
+plot(x,model$deriv[,1],ylab="derivative",type="l")
+lines(x,model$deriv.ci.l[,1],col=2,lty=2)
+lines(x,model$deriv.ci.u[,1],col=2,lty=2)
+
+\dontrun{
 require(rgl)
 
 set.seed(42)
@@ -154,6 +182,7 @@ persp3d(x.seq,x.seq,z=z,
         main="Conditional Mean")
 
 grid3d(c("x", "y+", "z"))
+}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
