@@ -231,6 +231,7 @@ lm.ma.formula <- function(formula,
                           bootstrap.ci=FALSE,
                           B=100,
                           alpha=0.05,
+                          weights=NULL,
                           ...) {
 
 

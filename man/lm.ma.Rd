@@ -74,7 +74,7 @@ lm.ma(...)
   
   \item{alpha}{value in (0,1) used to compute 1-alpha\% confidence intervals}
   
-  \item{weights}{an optional vector of weights to be used in the fitting process. Should be ‘NULL’ or a numeric vector; if non-NULL, weighted least squares is used with weights ‘weights’ (that is, minimizing ‘sum(w*e^2)’); otherwise ordinary least squares is used}
+  \item{weights}{an optional vector of weights to be used in the fitting process. Should be \code{NULL} or a numeric vector; if non-NULL, weighted least squares is used with weights \code{weights} (that is, minimizing \eqn{sum(w*e^2)}); otherwise ordinary least squares is used}
   
   \item{...}{optional arguments to be passed}
 
