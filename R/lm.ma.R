@@ -19,7 +19,7 @@ lm.ma.default <- function(y=NULL,
     if(is.null(y) | is.null(X)) stop("You must provide data for y and X")
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
 
-    if(is.null(p.max)) p.max <- round(10*(NROW(X)/100)^0.25)
+    if(is.null(p.max)) p.max <- round((10/NCOL(X))*(NROW(X)/100)^0.25)
     
     Est <- lm.ma.Est(y=y,
                      X=X,

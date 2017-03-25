@@ -1,5 +1,7 @@
 \name{lm.ma}
 \alias{lm.ma}
+\alias{lm.ma.default}
+\alias{lm.ma.formula}
 \title{
 Model Averaging
 }
@@ -7,59 +9,88 @@ Model Averaging
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-lm.ma(y = NULL, X = NULL, X.eval = NULL, basis = c("glp", "tensor", "additive"), compute.deriv = TRUE, p.max = 25, method = c("jma", "mma"), ma.weights = NULL)
+lm.ma(...)
+
+\method{lm.ma.default}(y=NULL,
+         X=NULL,
+         X.eval=NULL,
+         basis=c("glp","tensor","additive"),
+         compute.deriv=FALSE,
+         p.max=NULL,
+         method=c("jma","mma"),
+         ma.weights=NULL,
+         bootstrap.ci=FALSE,
+         B=100,
+         alpha=0.05)
+
+\method{lm.ma.formula}(formula,
+         data=list(),
+         y=NULL,
+         X=NULL,
+         X.eval=NULL,
+         basis=c("glp","tensor","additive"),
+         compute.deriv=FALSE,
+         p.max=NULL,
+         method=c("jma","mma"),
+         ma.weights=NULL,
+         bootstrap.ci=FALSE,
+         B=100,
+         alpha=0.05,
+         ...)
+
 }
-%- maybe also 'usage' for other objects documented here.
+
 \arguments{
-  \item{y}{
-%%     ~~Describe \code{y} here~~
-}
-  \item{X}{
-%%     ~~Describe \code{X} here~~
-}
-  \item{X.eval}{
-%%     ~~Describe \code{X.eval} here~~
-}
-  \item{basis}{
-%%     ~~Describe \code{basis} here~~
-}
-  \item{compute.deriv}{
-%%     ~~Describe \code{compute.deriv} here~~
-}
-  \item{p.max}{
-%%     ~~Describe \code{p.max} here~~
-}
-  \item{method}{
-%%     ~~Describe \code{method} here~~
-}
-  \item{ma.weights}{
-%%     ~~Describe \code{ma.weights} here~~
-}
+  \item{formula}{ a symbolic description of the model to be fit }
+  \item{data}{ an optional data frame containing the variables in the
+    model }
+  \item{y}{a one dimensional vector of dependent data}
+  \item{X}{a \eqn{p}-variate data frame of explanatory (training) data }
+  \item{X.eval}{a \eqn{p}-variate data frame of points on which the regression will be
+    estimated (evaluation data)}
+\item{basis}{ a character string
+    indicating whether the additive or tensor product basis
+    matrix for a multivariate polynomial  should be used}
+  \item{compute.deriv}{a logical value indicating whether to compute
+    derivatives or not}
+  \item{p.max}{maximum value for the basis in each dimension (defaults
+    to \code{round((10/NCOL(X))*(NROW(X)/100)^0.25)}}
+  \item{method}{whether to use jackknife model averaging (JMA) or
+    Mallows model averaging (MMA)}
+  \item{ma.weights}{a vector of weights obtained from a previous
+    invocation (useful for bootstrapping)}
 }
 \details{
-%%  ~~ If necessary, more details than the description above ~~
+Yes...
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+
+  \item{fitted.values}{vector of fitted values}
+  \item{deriv}{matrix of derivative vectors for each predictor}
+  \item{ma.weights}{model average weights}
+  \item{p.max}{maximum value of p.max for each dimension}
+  \item{fitted.ci.l}{alpha/2 nonparametric confidence value for the fitted/predicted values}
+  \item{fitted.ci.u}{1-alpha/2 nonparametric confidence value for the fitted/predicted values}  
+  \item{deriv.ci.l}{alpha/2 nonparametric confidence value matrix for
+    the derivatives}
+  \item{deriv.ci.u}{1-alpha/2 nonparametric confidence value matrix for
+    the derivatives}
+  \item{r.squared}{nonlinear measure of goodness of fit}
+  \item{residuals}{model residuals}
+
 }
 \references{
-%% ~put references to the literature/web site here ~
+YO
 }
 \author{
-%%  ~~who you are~~
+Jeffrey S. Racine
 }
 \note{
-%%  ~~further notes~~
+This codes is in beta status until further notice - proceed accordingly.
 }
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+\code{\link{lm}}
 }
 \examples{
 require(rgl)
