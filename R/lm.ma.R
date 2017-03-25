@@ -5,9 +5,12 @@ lm.ma.default <- function(y=NULL,
                           X.eval=NULL,
                           basis=c("glp","tensor","additive"),
                           compute.deriv=TRUE,
-                          p.max=25,
+                          p.max=20,
                           method=c("jma","mma"),
-                          ma.weights=NULL) {
+                          ma.weights=NULL,
+                          bootstrap.ci=FALSE,
+                          B=100,
+                          alpha=0.05) {
 
     basis <- match.arg(basis)
     method <- match.arg(method)
@@ -24,6 +27,39 @@ lm.ma.default <- function(y=NULL,
                      p.max=p.max,
                      method=method,
                      ma.weights=ma.weights)
+    
+    if(bootstrap.ci) {
+    
+        B <- 100
+        n <- length(y)
+    
+        boot.mat <- matrix(NA,n,B)
+        if(compute.deriv) boot.deriv.mat <- matrix(NA,n,B)
+    
+        for(b in 1:B) {
+            ii <- sample(1:n,replace=TRUE)
+            out.boot <- lm.ma.Est(y=y[ii],
+                                  X=X[ii,],
+                                  X.eval=if(is.null(X.eval)) { X } else {X.eval},
+                                  basis=basis,
+                                  compute.deriv=compute.deriv,
+                                  p.max=p.max,
+                                  method=method,
+                                  ma.weights=Est$ma.weights)
+            boot.mat[,b] <- out.boot$fitted
+            ## Need array XXX
+            if(compute.deriv) boot.deriv.mat[,b] <- out.boot$deriv[,1]
+        }
+        
+        Est$fitted.ci.l <- apply(boot.mat,1,quantile,prob=alpha/2,type=1)
+        Est$fitted.ci.u <- apply(boot.mat,1,quantile,prob=1-alpha/2,type=1)
+        
+        if(compute.deriv) {
+            ## Need array XXX
+            Est$deriv.ci.l <- apply(boot.mat,1,quantile,prob=alpha/2,type=1)
+            Est$deriv.ci.u <- apply(boot.mat,1,quantile,prob=1-alpha/2,type=1)        
+        }
+    }
 
     class(Est) <- "lm.ma"
     return(Est)
@@ -35,34 +71,24 @@ lm.ma.Est <- function(y=NULL,
                       X.eval=NULL,
                       basis=c("glp","tensor","additive"),
                       compute.deriv=TRUE,
-                      p.max=25,
+                      p.max=20,
                       method=c("jma","mma"),
                       ma.weights=NULL) {
     
-    ## Divide into factors and numeric, if one regressor must be numeric
+    ## Divide into factors and numeric
 
-#    if(NCOL(X) > 1) {
-        xztmp <- crs:::splitFrame(data.frame(X))
-        x <- xztmp$x
-        z <- xztmp$z
-        if(!is.null(X.eval)) {
-            xztmp <- crs:::splitFrame(data.frame(X.eval))
-            xeval <- xztmp$x
-            zeval <- xztmp$z
-        } else {
-            xeval <- NULL
-            zeval <- NULL
-        }
-        rm(xztmp)
-#    } else {
-#        #if(!is.numeric(X)) stop("Single predictor must be of type numeric")
-#        print(class(X))
-#        stop()
-#        x <- X
-#        xeval <- X.eval
-#        z <- NULL
-#        zeval <- NULL
-#    }
+    xztmp <- crs:::splitFrame(data.frame(X))
+    x <- xztmp$x
+    z <- xztmp$z
+    if(!is.null(X.eval)) {
+        xztmp <- crs:::splitFrame(data.frame(X.eval))
+        xeval <- xztmp$x
+        zeval <- xztmp$z
+    } else {
+        xeval <- NULL
+        zeval <- NULL
+    }
+    rm(xztmp)
 
     deriv <- NULL
     if(compute.deriv) {
@@ -75,16 +101,15 @@ lm.ma.Est <- function(y=NULL,
     fitted.mat <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},p.max)
 
     for(p in 1:p.max) {
-
         
         if(is.null(ma.weights)) {
             
             model.ma <- suppressWarnings(crs:::predict.factor.spline(x,
-                                                                 y,
-                                                                 z,
-                                                                 K=cbind(rep(p,NCOL(x)),rep(1,NCOL(x))),
-                                                                 basis=basis)$model)
-
+                                                                     y,
+                                                                     z,
+                                                                     K=cbind(rep(p,NCOL(x)),rep(1,NCOL(x))),
+                                                                     basis=basis)$model)
+            
             K[p] <- model.ma$rank
 
             ma.mat[,p] <- Dmat.func(model.ma,method=method)
@@ -92,13 +117,13 @@ lm.ma.Est <- function(y=NULL,
         }
 
         fitted.mat[,p] <- suppressWarnings(crs:::predict.factor.spline(x,
-                                                                  y,
-                                                                  z,
-                                                                  xeval=xeval,
-                                                                  zeval=zeval,
-                                                                  K=cbind(rep(p,NCOL(x)),rep(1,NCOL(x))),
-                                                                  basis=basis)$fitted.values[,1])
-
+                                                                       y,
+                                                                       z,
+                                                                       xeval=xeval,
+                                                                       zeval=zeval,
+                                                                       K=cbind(rep(p,NCOL(x)),rep(1,NCOL(x))),
+                                                                       basis=basis)$fitted.values[,1])
+        
         if(compute.deriv) {
             for(k in 1:NCOL(X)) {
                 model.deriv <- suppressWarnings(crs:::deriv.factor.spline(x,
@@ -165,9 +190,12 @@ lm.ma.formula <- function(formula,
                           X.eval=NULL,
                           basis=c("glp","tensor","additive"),
                           compute.deriv=TRUE,
-                          p.max=25,
+                          p.max=20,
                           method=c("jma","mma"),
                           ma.weights=NULL,
+                          bootstrap.ci=FALSE,
+                          B=100,
+                          alpha=0.05,
                           ...) {
 
 
@@ -183,7 +211,10 @@ lm.ma.formula <- function(formula,
                        compute.deriv=compute.deriv,
                        p.max=p.max,
                        method=method,
-                       ma.weights=ma.weights)
+                       ma.weights=ma.weights,
+                       bootstrap.ci=bootstrap.ci,
+                       B=B,
+                       alpha=alpha)
 
   Est$r.squared <- crs:::RSQfunc(tydat,Est$fitted.values)
   Est$residuals <- tydat - Est$fitted.values
@@ -224,16 +255,7 @@ predict.lm.ma <- function(object,
       fitted.values <- fitted(object)
   } else{
     tt <- terms(object)
-#    has.ey <- succeedWithResponse(tt, newdata)
-#    if (has.ey) {
-#      eydat <- model.response(model.frame(tt,newdata))
-#    } else {
-#      eydat <- NULL
-#    }
     exdat <- model.frame(delete.response(tt),newdata,xlev=object$xlevels)
-
-    ## Return the predicted values.
-
     Est <- lm.ma.default(y=object$y,
                          X=object$X,
                          X.eval=exdat,
@@ -242,10 +264,8 @@ predict.lm.ma <- function(object,
                          p.max=object$p.max,
                          method=object$method,
                          ma.weights=object$ma.weights)
-
     fitted.values <- Est$fitted.values
     deriv <- Est$deriv
-
   }
 
   attr(fitted.values, "deriv") <- deriv
