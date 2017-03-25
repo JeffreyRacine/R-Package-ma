@@ -5,6 +5,7 @@ lm.ma.default <- function(y=NULL,
                           X.eval=NULL,
                           basis=c("glp","tensor","additive"),
                           compute.deriv=FALSE,
+                          deriv.order=deriv.order,
                           p.max=NULL,
                           method=c("jma","mma"),
                           ma.weights=NULL,
@@ -27,6 +28,7 @@ lm.ma.default <- function(y=NULL,
                      X.eval=X.eval,
                      basis=basis,
                      compute.deriv=compute.deriv,
+                     deriv.order=deriv.order,
                      p.max=p.max,
                      method=method,
                      ma.weights=ma.weights)
@@ -50,6 +52,7 @@ lm.ma.default <- function(y=NULL,
                                   X.eval=if(is.null(X.eval)) { X } else {X.eval},
                                   basis=basis,
                                   compute.deriv=compute.deriv,
+                                  deriv.order=deriv.order,
                                   p.max=p.max,
                                   method=method,
                                   ma.weights=Est$ma.weights)
@@ -81,6 +84,7 @@ lm.ma.Est <- function(y=NULL,
                       X.eval=NULL,
                       basis=c("glp","tensor","additive"),
                       compute.deriv=FALSE,
+                      deriv.order=1,
                       p.max=NULL,
                       method=c("jma","mma"),
                       ma.weights=NULL) {
@@ -99,6 +103,11 @@ lm.ma.Est <- function(y=NULL,
         zeval <- NULL
     }
     rm(xztmp)
+    if(is.null(z)) {
+        include <- NULL
+    } else {
+        include <- rep(1,NCOL(z))
+    }
 
     deriv <- NULL
     if(compute.deriv) {
@@ -118,6 +127,7 @@ lm.ma.Est <- function(y=NULL,
                                                                      y,
                                                                      z,
                                                                      K=cbind(rep(p,NCOL(x)),rep(1,NCOL(x))),
+                                                                     I=include,
                                                                      basis=basis)$model)
             
             K[p] <- model.ma$rank
@@ -132,6 +142,7 @@ lm.ma.Est <- function(y=NULL,
                                                                        xeval=xeval,
                                                                        zeval=zeval,
                                                                        K=cbind(rep(p,NCOL(x)),rep(1,NCOL(x))),
+                                                                       I=include,
                                                                        basis=basis)$fitted.values[,1])
         
         if(compute.deriv) {
@@ -140,12 +151,12 @@ lm.ma.Est <- function(y=NULL,
                                                                           y,
                                                                           z,
                                                                           K=cbind(rep(p,NCOL(x)),rep(1,NCOL(x))),
+                                                                          I=include,
                                                                           xeval=xeval,
                                                                           zeval=zeval,
-                                                                          knots="uniform",
                                                                           basis=basis,
                                                                           deriv.index=k,
-                                                                          deriv=1)[,1])
+                                                                          deriv=deriv.order)[,1])
         
                 deriv.mat[,p,k] <- model.deriv
             }
@@ -187,6 +198,7 @@ lm.ma.Est <- function(y=NULL,
                 X=X,
                 basis=basis,
                 compute.deriv=compute.deriv,
+                deriv.order=deriv.order,
                 p.max=p.max,
                 method=method))
 
@@ -200,6 +212,7 @@ lm.ma.formula <- function(formula,
                           X.eval=NULL,
                           basis=c("glp","tensor","additive"),
                           compute.deriv=FALSE,
+                          deriv.order=1,
                           p.max=NULL,
                           method=c("jma","mma"),
                           ma.weights=NULL,
@@ -219,6 +232,7 @@ lm.ma.formula <- function(formula,
                        X.eval=NULL,
                        basis=basis,
                        compute.deriv=compute.deriv,
+                       deriv.order=deriv.order,
                        p.max=p.max,
                        method=method,
                        ma.weights=ma.weights,
@@ -271,6 +285,7 @@ predict.lm.ma <- function(object,
                          X.eval=exdat,
                          basis=object$basis,
                          compute.deriv=object$compute.deriv,
+                         deriv.order=object$deriv.order,
                          p.max=object$p.max,
                          method=object$method,
                          ma.weights=object$ma.weights)
