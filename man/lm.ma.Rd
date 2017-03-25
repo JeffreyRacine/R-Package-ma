@@ -21,7 +21,8 @@ lm.ma(...)
          ma.weights=NULL,
          bootstrap.ci=FALSE,
          B=100,
-         alpha=0.05)
+         alpha=0.05,
+         ...)
 
 \method{lm.ma}{formula}(formula,
          data=list(),

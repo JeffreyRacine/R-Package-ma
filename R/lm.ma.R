@@ -10,7 +10,8 @@ lm.ma.default <- function(y=NULL,
                           ma.weights=NULL,
                           bootstrap.ci=FALSE,
                           B=100,
-                          alpha=0.05) {
+                          alpha=0.05,
+                          ...) {
 
     basis <- match.arg(basis)
     method <- match.arg(method)
@@ -62,8 +63,8 @@ lm.ma.default <- function(y=NULL,
         if(compute.deriv) {
             Est$deriv.ci.l <- Est$deriv.ci.u <- matrix(NA,n,NCOL(X))
             for(k in 1:NCOL(X)) {
-                Est$deriv.ci.l[,k] <- apply(boot.deriv.array,3,quantile,prob=alpha/2,type=1)
-                Est$deriv.ci.u[,k] <- apply(boot.deriv.array,3,quantile,prob=1-alpha/2,type=1)        
+                Est$deriv.ci.l[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=alpha/2,type=1)
+                Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1)        
             }
         }
     }
