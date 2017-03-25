@@ -1,5 +1,5 @@
-\name{ma}
-\alias{ma}
+\name{lm.ma}
+\alias{lm.ma}
 \title{
 Model Averaging
 }
@@ -79,9 +79,8 @@ y <- dgp + rnorm(n,sd=0.5)
 n.eval <- 25
 x.seq <- seq(-1,1,length=n.eval)
 X.eval <- expand.grid(x.seq,x.seq)
-X <- cbind(x1,x2)
 
-out <- lm.ma(y,X,X.eval)
+out <- lm.ma(y~x1+x2)
 
 z <- matrix(out$fitted,n.eval,n.eval)
 

@@ -41,7 +41,7 @@ lm.ma.Est <- function(y=NULL,
     
     ## Divide into factors and numeric, if one regressor must be numeric
 
-    if(NCOL(X) > 1) {
+#    if(NCOL(X) > 1) {
         xztmp <- crs:::splitFrame(data.frame(X))
         x <- xztmp$x
         z <- xztmp$z
@@ -54,13 +54,15 @@ lm.ma.Est <- function(y=NULL,
             zeval <- NULL
         }
         rm(xztmp)
-    } else {
-        if(!is.numeric(X)) stop("Single predictor must be of type numeric")
-        x <- X
-        xeval <- X.eval
-        z <- NULL
-        zeval <- NULL
-    }
+#    } else {
+#        #if(!is.numeric(X)) stop("Single predictor must be of type numeric")
+#        print(class(X))
+#        stop()
+#        x <- X
+#        xeval <- X.eval
+#        z <- NULL
+#        zeval <- NULL
+#    }
 
     deriv <- NULL
     if(compute.deriv) {
@@ -138,10 +140,17 @@ lm.ma.Est <- function(y=NULL,
 
     if(compute.deriv) for(k in 1:NCOL(X)) deriv[,k] <- deriv.mat[,,k]%*%b
 
-    return(list(fitted=fitted.mat%*%b,
+    return(list(fitted.values=fitted.mat%*%b,
                 deriv=deriv,
-                ma.weights=as.numeric(formatC(b,format="f",digits=4))))
+                ma.weights=b,
+                y=y,
+                X=X,
+                basis=basis,
+                compute.deriv=compute.deriv,
+                p.max=p.max,
+                method=method))
 
+    
 }
 
 lm.ma.formula <- function(formula,
@@ -171,6 +180,71 @@ lm.ma.formula <- function(formula,
                        method=method,
                        ma.weights=ma.weights)
 
+  Est$r.squared <- crs:::RSQfunc(tydat,Est$fitted.values)
+  Est$residuals <- tydat - Est$fitted.values
+
+  Est$call <- match.call()
+  Est$formula <- formula
+  Est$terms <- mt
+
   return(Est)
+
+}
+
+print.lm.ma <- function(x,
+                        ...) {
+    cat("Call:\n")
+    print(x$call)
+
+}
+
+summary.lm.ma <- function(object,
+                          ...) {
+
+  cat("Call:\n")
+  print(object$call)
+  cat("\nModel Averaging Regression\n",sep="")
+
+  cat("\n\n")
+
+}
+
+## Method for predicting given a new data frame.
+
+predict.lm.ma <- function(object,
+                          newdata=NULL,
+                          ...) {
+
+  if(is.null(newdata)) {
+      fitted.values <- fitted(object)
+  } else{
+    tt <- terms(object)
+#    has.ey <- succeedWithResponse(tt, newdata)
+#    if (has.ey) {
+#      eydat <- model.response(model.frame(tt,newdata))
+#    } else {
+#      eydat <- NULL
+#    }
+    exdat <- model.frame(delete.response(tt),newdata,xlev=object$xlevels)
+
+    ## Return the predicted values.
+
+    Est <- lm.ma.default(y=object$y,
+                         X=object$X,
+                         X.eval=exdat,
+                         basis=object$basis,
+                         compute.deriv=object$compute.deriv,
+                         p.max=object$p.max,
+                         method=object$method,
+                         ma.weights=object$ma.weights)
+
+    fitted.values <- Est$fitted.values
+    deriv <- Est$deriv
+
+  }
+
+  attr(fitted.values, "deriv") <- deriv
+
+  return(fitted.values)
 
 }
