@@ -188,8 +188,33 @@ persp3d(x.seq,x.seq,z=z,
         main="Conditional Mean")
 
 grid3d(c("x", "y+", "z"))
+
+## Example 3
+
+require(crs)
+data(wage1)
+
+## Classical linear regression model
+
+model.lm <- lm(lwage ~ factor(female) + factor(married) + educ + exper + tenure, data = wage1)
+summary(model.lm)$r.squared
+
+## Compare with the model average estimator
+
+model <- lm.ma(lwage ~ factor(female) + factor(married) + educ + exper + tenure, compute.deriv = TRUE, data = wage1)
+summary(model)
+
+## Compare coefficients from the linear model with the mean values from model averaging 
+## for the non-factor predictors (but note in the summary that there is substantial variation)
+
+apply(model$deriv,2,summary)
+
+colMeans(model$deriv)
+
+## Linear regression derivatives
+
+coef(model.lm)[4:6]
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+
+\keyword{Regression}
+

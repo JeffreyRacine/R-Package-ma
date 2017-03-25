@@ -70,8 +70,6 @@ lm.ma.default <- function(y=NULL,
         }
     }
 
-    Est$p.max <- p.max
-
     class(Est) <- "lm.ma"
     return(Est)
 
@@ -106,7 +104,7 @@ lm.ma.Est <- function(y=NULL,
     if(is.null(z)) {
         include <- NULL
     } else {
-        include <- rep(1,NCOL(z))
+        include <- rep(1,num.z)
     }
 
     if(is.null(p.max)) p.max <- round((10/num.x)*(NROW(X)/100)^0.25)
@@ -128,7 +126,7 @@ lm.ma.Est <- function(y=NULL,
             model.ma <- suppressWarnings(crs:::predict.factor.spline(x,
                                                                      y,
                                                                      z,
-                                                                     K=cbind(rep(p,NCOL(x)),rep(1,NCOL(x))),
+                                                                     K=cbind(rep(p,num.x),rep(1,num.x)),
                                                                      I=include,
                                                                      basis=basis)$model)
             
@@ -143,7 +141,7 @@ lm.ma.Est <- function(y=NULL,
                                                                        z,
                                                                        xeval=xeval,
                                                                        zeval=zeval,
-                                                                       K=cbind(rep(p,NCOL(x)),rep(1,NCOL(x))),
+                                                                       K=cbind(rep(p,num.x),rep(1,num.x)),
                                                                        I=include,
                                                                        basis=basis)$fitted.values[,1])
         
@@ -152,7 +150,7 @@ lm.ma.Est <- function(y=NULL,
                 model.deriv <- suppressWarnings(crs:::deriv.factor.spline(x,
                                                                           y,
                                                                           z,
-                                                                          K=cbind(rep(p,NCOL(x)),rep(1,NCOL(x))),
+                                                                          K=cbind(rep(p,num.x),rep(1,num.x)),
                                                                           I=include,
                                                                           xeval=xeval,
                                                                           zeval=zeval,
@@ -195,7 +193,7 @@ lm.ma.Est <- function(y=NULL,
 
     return(list(fitted.values=fitted.mat%*%b,
                 deriv=deriv,
-                ma.weights=b,
+                ma.weights=abs(b),
                 y=y,
                 X=X,
                 basis=basis,
@@ -269,6 +267,10 @@ summary.lm.ma <- function(object,
   print(object$call)
   cat("\nModel Averaging Linear Regression\n",sep="")
   cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
+  cat(paste("\nMaximum dimension: ", object$p.max, sep=""))  
+  cat(paste("\nModel average criterion: ", object$method, sep=""))
+  cat("\nModel average weights: ")
+  cat(formatC(object$ma.weights,format="f",digits=3))
   cat("\n\n")
 
 }
