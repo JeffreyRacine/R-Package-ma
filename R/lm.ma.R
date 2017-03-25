@@ -76,15 +76,20 @@ lm.ma.Est <- function(y=NULL,
 
     for(p in 1:p.max) {
 
-        model.ma <- suppressWarnings(crs:::predict.factor.spline(x,
+        
+        if(is.null(ma.weights)) {
+            
+            model.ma <- suppressWarnings(crs:::predict.factor.spline(x,
                                                                  y,
                                                                  z,
                                                                  K=cbind(rep(p,NCOL(x)),rep(1,NCOL(x))),
                                                                  basis=basis)$model)
 
-        K[p] <- model.ma$rank
+            K[p] <- model.ma$rank
 
-        ma.mat[,p] <- Dmat.func(model.ma,method=method)
+            ma.mat[,p] <- Dmat.func(model.ma,method=method)
+        
+        }
 
         fitted.mat[,p] <- suppressWarnings(crs:::predict.factor.spline(x,
                                                                   y,

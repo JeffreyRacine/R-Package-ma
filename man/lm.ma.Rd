@@ -78,11 +78,12 @@ y <- dgp + rnorm(n,sd=0.5)
 
 n.eval <- 25
 x.seq <- seq(-1,1,length=n.eval)
-X.eval <- expand.grid(x.seq,x.seq)
+newdata <- data.frame(expand.grid(x.seq,x.seq))
+names(newdata) <- c("x1","x2")
 
-out <- lm.ma(y~x1+x2)
+model <- lm.ma(y~x1+x2)
 
-z <- matrix(out$fitted,n.eval,n.eval)
+z <- matrix(predict(model,newdata=newdata),n.eval,n.eval)
 
 num.colors <- 1000
 colorlut <- topo.colors(num.colors)
