@@ -275,7 +275,6 @@ coef.lm.ma <- function(object,
                        ...) {
 
     if(!is.null(object$deriv)) {
-        cat("\n")
         print(apply(object$deriv,2,summary))
         cat("\n")        
     } else {

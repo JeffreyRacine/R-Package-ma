@@ -86,7 +86,7 @@ Models for lm.ma are specified symbolically. A typical model has the form respon
 
 lm.ma returns an object of class "lm.ma".
 
-The function summary is used to obtain and print a summary of the results. The generic accessor functions coef, fitted, predict and residuals extract various useful features of the value returned by lm.ma.
+The function summary is used to obtain and print a summary of the results. The generic accessor functions \code{coef}, \code{fitted}, \code{predict} and \code{residuals} extract various useful features of the value returned by lm.ma.
 
 An object of class "lm.ma" is a list containing at least the following components:
 
@@ -208,15 +208,10 @@ summary(model.lm)$r.squared
 model <- lm.ma(lwage ~ female + married + educ + exper + tenure, compute.deriv = TRUE, data = wage1)
 summary(model)
 
-## Compare coefficients from the linear model with the mean values from model averaging 
-## for the non-factor predictors (but note in the summary that there is substantial variation)
+## Compare coefficients from the linear model with the values from model averaging 
+## for the non-factor predictors
 
-apply(model$deriv,2,summary)
-
-colMeans(model$deriv)
-
-## Linear regression derivatives
-
+coef(model)
 coef(model.lm)[4:6]
 }
 
