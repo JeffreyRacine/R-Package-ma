@@ -4,8 +4,8 @@ lm.ma.default <- function(y=NULL,
                           X=NULL,
                           X.eval=NULL,
                           basis=c("glp","tensor","additive"),
-                          compute.deriv=TRUE,
-                          p.max=20,
+                          compute.deriv=FALSE,
+                          p.max=NULL,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           bootstrap.ci=FALSE,
@@ -15,10 +15,12 @@ lm.ma.default <- function(y=NULL,
     basis <- match.arg(basis)
     method <- match.arg(method)
 
-    if(p.max < 2) stop("You must average over at least two models")
+    if(!is.null(p.max)) if(p.max < 2) stop("You must average over at least two models")
     if(is.null(y) | is.null(X)) stop("You must provide data for y and X")
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
 
+    if(is.null(p.max)) p.max <- round(10*(NROW(X)/100)^0.25)
+    
     Est <- lm.ma.Est(y=y,
                      X=X,
                      X.eval=X.eval,
@@ -31,10 +33,14 @@ lm.ma.default <- function(y=NULL,
     if(bootstrap.ci) {
     
         B <- 100
-        n <- length(y)
+        if(is.null(X.eval)) {
+            n <- NROW(X) 
+        } else {
+            n <- NROW(X.eval)
+        }
     
         boot.mat <- matrix(NA,n,B)
-        if(compute.deriv) boot.deriv.mat <- matrix(NA,n,B)
+        if(compute.deriv) boot.deriv.array <- array(NA,c(n,B,NCOL(X)))
     
         for(b in 1:B) {
             ii <- sample(1:n,replace=TRUE)
@@ -47,19 +53,22 @@ lm.ma.default <- function(y=NULL,
                                   method=method,
                                   ma.weights=Est$ma.weights)
             boot.mat[,b] <- out.boot$fitted
-            ## Need array XXX
-            if(compute.deriv) boot.deriv.mat[,b] <- out.boot$deriv[,1]
+            if(compute.deriv) for(k in 1:NCOL(X)) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
         }
-        
+
         Est$fitted.ci.l <- apply(boot.mat,1,quantile,prob=alpha/2,type=1)
         Est$fitted.ci.u <- apply(boot.mat,1,quantile,prob=1-alpha/2,type=1)
         
         if(compute.deriv) {
-            ## Need array XXX
-            Est$deriv.ci.l <- apply(boot.mat,1,quantile,prob=alpha/2,type=1)
-            Est$deriv.ci.u <- apply(boot.mat,1,quantile,prob=1-alpha/2,type=1)        
+            Est$deriv.ci.l <- Est$deriv.ci.u <- matrix(NA,n,NCOL(X))
+            for(k in 1:NCOL(X)) {
+                Est$deriv.ci.l[,k] <- apply(boot.deriv.array,3,quantile,prob=alpha/2,type=1)
+                Est$deriv.ci.u[,k] <- apply(boot.deriv.array,3,quantile,prob=1-alpha/2,type=1)        
+            }
         }
     }
+
+    Est$p.max <- p.max
 
     class(Est) <- "lm.ma"
     return(Est)
@@ -70,8 +79,8 @@ lm.ma.Est <- function(y=NULL,
                       X=NULL,
                       X.eval=NULL,
                       basis=c("glp","tensor","additive"),
-                      compute.deriv=TRUE,
-                      p.max=20,
+                      compute.deriv=FALSE,
+                      p.max=NULL,
                       method=c("jma","mma"),
                       ma.weights=NULL) {
     
@@ -189,8 +198,8 @@ lm.ma.formula <- function(formula,
                           X=NULL,
                           X.eval=NULL,
                           basis=c("glp","tensor","additive"),
-                          compute.deriv=TRUE,
-                          p.max=20,
+                          compute.deriv=FALSE,
+                          p.max=NULL,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           bootstrap.ci=FALSE,
