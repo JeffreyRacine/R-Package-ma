@@ -62,7 +62,7 @@ lm.ma.default <- function(y=NULL,
         Est$fitted.ci.u <- apply(boot.mat,1,quantile,prob=1-alpha/2,type=1)
         
         if(compute.deriv) {
-            Est$deriv.ci.l <- Est$deriv.ci.u <- matrix(NA,n,NCOL(X))
+            Est$deriv.ci.l <- Est$deriv.ci.u <- matrix(NA,n,Est$num.x)
             for(k in 1:Est$num.x) {
                 Est$deriv.ci.l[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=alpha/2,type=1)
                 Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1)        
