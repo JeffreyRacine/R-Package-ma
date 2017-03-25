@@ -1,0 +1,2 @@
+import(stats, crs, quadprog)
+export(lm.ma)
