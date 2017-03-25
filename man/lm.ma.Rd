@@ -84,9 +84,9 @@ Models for lm.ma are specified symbolically. A typical model has the form respon
 }
 \value{
 
-lm returns an object of class "lm.ma".
+lm.ma returns an object of class "lm.ma".
 
-The function summary is used to obtain and print a summary of the results. The generic accessor functions fitted.values and residuals extract various useful features of the value returned by lm.ma.
+The function summary is used to obtain and print a summary of the results. The generic accessor functions coef, fitted, predict and residuals extract various useful features of the value returned by lm.ma.
 
 An object of class "lm.ma" is a list containing at least the following components:
 

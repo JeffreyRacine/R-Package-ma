@@ -271,6 +271,19 @@ print.lm.ma <- function(x,
 
 }
 
+coef.lm.ma <- function(object,
+                       ...) {
+
+    if(!is.null(object$deriv)) {
+        cat("\n")
+        print(apply(object$deriv,2,summary))
+        cat("\n")        
+    } else {
+        cat("\nlm.ma(...) was called without compute.deriv=TRUE\n")
+    }
+
+    }
+
 summary.lm.ma <- function(object,
                           ...) {
 

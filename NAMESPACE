@@ -1,8 +1,10 @@
 import(stats, crs, quadprog)
+
 export(lm.ma)
+
 S3method(lm.ma, formula)
 S3method(lm.ma, default)
 S3method(predict, lm.ma)
 S3method(print, lm.ma)
 S3method(summary, lm.ma)
-
+S3method(coef, lm.ma)
