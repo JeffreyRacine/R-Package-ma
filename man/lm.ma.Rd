@@ -6,12 +6,12 @@
 Model Averaging
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+A function similar to \code{\link{lm}} that averages over a set of candidate models.
 }
 \usage{
 lm.ma(...)
 
-\method{lm.ma.default}(y=NULL,
+\method{lm.ma}{default}(y=NULL,
          X=NULL,
          X.eval=NULL,
          basis=c("glp","tensor","additive"),
@@ -23,7 +23,7 @@ lm.ma(...)
          B=100,
          alpha=0.05)
 
-\method{lm.ma.formula}(formula,
+\method{lm.ma}{formula}(formula,
          data=list(),
          y=NULL,
          X=NULL,
@@ -42,23 +42,33 @@ lm.ma(...)
 
 \arguments{
   \item{formula}{ a symbolic description of the model to be fit }
-  \item{data}{ an optional data frame containing the variables in the
-    model }
+
+  \item{data}{ an optional data frame containing the variables in the model }
+
   \item{y}{a one dimensional vector of dependent data}
+
   \item{X}{a \eqn{p}-variate data frame of explanatory (training) data }
-  \item{X.eval}{a \eqn{p}-variate data frame of points on which the regression will be
-    estimated (evaluation data)}
-\item{basis}{ a character string
-    indicating whether the additive or tensor product basis
-    matrix for a multivariate polynomial  should be used}
-  \item{compute.deriv}{a logical value indicating whether to compute
-    derivatives or not}
-  \item{p.max}{maximum value for the basis in each dimension (defaults
-    to \code{round((10/NCOL(X))*(NROW(X)/100)^0.25)}}
-  \item{method}{whether to use jackknife model averaging (JMA) or
-    Mallows model averaging (MMA)}
-  \item{ma.weights}{a vector of weights obtained from a previous
-    invocation (useful for bootstrapping)}
+
+  \item{X.eval}{a \eqn{p}-variate data frame of points on which the regression will be estimated (evaluation data)}
+
+\item{basis}{ a character string indicating whether the additive or tensor product basis matrix for a multivariate polynomial should be used}
+
+  \item{compute.deriv}{a logical value indicating whether to compute derivatives or not}
+
+  \item{p.max}{maximum value for the basis in each dimension (defaults to \code{round((10/NCOL(X))*(NROW(X)/100)^0.25)}}
+
+  \item{method}{whether to use jackknife model averaging (JMA) or Mallows model averaging (MMA)}
+
+  \item{ma.weights}{a vector of weights obtained from a previous invocation (useful for bootstrapping)}
+  
+  \item{bootstrap.ci}{a logical value indicating whether to bootstrap nonparametric confidence intervals or not}
+  
+  \item{B}{the number of bootstrap replications desired}
+  
+  \item{alpha}{value in (0,1) used to compute 1-alpha\% confidence intervals}
+  
+  \item{...}{optional arguments to be passed}
+
 }
 \details{
 Yes...

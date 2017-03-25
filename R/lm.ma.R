@@ -86,11 +86,11 @@ lm.ma.Est <- function(y=NULL,
     
     ## Divide into factors and numeric
 
-    xztmp <- crs:::splitFrame(data.frame(X))
+    xztmp <- splitFrame(data.frame(X))
     x <- xztmp$x
     z <- xztmp$z
     if(!is.null(X.eval)) {
-        xztmp <- crs:::splitFrame(data.frame(X.eval))
+        xztmp <- splitFrame(data.frame(X.eval))
         xeval <- xztmp$x
         zeval <- xztmp$z
     } else {
@@ -225,7 +225,7 @@ lm.ma.formula <- function(formula,
                        B=B,
                        alpha=alpha)
 
-  Est$r.squared <- crs:::RSQfunc(tydat,Est$fitted.values)
+  Est$r.squared <- RSQfunc(tydat,Est$fitted.values)
   Est$residuals <- tydat - Est$fitted.values
 
   Est$call <- match.call()
