@@ -66,13 +66,13 @@ lm.ma(...)
 
   \item{method}{whether to use jackknife model averaging (jma) or Mallows model averaging (mma)}
 
-  \item{ma.weights}{a vector of weights obtained from a previous invocation (useful for bootstrapping)}
+  \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
   
   \item{bootstrap.ci}{a logical value indicating whether to bootstrap nonparametric confidence intervals or not}
   
   \item{B}{the number of bootstrap replications desired}
   
-  \item{alpha}{value in (0,1) used to compute 1-alpha\% confidence intervals}
+  \item{alpha}{value in (0,1) used to compute \eqn{1-\alpha%} confidence intervals}
   
   \item{weights}{an optional vector of weights to be used in the fitting process. Should be \code{NULL} or a numeric vector; if non-NULL, weighted least squares is used with weights \code{weights} (that is, minimizing \eqn{sum(w*e^2)}); otherwise ordinary least squares is used}
   
@@ -80,11 +80,11 @@ lm.ma(...)
 
 }
 \details{
-Models for lm.ma are specified symbolically. A typical model has the form response ~ terms where response is the (numeric) response vector and terms is a series of terms which specifies a linear predictor for response.
+Models for lm.ma are specified symbolically. A typical model has the form \code{response ~ terms} where response is the (numeric) response vector and terms is a series of terms which specifies a linear predictor for response.
 }
 \value{
 
-lm.ma returns an object of class "lm.ma".
+\code{lm.ma} returns an object of class "lm.ma".
 
 The function summary is used to obtain and print a summary of the results. The generic accessor functions \code{coef}, \code{fitted}, \code{predict} and \code{residuals} extract various useful features of the value returned by lm.ma.
 
@@ -93,19 +93,21 @@ An object of class "lm.ma" is a list containing at least the following component
   \item{fitted.values}{vector of fitted values}
   \item{deriv}{matrix of derivative vectors for each predictor}
   \item{ma.weights}{model average weights}
-  \item{p.max}{value of p.max for each dimension}
-  \item{fitted.ci.l}{alpha/2 nonparametric confidence value for the fitted/predicted values}
-  \item{fitted.ci.u}{1-alpha/2 nonparametric confidence value for the fitted/predicted values}  
-  \item{deriv.ci.l}{alpha/2 nonparametric confidence value matrix for
+  \item{p.max}{value of p.max for each dimension (set by the default rule given above unless manually overridden)}
+  \item{fitted.ci.l}{\eqn{\alpha/2} nonparametric confidence value for the fitted/predicted values}
+  \item{fitted.ci.u}{\eqn{1-\alpha/2} nonparametric confidence value for the fitted/predicted values}  
+  \item{deriv.ci.l}{\eqn{\alpha/2} nonparametric confidence value matrix for
     the derivatives}
-  \item{deriv.ci.u}{1-alpha/2 nonparametric confidence value matrix for
+  \item{deriv.ci.u}{\eqn{1-\alpha/2} nonparametric confidence value matrix for
     the derivatives}
-  \item{r.squared}{nonlinear measure of goodness of fit}
+  \item{r.squared}{appropriate measure of goodness of fit (Doksum and Samarov (1995))}
   \item{residuals}{model residuals}
 
 }
 \references{
-TBD
+  Doksum, K. and A. Samarov (1995), \dQuote{Nonparametric estimation of
+  global functionals and a measure of the explanatory power of
+  covariates in regression,} The Annals of Statistics, 23 1443-1473.  
 }
 \author{
 Jeffrey S. Racine
@@ -137,7 +139,7 @@ lines(x,model$fitted.ci.l,col=2,lty=2)
 lines(x,model$fitted.ci.u,col=2,lty=2)
 
 ylim <- range(c(model$deriv.ci.l[,1],model$deriv.ci.u[,1]))
-plot(x,model$deriv[,1],ylim=ylim,ylab="derivative",type="l")
+plot(x,model$deriv[,1],ylim=ylim,ylab="First derivative",type="l")
 lines(x,model$deriv.ci.l[,1],col=2,lty=2)
 lines(x,model$deriv.ci.u[,1],col=2,lty=2)
 
