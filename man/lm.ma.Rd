@@ -28,6 +28,7 @@ lm.ma(...)
       alpha = 0.05,
       weights = NULL,
       vc = TRUE,
+      verbose = TRUE,
       ...)
 
 \method{lm.ma}{formula}(formula,
@@ -49,6 +50,7 @@ lm.ma(...)
       alpha = 0.05,
       weights = NULL,
       vc = TRUE,
+      verbose = TRUE,
       ...)
 
 }
@@ -91,6 +93,8 @@ lm.ma(...)
   \item{weights}{an optional vector of weights to be used in the fitting process. Should be \code{NULL} or a numeric vector; if non-NULL, weighted least squares is used with weights \code{weights} (that is, minimizing \eqn{\sum_iw_ie_i^2}); otherwise ordinary least squares is used}
 
   \item{vc}{a logical value indicating whether to allow the categorical predictors to enter additively (only the intercept can shift) or to instead use a varying coefficient structure (all parameters can shift)}
+  
+  \item{verbose}{a logical value indicating whether to report detailed progress during computation}
   
   \item{...}{optional arguments to be passed}
 
