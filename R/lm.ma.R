@@ -437,8 +437,10 @@ summary.lm.ma <- function(object,
   cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
                                                   " on ", format(round(object$nobs-sum(object$rank.vec*object$ma.weights)))," degrees of freedom",sep=""))
   cat(paste("\nModel average criterion: ", object$method, sep=""))
-#  cat("\nModel average weights: ")
-#  cat(formatC(object$ma.weights,format="f",digits=2))
+  cat("\nNon-zero model ranks: ")
+  cat(object$rank.vec[object$ma.weights>1e-05])
+  cat("\nNon-zero model average weights: ")
+  cat(formatC(object$ma.weights[object$ma.weights>1e-05],format="f",digits=2))
   cat("\n\n")
 
 }
