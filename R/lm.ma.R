@@ -171,6 +171,13 @@ lm.ma.Est <- function(y=NULL,
 
         P <- NROW(K.mat)
 
+    } else {
+        ## Non-exhaustive
+        if(knots) {
+            K.mat <- cbind(rep(degree.min:degree.max,length=(degree.max-degree.min+1)*num.x),rep(1,length=(degree.max-degree.min+1)*num.x))
+        } else {
+            K.mat <- cbind(rep(degree.min:degree.max,length=(degree.max-degree.min+1)*num.x),rep(1,length=(degree.max-degree.min+1)*num.x))
+        }
     }
     
     deriv <- NULL
@@ -188,12 +195,12 @@ lm.ma.Est <- function(y=NULL,
         
         if(!exhaustive) {
             if(knots) {
-                KS <- cbind(rep(p+deriv.order-1,num.x),rep(p+deriv.order-1,num.x))
+                DS <- cbind(rep(p+deriv.order-1,num.x),rep(p+deriv.order-1,num.x))
             } else {
-                KS <- cbind(rep(p+deriv.order-1,num.x),rep(1,num.x))
+                DS <- cbind(rep(p+deriv.order-1,num.x),rep(1,num.x))
             }
         } else {
-            KS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
+            DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
         }
         
         if(verbose) cat(paste("\rCandidate model ",p," of ",P," (degree.max = ",degree.max,")...",sep=""))
@@ -205,7 +212,7 @@ lm.ma.Est <- function(y=NULL,
                 model.ma <- suppressWarnings(crs:::predict.kernel.spline(x,
                                                                          y,
                                                                          z,
-                                                                         K=KS,
+                                                                         K=DS,
                                                                          lambda=lambda,
                                                                          is.ordered.z=is.ordered.z,
                                                                          basis=basis,
@@ -216,7 +223,7 @@ lm.ma.Est <- function(y=NULL,
                 model.ma <- suppressWarnings(crs:::predict.factor.spline(x,
                                                                          y,
                                                                          z,
-                                                                         K=KS,
+                                                                         K=DS,
                                                                          I=include,
                                                                          basis=basis,
                                                                          weights=weights)$model)
@@ -236,7 +243,7 @@ lm.ma.Est <- function(y=NULL,
                                                                            z,
                                                                            xeval=xeval,
                                                                            zeval=zeval,
-                                                                           K=KS,
+                                                                           K=DS,
                                                                            lambda=lambda,
                                                                            is.ordered.z=is.ordered.z,
                                                                            basis=basis,
@@ -249,7 +256,7 @@ lm.ma.Est <- function(y=NULL,
                                                                            z,
                                                                            xeval=xeval,
                                                                            zeval=zeval,
-                                                                           K=KS,
+                                                                           K=DS,
                                                                            I=include,
                                                                            basis=basis,
                                                                            weights=weights)$fitted.values[,1])
@@ -264,7 +271,7 @@ lm.ma.Est <- function(y=NULL,
                     model.deriv <- suppressWarnings(crs:::deriv.kernel.spline(x,
                                                                               y,
                                                                               z,
-                                                                              K=KS,
+                                                                              K=DS,
                                                                               lambda=lambda,
                                                                               is.ordered.z=is.ordered.z,
                                                                               xeval=xeval,
@@ -278,7 +285,7 @@ lm.ma.Est <- function(y=NULL,
                     model.deriv <- suppressWarnings(crs:::deriv.factor.spline(x,
                                                                               y,
                                                                               z,
-                                                                              K=KS,
+                                                                              K=DS,
                                                                               I=include,
                                                                               xeval=xeval,
                                                                               zeval=zeval,
@@ -347,7 +354,8 @@ lm.ma.Est <- function(y=NULL,
                 num.x=num.x,
                 num.z=num.z,
                 rank.vec=K.rank,
-                nobs=NROW(y)))
+                nobs=NROW(y),
+                DS=K.mat))
 
 }
 
@@ -438,9 +446,9 @@ summary.lm.ma <- function(object,
                                                   " on ", format(round(object$nobs-sum(object$rank.vec*object$ma.weights)))," degrees of freedom",sep=""))
   cat(paste("\nModel average criterion: ", object$method, sep=""))
   cat("\nNon-zero model ranks: ")
-  cat(object$rank.vec[object$ma.weights>1e-05])
+  cat(object$rank.vec[object$ma.weights>1e-03])
   cat("\nNon-zero model average weights: ")
-  cat(formatC(object$ma.weights[object$ma.weights>1e-05],format="f",digits=2))
+  cat(formatC(object$ma.weights[object$ma.weights>1e-03],format="f",digits=3))
   cat("\n\n")
 
 }
