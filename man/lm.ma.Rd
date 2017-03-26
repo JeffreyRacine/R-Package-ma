@@ -6,7 +6,7 @@
 Fitting Model Average Models
 }
 \description{
-A function similar to \code{\link{lm}} that averages over a set of linear (in parameters) candidate models.
+A function with an interface similar to \code{\link{lm}} that averages over a set of linear (in parameters) candidate models.
 }
 \usage{
 lm.ma(...)
