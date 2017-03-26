@@ -19,6 +19,7 @@ lm.ma(...)
       deriv.order = 1,
       degree.max = NULL,
       knots = FALSE,
+      S = 10,
       method = c("jma","mma"),
       ma.weights = NULL,
       bootstrap.ci = FALSE,
@@ -38,6 +39,7 @@ lm.ma(...)
       deriv.order = 1,
       degree.max = NULL,
       knots = FALSE,
+      S = 10,
       method = c("jma","mma"),
       ma.weights = NULL,
       bootstrap.ci = FALSE,
@@ -66,10 +68,12 @@ lm.ma(...)
   
   \item{deriv.order}{integer indicating order of derivative desired}
 
-  \item{degree.max}{maximum value for the basis in each dimension (defaults to \code{max(2,round((10/num.x)*(n/100)^0.25)} where \code{num.x} is the number of numeric (i.e., non categorical) predictors and n the number of observations}
+  \item{degree.max}{maximum value for the basis in each dimension (defaults to \code{max(2,round((S/num.x)*(n/100)^0.25)} where \code{num.x} is the number of numeric (i.e., non categorical) predictors and n the number of observations}
 
   \item{knots}{a logical value indicating whether to include interior knots or not (set equal to the degree)}
 
+  \item{S}{the constant in the data-driven rule for determining degree.max}
+  
   \item{method}{whether to use jackknife model averaging (jma) or Mallows model averaging (mma)}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}

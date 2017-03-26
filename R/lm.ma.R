@@ -8,6 +8,7 @@ lm.ma.default <- function(y=NULL,
                           deriv.order=1,
                           degree.max=NULL,
                           knots=FALSE,
+                          S=10,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           bootstrap.ci=FALSE,
@@ -32,6 +33,7 @@ lm.ma.default <- function(y=NULL,
                      deriv.order=deriv.order,
                      degree.max=degree.max,
                      knots=knots,
+                     S=S,
                      method=method,
                      ma.weights=ma.weights,
                      weights=weights,
@@ -59,6 +61,7 @@ lm.ma.default <- function(y=NULL,
                                   deriv.order=deriv.order,
                                   degree.max=degree.max,
                                   knots=knots,
+                                  S=S,
                                   method=method,
                                   ma.weights=Est$ma.weights,
                                   weights=weights,
@@ -92,6 +95,7 @@ lm.ma.Est <- function(y=NULL,
                       deriv.order=1,
                       degree.max=NULL,
                       knots=FALSE,
+                      S=10,
                       method=c("jma","mma"),
                       ma.weights=NULL,
                       weights=NULL,
@@ -131,7 +135,10 @@ lm.ma.Est <- function(y=NULL,
         lambda <- rep(sqrt(.Machine$double.eps),num.z)
     }
 
-    if(is.null(degree.max)) degree.max <- max(2,round((5/num.x)*(NROW(X)/100)^0.25))
+    if(is.null(degree.max)) {
+        if(knots) S <- S/2
+        degree.max <- max(2,round((S/num.x)*(NROW(X)/100)^0.25))
+    }
     
     deriv <- NULL
     if(compute.deriv) {
@@ -286,6 +293,7 @@ lm.ma.Est <- function(y=NULL,
                 deriv.order=deriv.order,
                 degree.max=degree.max,
                 knots=knots,
+                S=S,
                 method=method,
                 num.x=num.x,
                 num.z=num.z,
@@ -304,6 +312,7 @@ lm.ma.formula <- function(formula,
                           deriv.order=1,
                           degree.max=NULL,
                           knots=FALSE,
+                          S=10,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           bootstrap.ci=FALSE,
@@ -327,6 +336,7 @@ lm.ma.formula <- function(formula,
                        deriv.order=deriv.order,
                        degree.max=degree.max,
                        knots=knots,
+                       S=S,
                        method=method,
                        ma.weights=ma.weights,
                        bootstrap.ci=bootstrap.ci,
@@ -357,7 +367,7 @@ coef.lm.ma <- function(object,
     if(!is.null(object$deriv)) {
         object$deriv
     } else {
-        cat("\nlm.ma(...) was called without compute.deriv=TRUE\n")
+        cat("\nlm.ma(...) was called with option compute.deriv=FALSE\n")
     }
 
     }
@@ -369,7 +379,9 @@ summary.lm.ma <- function(object,
   print(object$call)
   cat("\nModel Averaging Linear Regression\n",sep="")
   cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
-  cat(paste("\nMaximum dimension: ", object$degree.max, sep=""))  
+  cat(paste("\nMaximum polynomial degree: ", object$degree.max, sep=""))  
+  cat(paste("\nNumber of observations: ", object$nobs, sep=""))
+  cat(paste("\nRank of model averaged model frame: ", round(sum(object$rank.vec*object$ma.weights)), sep=""))
   cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
                                                   " on ", format(round(object$nobs-sum(object$rank.vec*object$ma.weights)))," degrees of freedom",sep=""))
   cat(paste("\nModel average criterion: ", object$method, sep=""))
@@ -398,6 +410,7 @@ predict.lm.ma <- function(object,
                          deriv.order=object$deriv.order,
                          degree.max=object$degree.max,
                          knots=object$knots,
+                         S=object$S,
                          method=object$method,
                          ma.weights=object$ma.weights)
     fitted.values <- Est$fitted.values
