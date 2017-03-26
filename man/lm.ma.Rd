@@ -3,10 +3,10 @@
 \alias{lm.ma.default}
 \alias{lm.ma.formula}
 \title{
-Fitting Linear Model Average Models
+Fitting Model Average Models
 }
 \description{
-A function similar to \code{\link{lm}} that averages over a set of candidate models.
+A function similar to \code{\link{lm}} that averages over a set of linear (in parameters) candidate models.
 }
 \usage{
 lm.ma(...)
@@ -56,13 +56,13 @@ lm.ma(...)
 
   \item{X.eval}{a \eqn{p}-variate data frame of points on which the regression will be estimated (evaluation data)}
 
-  \item{basis}{ a character string indicating whether the additive or tensor product basis matrix for a multivariate polynomial should be used}
+  \item{basis}{ a character string indicating whether the generalized polynomial, additive or tensor product basis should be used}
 
-  \item{compute.deriv}{a logical value indicating whether to compute derivatives or not}
+  \item{compute.deriv}{a logical value indicating whether or not to compute derivatives}
   
   \item{deriv.order}{integer indicating order of derivative desired}
 
-  \item{p.max}{maximum value for the basis in each dimension (defaults to \code{round((10/NCOL(X))*(NROW(X)/100)^0.25)}}
+  \item{p.max}{maximum value for the basis in each dimension (defaults to \code{round((10/num.x)*(n/100)^0.25)} where \code{num.x} is the number of numeric (i.e., non categorical) predictors and n the number of observations}
 
   \item{method}{whether to use jackknife model averaging (jma) or Mallows model averaging (mma)}
 
