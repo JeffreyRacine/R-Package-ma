@@ -64,7 +64,7 @@ lm.ma(...)
   
   \item{deriv.order}{integer indicating order of derivative desired}
 
-  \item{p.max}{maximum value for the basis in each dimension (defaults to \code{round((10/num.x)*(n/100)^0.25)} where \code{num.x} is the number of numeric (i.e., non categorical) predictors and n the number of observations}
+  \item{p.max}{maximum value for the basis in each dimension (defaults to \code{max(2,round((10/num.x)*(n/100)^0.25)} where \code{num.x} is the number of numeric (i.e., non categorical) predictors and n the number of observations}
 
   \item{method}{whether to use jackknife model averaging (jma) or Mallows model averaging (mma)}
 

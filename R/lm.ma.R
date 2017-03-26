@@ -127,7 +127,7 @@ lm.ma.Est <- function(y=NULL,
         lambda <- rep(sqrt(.Machine$double.eps),num.z)
     }
 
-    if(is.null(p.max)) p.max <- round((10/num.x)*(NROW(X)/100)^0.25)
+    if(is.null(p.max)) p.max <- max(2,round((10/num.x)*(NROW(X)/100)^0.25))
     
     deriv <- NULL
     if(compute.deriv) {
