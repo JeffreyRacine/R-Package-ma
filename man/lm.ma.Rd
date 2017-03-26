@@ -72,7 +72,7 @@ lm.ma(...)
   
   \item{B}{the number of bootstrap replications desired}
   
-  \item{alpha}{value in (0,1) used to compute \eqn{1-\alpha%} confidence intervals}
+  \item{alpha}{value in (0,1) used to compute \eqn{1-\alpha\%} confidence intervals}
   
   \item{weights}{an optional vector of weights to be used in the fitting process. Should be \code{NULL} or a numeric vector; if non-NULL, weighted least squares is used with weights \code{weights} (that is, minimizing \eqn{sum(w*e^2)}); otherwise ordinary least squares is used}
   
@@ -228,7 +228,12 @@ model.kernel <- npreg(logwage~age,regtype="ll",bwmethod="cv.aic")
 lines(age,fitted(model.kernel),col=2,lty=2)
 model.spline <- crs(logwage~age,cv.threshold=0)
 lines(age,fitted(model.spline),col=3,lty=3)
-legend("topleft",c("Parametric Model Average","Nonparametric Kernel","Nonparametric B-Spline"),col=1:3,lty=1:3,bty="n")
+legend("topleft",c("Parametric Model Average",
+                   "Nonparametric Kernel",
+                   "Nonparametric B-Spline"),
+                   col=1:3,
+                   lty=1:3,
+                   bty="n")
 }
 
 \keyword{Regression}
