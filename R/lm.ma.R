@@ -8,7 +8,6 @@ lm.ma.default <- function(y=NULL,
                           deriv.order=1,
                           degree.max=NULL,
                           knots=FALSE,
-                          S=10,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           bootstrap.ci=FALSE,
@@ -33,7 +32,6 @@ lm.ma.default <- function(y=NULL,
                      deriv.order=deriv.order,
                      degree.max=degree.max,
                      knots=knots,
-                     S=S,
                      method=method,
                      ma.weights=ma.weights,
                      weights=weights,
@@ -61,7 +59,6 @@ lm.ma.default <- function(y=NULL,
                                   deriv.order=deriv.order,
                                   degree.max=degree.max,
                                   knots=knots,
-                                  S=S,
                                   method=method,
                                   ma.weights=Est$ma.weights,
                                   weights=weights,
@@ -95,7 +92,6 @@ lm.ma.Est <- function(y=NULL,
                       deriv.order=1,
                       degree.max=NULL,
                       knots=FALSE,
-                      S=10,
                       method=c("jma","mma"),
                       ma.weights=NULL,
                       weights=NULL,
@@ -135,10 +131,7 @@ lm.ma.Est <- function(y=NULL,
         lambda <- rep(sqrt(.Machine$double.eps),num.z)
     }
 
-    if(is.null(degree.max)) {
-        if(knots) S <- S/2
-        degree.max <- max(2,round((S/num.x)*(NROW(X)/100)^0.25))
-    }
+    if(is.null(degree.max)) degree.max <- max(2,round((5/num.x)*(NROW(X)/100)^0.25))
     
     deriv <- NULL
     if(compute.deriv) {
@@ -154,9 +147,9 @@ lm.ma.Est <- function(y=NULL,
     for(p in 1:degree.max) {
         
         if(knots) {
-            K.mat <- cbind(rep(p,num.x),rep(p,num.x))
+            K.mat <- cbind(rep(p+deriv.order-1,num.x),rep(p+deriv.order-1,num.x))
         } else {
-            K.mat <- cbind(rep(p,num.x),rep(1,num.x))
+            K.mat <- cbind(rep(p+deriv.order-1,num.x),rep(1,num.x))
         }
         
         if(is.null(ma.weights)) {
@@ -293,7 +286,6 @@ lm.ma.Est <- function(y=NULL,
                 deriv.order=deriv.order,
                 degree.max=degree.max,
                 knots=knots,
-                S=S,
                 method=method,
                 num.x=num.x,
                 num.z=num.z,
@@ -312,7 +304,6 @@ lm.ma.formula <- function(formula,
                           deriv.order=1,
                           degree.max=NULL,
                           knots=FALSE,
-                          S=10,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           bootstrap.ci=FALSE,
@@ -336,7 +327,6 @@ lm.ma.formula <- function(formula,
                        deriv.order=deriv.order,
                        degree.max=degree.max,
                        knots=knots,
-                       S=S,
                        method=method,
                        ma.weights=ma.weights,
                        bootstrap.ci=bootstrap.ci,
@@ -410,7 +400,6 @@ predict.lm.ma <- function(object,
                          deriv.order=object$deriv.order,
                          degree.max=object$degree.max,
                          knots=object$knots,
-                         S=object$S,
                          method=object$method,
                          ma.weights=object$ma.weights)
     fitted.values <- Est$fitted.values
