@@ -105,6 +105,11 @@ Typical usages are
 }
 
 Models for lm.ma are specified symbolically. A typical model has the form \code{response ~ terms} where response is the (numeric) response vector and terms is a series of terms which specifies a linear predictor for response.
+
+This function computes model averages over least squares model's for a variety of basis functions. The default (\code{basis="glp"}) uses a (multivariate) Taylor-type basis with Bernstein (as opposed to raw) polynomials. When \code{knots=TRUE} then interior knots are used and the Bernstein polynomials become B-spline bases and we are then averaging over regression spline models. For degrees higher than one interaction terms are included up to order degree minus one. Since we are averaging over models that are nonlinear in the predictors, derivatives will be vectors that potentially depend on the values of all predictors. An ad-hoc formula for the relationship between the largest (most complex) model, the sample size, and the number of predictors. This was chosen so that as the sample size increases we can approximate ever more complex functions while we must necessarily restrict the size of the largest model in small sample settings. Categorical predictors can enter additively and linearly (\code{vc=FALSE}) or in a parsimonious manner by exploiting recent developments in semiparametric varying coefficient models along the lines of Li, Ouyang, and Racine (2013).
+
+This approach frees the user from using either model assertion or selection methods and thereby attenuates bias arising from model misspecification.
+
 }
 \value{
 
@@ -129,9 +134,9 @@ An object of class "lm.ma" is a list containing at least the following component
 
 }
 \references{
-  Doksum, K. and A. Samarov (1995), \dQuote{Nonparametric estimation of
-  global functionals and a measure of the explanatory power of
-  covariates in regression,} The Annals of Statistics, 23 1443-1473.  
+  Doksum, K. and A. Samarov (1995), \dQuote{Nonparametric estimation of global functionals and a measure of the explanatory power of covariates in regression,} The Annals of Statistics, 23 1443-1473.  
+  
+  Li, Q. and D. Ouyang and J.S. Racine (2013), \dQuote{Categorical Semiparametric Varying Coefficient Models,} Journal of Applied Econometrics, Volume 28, 551-579.
 }
 \author{
 Jeffrey S. Racine
