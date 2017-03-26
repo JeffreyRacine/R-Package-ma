@@ -215,6 +215,20 @@ summary(model)
 
 coef(model)
 coef(model.lm)[4:6]
+
+## Example 4
+
+data(cps71)
+attach(cps71)
+model <- lm.ma(logwage~age)
+plot(age,logwage,cex=0.25)
+lines(age,fitted(model))
+require(np)
+model.kernel <- npreg(logwage~age,regtype="ll",bwmethod="cv.aic")
+lines(age,fitted(model.kernel),col=2,lty=2)
+model.spline <- crs(logwage~age,cv.threshold=0)
+lines(age,fitted(model.spline),col=3,lty=3)
+legend("topleft",c("Parametric Model Average","Nonparametric Kernel","Nonparametric B-Spline"),col=1:3,lty=1:3,bty="n")
 }
 
 \keyword{Regression}

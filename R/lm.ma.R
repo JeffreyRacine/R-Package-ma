@@ -293,7 +293,7 @@ summary.lm.ma <- function(object,
   cat(paste("\nMaximum dimension: ", object$p.max, sep=""))  
   cat(paste("\nModel average criterion: ", object$method, sep=""))
   cat("\nModel average weights: ")
-  cat(formatC(object$ma.weights,format="f",digits=3))
+  cat(formatC(object$ma.weights,format="f",digits=2))
   if(!is.null(object$deriv)) {
       cat("\nMedian derivative(s) for the numeric predictor(s): ")
       cat(formatC(apply(object$deriv,2,median),format="f",digits=4))
