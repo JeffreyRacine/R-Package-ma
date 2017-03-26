@@ -196,7 +196,7 @@ lm.ma.Est <- function(y=NULL,
             KS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
         }
         
-        if(verbose) cat(paste("\rCandidate model ",p," of ",P," (degree.max = ",degree.max,") ",sep=""))
+        if(verbose) cat(paste("\rCandidate model ",p," of ",P," (degree.max = ",degree.max,")...",sep=""))
 
         if(is.null(ma.weights)) {
 
@@ -295,7 +295,8 @@ lm.ma.Est <- function(y=NULL,
 
     }
     
-    if(verbose) cat("\r                                           ")
+    if(verbose) cat("\r                                                    ")
+    if(verbose) cat("\rComputing model average weights...")
 
     if(is.null(ma.weights)) {
 
@@ -322,7 +323,13 @@ lm.ma.Est <- function(y=NULL,
         b <- ma.weights
     }
 
-    if(compute.deriv) for(k in 1:num.x) deriv[,k] <- deriv.mat[,,k]%*%b
+    if(compute.deriv) {
+        if(verbose) cat("\r                                                    ")
+        if(verbose) cat("\rComputing derivatives...")
+        for(k in 1:num.x) deriv[,k] <- deriv.mat[,,k]%*%b
+    }
+
+    if(verbose) cat("\r                                                    ")
 
     return(list(fitted.values=fitted.mat%*%b,
                 deriv=deriv,
