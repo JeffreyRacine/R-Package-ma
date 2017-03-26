@@ -20,6 +20,7 @@ lm.ma(...)
       degree.max = NULL,
       knots = FALSE,
       S = 10,
+      exhaustive = FALSE,
       method = c("jma","mma"),
       ma.weights = NULL,
       bootstrap.ci = FALSE,
@@ -40,6 +41,7 @@ lm.ma(...)
       degree.max = NULL,
       knots = FALSE,
       S = 10,
+      exhaustive = FALSE,
       method = c("jma","mma"),
       ma.weights = NULL,
       bootstrap.ci = FALSE,
@@ -73,6 +75,8 @@ lm.ma(...)
   \item{knots}{a logical value indicating whether to include interior knots or not (set equal to the degree)}
 
   \item{S}{the constant in the data-driven rule for determining degree.max}
+  
+  \item{exhaustive}{a logical value indicating whether to conduct exhaustive search or not}
   
   \item{method}{whether to use jackknife model averaging (jma) or Mallows model averaging (mma)}
 

@@ -9,6 +9,7 @@ lm.ma.default <- function(y=NULL,
                           degree.max=NULL,
                           knots=FALSE,
                           S=10,
+                          exhaustive=FALSE,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           bootstrap.ci=FALSE,
@@ -34,6 +35,7 @@ lm.ma.default <- function(y=NULL,
                      degree.max=degree.max,
                      knots=knots,
                      S=S,
+                     exhaustive=exhaustive,
                      method=method,
                      ma.weights=ma.weights,
                      weights=weights,
@@ -62,6 +64,7 @@ lm.ma.default <- function(y=NULL,
                                   degree.max=degree.max,
                                   knots=knots,
                                   S=S,
+                                  exhaustive=exhaustive,
                                   method=method,
                                   ma.weights=Est$ma.weights,
                                   weights=weights,
@@ -96,6 +99,7 @@ lm.ma.Est <- function(y=NULL,
                       degree.max=NULL,
                       knots=FALSE,
                       S=10,
+                      exhaustive=FALSE,
                       method=c("jma","mma"),
                       ma.weights=NULL,
                       weights=NULL,
@@ -140,25 +144,48 @@ lm.ma.Est <- function(y=NULL,
         degree.max <- max(2,round((S/num.x)*(NROW(X)/100)^0.25))
     }
     
+    P <- degree.max
+    
+    if(exhaustive) {
+        
+        degree.min = deriv.order
+        
+        ## Exhaustive evaluation over all combinations of K, search over
+        ## lambda for each combination
+        if(knots) {
+            K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max, K.vec2=degree.min:degree.max,num.x=num.x)
+        } else {
+            K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
+            K.mat <- cbind(K.mat[,1:num.x],matrix(1,nrow(K.mat),num.x,byrow=TRUE))
+        }
+
+        P <- NROW(K.mat)
+
+    }
+    
     deriv <- NULL
     if(compute.deriv) {
-        deriv.mat <- array(NA,c(if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},degree.max,num.x))
+        deriv.mat <- array(NA,c(if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P,num.x))
         deriv <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},num.x)
         colnames(deriv) <- xnames
     }
 
-    K <- numeric(length=degree.max)
-    ma.mat <- matrix(NA,NROW(X),degree.max)
-    fitted.mat <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},degree.max)
+    K.rank <- numeric(length=degree.max)
+    ma.mat <- matrix(NA,NROW(X),P)
+    fitted.mat <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P)
 
-    for(p in 1:degree.max) {
+    for(p in 1:P) {
         
-        if(knots) {
-            K.mat <- cbind(rep(p+deriv.order-1,num.x),rep(p+deriv.order-1,num.x))
+        if(!exhaustive) {
+            if(knots) {
+                KS <- cbind(rep(p+deriv.order-1,num.x),rep(p+deriv.order-1,num.x))
+            } else {
+                KS <- cbind(rep(p+deriv.order-1,num.x),rep(1,num.x))
+            }
         } else {
-            K.mat <- cbind(rep(p+deriv.order-1,num.x),rep(1,num.x))
+            KS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
         }
-        
+
         if(is.null(ma.weights)) {
 
             if(vc & !is.null(num.z)) {
@@ -166,7 +193,7 @@ lm.ma.Est <- function(y=NULL,
                 model.ma <- suppressWarnings(crs:::predict.kernel.spline(x,
                                                                          y,
                                                                          z,
-                                                                         K=K.mat,
+                                                                         K=KS,
                                                                          lambda=lambda,
                                                                          is.ordered.z=is.ordered.z,
                                                                          basis=basis,
@@ -177,14 +204,14 @@ lm.ma.Est <- function(y=NULL,
                 model.ma <- suppressWarnings(crs:::predict.factor.spline(x,
                                                                          y,
                                                                          z,
-                                                                         K=K.mat,
+                                                                         K=KS,
                                                                          I=include,
                                                                          basis=basis,
                                                                          weights=weights)$model)
 
             }
 
-            K[p] <- model.ma$rank
+            K.rank[p] <- model.ma$rank
 
             ma.mat[,p] <- Dmat.func(model.ma,method=method)
         
@@ -197,7 +224,7 @@ lm.ma.Est <- function(y=NULL,
                                                                            z,
                                                                            xeval=xeval,
                                                                            zeval=zeval,
-                                                                           K=K.mat,
+                                                                           K=KS,
                                                                            lambda=lambda,
                                                                            is.ordered.z=is.ordered.z,
                                                                            basis=basis,
@@ -210,7 +237,7 @@ lm.ma.Est <- function(y=NULL,
                                                                            z,
                                                                            xeval=xeval,
                                                                            zeval=zeval,
-                                                                           K=K.mat,
+                                                                           K=KS,
                                                                            I=include,
                                                                            basis=basis,
                                                                            weights=weights)$fitted.values[,1])
@@ -225,7 +252,7 @@ lm.ma.Est <- function(y=NULL,
                     model.deriv <- suppressWarnings(crs:::deriv.kernel.spline(x,
                                                                               y,
                                                                               z,
-                                                                              K=K.mat,
+                                                                              K=KS,
                                                                               lambda=lambda,
                                                                               is.ordered.z=is.ordered.z,
                                                                               xeval=xeval,
@@ -239,7 +266,7 @@ lm.ma.Est <- function(y=NULL,
                     model.deriv <- suppressWarnings(crs:::deriv.factor.spline(x,
                                                                               y,
                                                                               z,
-                                                                              K=K.mat,
+                                                                              K=KS,
                                                                               I=include,
                                                                               xeval=xeval,
                                                                               zeval=zeval,
@@ -270,7 +297,7 @@ lm.ma.Est <- function(y=NULL,
         A <- cbind(rep(1,M),diag(1,M,M))
         b0 <- c(1,rep(0,M))
         if(method=="mma") {
-            d <- -sigsq*K
+            d <- -sigsq*K.rank
         } else {
             d <- t(y)%*%ma.mat
         }        
@@ -294,10 +321,11 @@ lm.ma.Est <- function(y=NULL,
                 degree.max=degree.max,
                 knots=knots,
                 S=S,
+                exhaustive=exhaustive,
                 method=method,
                 num.x=num.x,
                 num.z=num.z,
-                rank.vec=K,
+                rank.vec=K.rank,
                 nobs=NROW(y)))
 
 }
@@ -313,6 +341,7 @@ lm.ma.formula <- function(formula,
                           degree.max=NULL,
                           knots=FALSE,
                           S=10,
+                          exhaustive=FALSE,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           bootstrap.ci=FALSE,
@@ -337,6 +366,7 @@ lm.ma.formula <- function(formula,
                        degree.max=degree.max,
                        knots=knots,
                        S=S,
+                       exhaustive=exhaustive,
                        method=method,
                        ma.weights=ma.weights,
                        bootstrap.ci=bootstrap.ci,
@@ -411,6 +441,7 @@ predict.lm.ma <- function(object,
                          degree.max=object$degree.max,
                          knots=object$knots,
                          S=object$S,
+                         exhaustive=object$exhaustive,
                          method=object$method,
                          ma.weights=object$ma.weights)
     fitted.values <- Est$fitted.values
