@@ -155,6 +155,7 @@ lm.ma.Est <- function(y=NULL,
     }
     
     P <- degree.max
+    ma.weights.orig <- ma.weights
     
     if(exhaustive) {
         
@@ -167,6 +168,11 @@ lm.ma.Est <- function(y=NULL,
         } else {
             K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
             K.mat <- cbind(K.mat[,1:num.x],matrix(1,nrow(K.mat),num.x,byrow=TRUE))
+        }
+
+        if(!is.null(ma.weights)) {
+            K.mat <- K.mat[ma.weights>1e-03,]
+            ma.weights <- ma.weights[ma.weights>1e-03]
         }
 
         P <- NROW(K.mat)
@@ -187,7 +193,7 @@ lm.ma.Est <- function(y=NULL,
         colnames(deriv) <- xnames
     }
 
-    K.rank <- numeric(length=degree.max)
+    K.rank <- numeric(length=P)
     ma.mat <- matrix(NA,NROW(X),P)
     fitted.mat <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P)
 
@@ -340,7 +346,7 @@ lm.ma.Est <- function(y=NULL,
 
     return(list(fitted.values=fitted.mat%*%b,
                 deriv=deriv,
-                ma.weights=abs(b),
+                ma.weights=if(is.null(ma.weights)){abs(b)}else{ma.weights.orig},
                 y=y,
                 X=X,
                 basis=basis,
