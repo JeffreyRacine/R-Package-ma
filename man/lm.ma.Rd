@@ -17,7 +17,8 @@ lm.ma(...)
       basis = c("glp","tensor","additive"),
       compute.deriv = FALSE,
       deriv.order = 1,
-      p.max = NULL,
+      degree.max = NULL,
+      knots = FALSE,
       method = c("jma","mma"),
       ma.weights = NULL,
       bootstrap.ci = FALSE,
@@ -35,7 +36,8 @@ lm.ma(...)
       basis = c("glp","tensor","additive"),
       compute.deriv = FALSE,
       deriv.order = 1,
-      p.max = NULL,
+      degree.max = NULL,
+      knots = FALSE,
       method = c("jma","mma"),
       ma.weights = NULL,
       bootstrap.ci = FALSE,
@@ -64,7 +66,9 @@ lm.ma(...)
   
   \item{deriv.order}{integer indicating order of derivative desired}
 
-  \item{p.max}{maximum value for the basis in each dimension (defaults to \code{max(2,round((10/num.x)*(n/100)^0.25)} where \code{num.x} is the number of numeric (i.e., non categorical) predictors and n the number of observations}
+  \item{degree.max}{maximum value for the basis in each dimension (defaults to \code{max(2,round((10/num.x)*(n/100)^0.25)} where \code{num.x} is the number of numeric (i.e., non categorical) predictors and n the number of observations}
+
+  \item{knots}{a logical value indicating whether to include interior knots or not (set equal to the degree)}
 
   \item{method}{whether to use jackknife model averaging (jma) or Mallows model averaging (mma)}
 
@@ -109,7 +113,7 @@ An object of class "lm.ma" is a list containing at least the following component
   \item{fitted.values}{vector of fitted values}
   \item{deriv}{matrix of derivative vectors for each predictor}
   \item{ma.weights}{model average weights}
-  \item{p.max}{value of p.max for each dimension (set by the default rule given above unless manually overridden)}
+  \item{degree.max}{value of degree.max for each dimension (set by the default rule given above unless manually overridden)}
   \item{fitted.ci.l}{\eqn{\alpha/2} nonparametric confidence value for the fitted/predicted values}
   \item{fitted.ci.u}{\eqn{1-\alpha/2} nonparametric confidence value for the fitted/predicted values}  
   \item{deriv.ci.l}{\eqn{\alpha/2} nonparametric confidence value matrix for
