@@ -277,9 +277,10 @@ lm.ma.Est <- function(y=NULL,
                 p.max=p.max,
                 method=method,
                 num.x=num.x,
-                num.z=num.z))
+                num.z=num.z,
+                rank.vec=K,
+                nobs=NROW(y)))
 
-    
 }
 
 lm.ma.formula <- function(formula,
@@ -356,13 +357,11 @@ summary.lm.ma <- function(object,
   cat("\nModel Averaging Linear Regression\n",sep="")
   cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
   cat(paste("\nMaximum dimension: ", object$p.max, sep=""))  
+  cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
+                                                  " on ", format(round(object$nobs-sum(object$rank.vec*object$ma.weights)))," degrees of freedom",sep=""))
   cat(paste("\nModel average criterion: ", object$method, sep=""))
   cat("\nModel average weights: ")
   cat(formatC(object$ma.weights,format="f",digits=2))
-  if(!is.null(object$deriv)) {
-      cat("\nMedian derivative(s) for the numeric predictor(s): ")
-      cat(formatC(apply(object$deriv,2,median),format="f",digits=4))
-  }
   cat("\n\n")
 
 }
@@ -393,6 +392,10 @@ predict.lm.ma <- function(object,
 
   attr(fitted.values, "deriv") <- deriv
 
-  return(fitted.values)
+  if(is.null(Est$deriv)) {
+      return(fitted.values)
+  } else {
+      return(list(fit=fitted.values,deriv=deriv))
+  }
 
 }
