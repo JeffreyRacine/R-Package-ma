@@ -76,7 +76,7 @@ lm.ma(...)
   
   \item{alpha}{value in (0,1) used to compute \eqn{1-\alpha\%} confidence intervals}
   
-  \item{weights}{an optional vector of weights to be used in the fitting process. Should be \code{NULL} or a numeric vector; if non-NULL, weighted least squares is used with weights \code{weights} (that is, minimizing \eqn{sum(w*e^2)}); otherwise ordinary least squares is used}
+  \item{weights}{an optional vector of weights to be used in the fitting process. Should be \code{NULL} or a numeric vector; if non-NULL, weighted least squares is used with weights \code{weights} (that is, minimizing \eqn{\sum_iw_ie_i^2}); otherwise ordinary least squares is used}
 
   \item{vc}{a logical value indicating whether to allow the categorical predictors to enter additively (only the intercept can shift) or to instead use a varying coefficient structure (all parameters can shift)}
   
@@ -84,6 +84,18 @@ lm.ma(...)
 
 }
 \details{
+
+Typical usages are
+\preformatted{
+    model <- lm.ma(y~x1+x2)
+    model <- lm.ma(y~x1+x2,compute.deriv=TRUE)
+    model <- lm.ma(y~x1+x2,bootstrap.ci=TRUE)    
+    summary(model)
+    fitted(model)
+    coef(model)
+    predict(model,newdata=foo)
+}
+
 Models for lm.ma are specified symbolically. A typical model has the form \code{response ~ terms} where response is the (numeric) response vector and terms is a series of terms which specifies a linear predictor for response.
 }
 \value{
@@ -133,7 +145,8 @@ dgp <- cos(2*pi*x)
 y <- dgp + rnorm(n,sd=0.5*sd(dgp))
 
 model <- lm.ma(y~x,bootstrap.ci=TRUE,compute.deriv=TRUE)
-model$ma.weights
+
+summary(model)
 
 par(mfrow=c(1,2))
 
@@ -168,6 +181,8 @@ newdata <- data.frame(expand.grid(x.seq,x.seq))
 names(newdata) <- c("x1","x2")
 
 model <- lm.ma(y~x1+x2)
+
+summary(model)
 
 z <- matrix(predict(model,newdata=newdata),n.eval,n.eval)
 
@@ -206,27 +221,32 @@ data(wage1)
 
 ## Classical linear regression model
 
-model.lm <- lm(lwage ~ factor(female) + factor(married) + educ + exper + tenure, data = wage1)
-summary(model.lm)$r.squared
+model.lm <- lm(lwage ~ female + married + educ + exper + tenure, 
+               data = wage1)
+
+summary(model.lm)
 
 ## Compare with the model average estimator (female and married are factors)
 
-model <- lm.ma(lwage ~ female + married + educ + exper + tenure, compute.deriv = TRUE, data = wage1)
+model <- lm.ma(lwage ~ female + married + educ + exper + tenure, 
+               compute.deriv = TRUE, 
+               data = wage1)
+
 summary(model)
 
 ## Compare coefficients from the linear model with the values from model averaging 
 ## for the non-factor predictors
 
-coef(model)
+apply(coef(model),2,summary)
 coef(model.lm)[4:6]
 
 ## Example 4
 
 data(cps71)
 attach(cps71)
-model <- lm.ma(logwage~age)
+model.ma <- lm.ma(logwage~age)
 plot(age,logwage,cex=0.25)
-lines(age,fitted(model))
+lines(age,fitted(model.ma))
 require(np)
 model.kernel <- npreg(logwage~age,regtype="ll",bwmethod="cv.aic")
 lines(age,fitted(model.kernel),col=2,lty=2)
@@ -238,6 +258,10 @@ legend("topleft",c("Parametric Model Average",
                    col=1:3,
                    lty=1:3,
                    bty="n")
+                   
+summary(model.spline)
+summary(model.kernel)
+summary(model.ma)
 }
 
 \keyword{Regression}
