@@ -11,36 +11,38 @@ A function similar to \code{\link{lm}} that averages over a set of linear (in pa
 \usage{
 lm.ma(...)
 
-\method{lm.ma}{default}(y=NULL,
-      X=NULL,
-      X.eval=NULL,
-      basis=c("glp","tensor","additive"),
-      compute.deriv=FALSE,
-      deriv.order=1,
-      p.max=NULL,
-      method=c("jma","mma"),
-      ma.weights=NULL,
-      bootstrap.ci=FALSE,
-      B=100,
-      alpha=0.05,
-      weights=NULL,
+\method{lm.ma}{default}(y = NULL,
+      X = NULL,
+      X.eval = NULL,
+      basis = c("glp","tensor","additive"),
+      compute.deriv = FALSE,
+      deriv.order = 1,
+      p.max = NULL,
+      method = c("jma","mma"),
+      ma.weights = NULL,
+      bootstrap.ci = FALSE,
+      B = 199,
+      alpha = 0.05,
+      weights = NULL,
+      vc = TRUE,
       ...)
 
 \method{lm.ma}{formula}(formula,
-      data=list(),
-      y=NULL,
-      X=NULL,
-      X.eval=NULL,
-      basis=c("glp","tensor","additive"),
-      compute.deriv=FALSE,
-      deriv.order=1,
-      p.max=NULL,
-      method=c("jma","mma"),
-      ma.weights=NULL,
-      bootstrap.ci=FALSE,
-      B=100,
-      alpha=0.05,
-      weights=NULL,
+      data = list(),
+      y = NULL,
+      X = NULL,
+      X.eval = NULL,
+      basis = c("glp","tensor","additive"),
+      compute.deriv = FALSE,
+      deriv.order = 1,
+      p.max = NULL,
+      method = c("jma","mma"),
+      ma.weights = NULL,
+      bootstrap.ci = FALSE,
+      B = 199,
+      alpha = 0.05,
+      weights = NULL,
+      vc = TRUE,
       ...)
 
 }
@@ -75,6 +77,8 @@ lm.ma(...)
   \item{alpha}{value in (0,1) used to compute \eqn{1-\alpha\%} confidence intervals}
   
   \item{weights}{an optional vector of weights to be used in the fitting process. Should be \code{NULL} or a numeric vector; if non-NULL, weighted least squares is used with weights \code{weights} (that is, minimizing \eqn{sum(w*e^2)}); otherwise ordinary least squares is used}
+
+  \item{vc}{a logical value indicating whether to allow the categorical predictors to enter additively (only the intercept can shift) or to instead use a varying coefficient structure (all parameters can shift)}
   
   \item{...}{optional arguments to be passed}
 

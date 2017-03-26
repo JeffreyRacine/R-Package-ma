@@ -10,7 +10,7 @@ lm.ma.default <- function(y=NULL,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           bootstrap.ci=FALSE,
-                          B=100,
+                          B=199,
                           alpha=0.05,
                           weights=NULL,
                           vc=TRUE,
@@ -95,9 +95,9 @@ lm.ma.Est <- function(y=NULL,
     
     ## Divide into factors and numeric
     if(!vc) {
-        xztmp <- splitFrame(X)
+        xztmp <- splitFrame(as.data.frame(X))
     } else {
-        xztmp <- splitFrame(X,factor.to.numeric=TRUE)
+        xztmp <- splitFrame(as.data.frame(X),factor.to.numeric=TRUE)
     }
     xnames <- xztmp$xnames
     znames <- xztmp$znames
@@ -108,9 +108,9 @@ lm.ma.Est <- function(y=NULL,
     is.ordered.z <- xztmp$is.ordered.z
     if(!is.null(X.eval)) {
         if(!vc) {
-            xztmp <- splitFrame(X.eval)
+            xztmp <- splitFrame(as.data.frame(X.eval))
         } else {
-            xztmp <- splitFrame(X.eval,factor.to.numeric=TRUE)
+            xztmp <- splitFrame(as.data.frame(X.eval),factor.to.numeric=TRUE)
         }
         xeval <- xztmp$x
         zeval <- xztmp$z
@@ -294,7 +294,7 @@ lm.ma.formula <- function(formula,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           bootstrap.ci=FALSE,
-                          B=100,
+                          B=199,
                           alpha=0.05,
                           weights=NULL,
                           vc=TRUE,
