@@ -9,7 +9,7 @@ lm.ma.default <- function(y=NULL,
                           degree.max=NULL,
                           knots=FALSE,
                           S=10,
-                          exhaustive=FALSE,
+                          exhaustive=TRUE,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           bootstrap.ci=FALSE,
@@ -17,11 +17,18 @@ lm.ma.default <- function(y=NULL,
                           alpha=0.05,
                           weights=NULL,
                           vc=TRUE,
+                          verbose=TRUE,
                           ...) {
 
     basis <- match.arg(basis)
     method <- match.arg(method)
-
+    
+    if(verbose) {
+        options(crs.messages=FALSE)
+    } else {
+        options(crs.messages=TRUE)
+    }
+    
     if(!is.null(degree.max)) if(degree.max < 2) stop("You must average over at least two models")
     if(is.null(y) | is.null(X)) stop("You must provide data for y and X")
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
@@ -39,7 +46,8 @@ lm.ma.default <- function(y=NULL,
                      method=method,
                      ma.weights=ma.weights,
                      weights=weights,
-                     vc=vc)
+                     vc=vc,
+                     verbose=verbose)
     
     if(bootstrap.ci) {
     
@@ -68,7 +76,8 @@ lm.ma.default <- function(y=NULL,
                                   method=method,
                                   ma.weights=Est$ma.weights,
                                   weights=weights,
-                                  vc=vc)
+                                  vc=vc,
+                                  verbose=verbose)
             boot.mat[,b] <- out.boot$fitted
             if(compute.deriv) for(k in 1:Est$num.x) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
         }
@@ -99,11 +108,12 @@ lm.ma.Est <- function(y=NULL,
                       degree.max=NULL,
                       knots=FALSE,
                       S=10,
-                      exhaustive=FALSE,
+                      exhaustive=TRUE,
                       method=c("jma","mma"),
                       ma.weights=NULL,
                       weights=NULL,
-                      vc=TRUE) {
+                      vc=TRUE,
+                      verbose=TRUE) {
     
     ## Divide into factors and numeric
     if(!vc) {
@@ -185,6 +195,8 @@ lm.ma.Est <- function(y=NULL,
         } else {
             KS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
         }
+        
+        if(verbose) cat(paste("\rCandidate model ",p," of ",P," (degree.max = ",degree.max,") ",sep=""))
 
         if(is.null(ma.weights)) {
 
@@ -282,6 +294,8 @@ lm.ma.Est <- function(y=NULL,
         }
 
     }
+    
+    if(verbose) cat("\r                                           ")
 
     if(is.null(ma.weights)) {
 
@@ -341,7 +355,7 @@ lm.ma.formula <- function(formula,
                           degree.max=NULL,
                           knots=FALSE,
                           S=10,
-                          exhaustive=FALSE,
+                          exhaustive=TRUE,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           bootstrap.ci=FALSE,
@@ -349,6 +363,7 @@ lm.ma.formula <- function(formula,
                           alpha=0.05,
                           weights=NULL,
                           vc=TRUE,
+                          verbose=TRUE,
                           ...) {
 
 
@@ -415,8 +430,8 @@ summary.lm.ma <- function(object,
   cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
                                                   " on ", format(round(object$nobs-sum(object$rank.vec*object$ma.weights)))," degrees of freedom",sep=""))
   cat(paste("\nModel average criterion: ", object$method, sep=""))
-  cat("\nModel average weights: ")
-  cat(formatC(object$ma.weights,format="f",digits=2))
+#  cat("\nModel average weights: ")
+#  cat(formatC(object$ma.weights,format="f",digits=2))
   cat("\n\n")
 
 }
