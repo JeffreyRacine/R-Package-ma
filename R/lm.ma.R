@@ -179,7 +179,7 @@ lm.ma.Est <- function(y=NULL,
             K.mat <- cbind(rep(degree.min:degree.max,length=(degree.max-degree.min+1)*num.x),rep(1,length=(degree.max-degree.min+1)*num.x))
         }
     }
-    
+
     deriv <- NULL
     if(compute.deriv) {
         deriv.mat <- array(NA,c(if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P,num.x))
@@ -315,7 +315,7 @@ lm.ma.Est <- function(y=NULL,
         
         M <- ncol(ma.mat)
         D <- t(ma.mat)%*%ma.mat
-        if(qr(D)$rank<M) D <- D + diag(1e-10,M,M)
+        if(qr(D)$rank<M) D <- D + diag(1e-08,M,M)
         A <- cbind(rep(1,M),diag(1,M,M))
         b0 <- c(1,rep(0,M))
         if(method=="mma") {
@@ -445,10 +445,10 @@ summary.lm.ma <- function(object,
   cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
                                                   " on ", format(round(object$nobs-sum(object$rank.vec*object$ma.weights)))," degrees of freedom",sep=""))
   cat(paste("\nModel average criterion: ", object$method, sep=""))
-  cat("\nNon-zero model ranks: ")
-  cat(object$rank.vec[object$ma.weights>1e-03])
   cat("\nNon-zero model average weights: ")
   cat(formatC(object$ma.weights[object$ma.weights>1e-03],format="f",digits=3))
+  cat("\nNon-zero weights model ranks: ")
+  cat(object$rank.vec[object$ma.weights>1e-03])
   cat("\n\n")
 
 }
