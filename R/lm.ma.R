@@ -439,7 +439,7 @@ summary.lm.ma <- function(object,
   print(object$call)
   cat("\nModel Averaging Linear Regression\n",sep="")
   cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
-  cat(paste("\nMaximum polynomial degree: ", object$degree.max, sep=""))  
+  cat(paste("\nMaximum basis degree: ", object$degree.max, sep=""))  
   cat(paste("\nNumber of observations: ", object$nobs, sep=""))
   cat(paste("\nRank of model averaged model frame: ", round(sum(object$rank.vec*object$ma.weights)), sep=""))
   cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
