@@ -13,6 +13,7 @@ lm.ma.default <- function(y=NULL,
                           B=100,
                           alpha=0.05,
                           weights=NULL,
+                          vc=TRUE,
                           ...) {
 
     basis <- match.arg(basis)
@@ -31,7 +32,8 @@ lm.ma.default <- function(y=NULL,
                      p.max=p.max,
                      method=method,
                      ma.weights=ma.weights,
-                     weights=weights)
+                     weights=weights,
+                     vc=vc)
     
     if(bootstrap.ci) {
     
@@ -56,7 +58,8 @@ lm.ma.default <- function(y=NULL,
                                   p.max=p.max,
                                   method=method,
                                   ma.weights=Est$ma.weights,
-                                  weights=weights)
+                                  weights=weights,
+                                  vc=vc)
             boot.mat[,b] <- out.boot$fitted
             if(compute.deriv) for(k in 1:Est$num.x) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
         }
@@ -87,30 +90,41 @@ lm.ma.Est <- function(y=NULL,
                       p.max=NULL,
                       method=c("jma","mma"),
                       ma.weights=NULL,
-                      weights=NULL) {
+                      weights=NULL,
+                      vc=TRUE) {
     
     ## Divide into factors and numeric
-
-    xztmp <- splitFrame(data.frame(X))
+    if(!vc) {
+        xztmp <- splitFrame(X)
+    } else {
+        xztmp <- splitFrame(X,factor.to.numeric=TRUE)
+    }
     xnames <- xztmp$xnames
     znames <- xztmp$znames
     x <- xztmp$x
     z <- xztmp$z
+    num.x <- xztmp$num.x
+    num.z <- xztmp$num.z
+    is.ordered.z <- xztmp$is.ordered.z
     if(!is.null(X.eval)) {
-        xztmp <- splitFrame(data.frame(X.eval))
+        if(!vc) {
+            xztmp <- splitFrame(X.eval)
+        } else {
+            xztmp <- splitFrame(X.eval,factor.to.numeric=TRUE)
+        }
         xeval <- xztmp$x
         zeval <- xztmp$z
     } else {
         xeval <- NULL
         zeval <- NULL
     }
-    num.x <- xztmp$num.x
-    num.z <- xztmp$num.z
     rm(xztmp)
     if(is.null(z)) {
         include <- NULL
+        lambda <- NULL
     } else {
         include <- rep(1,num.z)
+        lambda <- rep(sqrt(.Machine$double.eps),num.z)
     }
 
     if(is.null(p.max)) p.max <- round((10/num.x)*(NROW(X)/100)^0.25)
@@ -129,44 +143,95 @@ lm.ma.Est <- function(y=NULL,
     for(p in 1:p.max) {
         
         if(is.null(ma.weights)) {
+
+            if(vc & !is.null(num.z)) {
+
+                model.ma <- suppressWarnings(crs:::predict.kernel.spline(x,
+                                                                         y,
+                                                                         z,
+                                                                         K=cbind(rep(p,num.x),rep(1,num.x)),
+                                                                         lambda=lambda,
+                                                                         is.ordered.z=is.ordered.z,
+                                                                         basis=basis,
+                                                                         weights=weights,
+                                                                         model.return=TRUE)$model[[1]])
+            } else {
             
-            model.ma <- suppressWarnings(crs:::predict.factor.spline(x,
-                                                                     y,
-                                                                     z,
-                                                                     K=cbind(rep(p,num.x),rep(1,num.x)),
-                                                                     I=include,
-                                                                     basis=basis,
-                                                                     weights=weights)$model)
-            
+                model.ma <- suppressWarnings(crs:::predict.factor.spline(x,
+                                                                         y,
+                                                                         z,
+                                                                         K=cbind(rep(p,num.x),rep(1,num.x)),
+                                                                         I=include,
+                                                                         basis=basis,
+                                                                         weights=weights)$model)
+
+            }
+
             K[p] <- model.ma$rank
 
             ma.mat[,p] <- Dmat.func(model.ma,method=method)
         
         }
 
-        fitted.mat[,p] <- suppressWarnings(crs:::predict.factor.spline(x,
-                                                                       y,
-                                                                       z,
-                                                                       xeval=xeval,
-                                                                       zeval=zeval,
-                                                                       K=cbind(rep(p,num.x),rep(1,num.x)),
-                                                                       I=include,
-                                                                       basis=basis,
-                                                                       weights=weights)$fitted.values[,1])
+        if(vc & !is.null(num.z)) {
+
+            fitted.mat[,p] <- suppressWarnings(crs:::predict.kernel.spline(x,
+                                                                           y,
+                                                                           z,
+                                                                           xeval=xeval,
+                                                                           zeval=zeval,
+                                                                           K=cbind(rep(p,num.x),rep(1,num.x)),
+                                                                           lambda=lambda,
+                                                                           is.ordered.z=is.ordered.z,
+                                                                           basis=basis,
+                                                                           weights=weights)$fitted.values[,1])
+            
+        } else {
+
+            fitted.mat[,p] <- suppressWarnings(crs:::predict.factor.spline(x,
+                                                                           y,
+                                                                           z,
+                                                                           xeval=xeval,
+                                                                           zeval=zeval,
+                                                                           K=cbind(rep(p,num.x),rep(1,num.x)),
+                                                                           I=include,
+                                                                           basis=basis,
+                                                                           weights=weights)$fitted.values[,1])
+            
+        }
         
         if(compute.deriv) {
             for(k in 1:num.x) {
-                model.deriv <- suppressWarnings(crs:::deriv.factor.spline(x,
-                                                                          y,
-                                                                          z,
-                                                                          K=cbind(rep(p,num.x),rep(1,num.x)),
-                                                                          I=include,
-                                                                          xeval=xeval,
-                                                                          zeval=zeval,
-                                                                          basis=basis,
-                                                                          deriv.index=k,
-                                                                          deriv=deriv.order,
-                                                                          weights=weights)[,1])
+
+                if(vc & !is.null(num.z)) {
+
+                    model.deriv <- suppressWarnings(crs:::deriv.kernel.spline(x,
+                                                                              y,
+                                                                              z,
+                                                                              K=cbind(rep(p,num.x),rep(1,num.x)),
+                                                                              lambda=lambda,
+                                                                              is.ordered.z=is.ordered.z,
+                                                                              xeval=xeval,
+                                                                              zeval=zeval,
+                                                                              basis=basis,
+                                                                              deriv.index=k,
+                                                                              deriv=deriv.order,
+                                                                              weights=weights)[,1])
+                } else {
+
+                    model.deriv <- suppressWarnings(crs:::deriv.factor.spline(x,
+                                                                              y,
+                                                                              z,
+                                                                              K=cbind(rep(p,num.x),rep(1,num.x)),
+                                                                              I=include,
+                                                                              xeval=xeval,
+                                                                              zeval=zeval,
+                                                                              basis=basis,
+                                                                              deriv.index=k,
+                                                                              deriv=deriv.order,
+                                                                              weights=weights)[,1])
+
+                }
         
                 deriv.mat[,p,k] <- model.deriv
             }
@@ -232,6 +297,7 @@ lm.ma.formula <- function(formula,
                           B=100,
                           alpha=0.05,
                           weights=NULL,
+                          vc=TRUE,
                           ...) {
 
 
