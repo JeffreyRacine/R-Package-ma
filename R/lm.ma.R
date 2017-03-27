@@ -7,6 +7,7 @@ lm.ma.default <- function(y=NULL,
                           compute.deriv=FALSE,
                           deriv.order=1,
                           degree.max=NULL,
+                          segments.max=3,
                           knots=FALSE,
                           S=10,
                           exhaustive=TRUE,
@@ -42,6 +43,7 @@ lm.ma.default <- function(y=NULL,
                      compute.deriv=FALSE,
                      deriv.order=deriv.order,
                      degree.max=degree.max,
+                     segments.max=segments.max,
                      knots=knots,
                      S=S,
                      exhaustive=exhaustive,
@@ -55,6 +57,7 @@ lm.ma.default <- function(y=NULL,
     ## summary)
     
     K.rank <- Est$rank.vec
+    DS <- Est$DS
 
     if(compute.deriv) Est <- lm.ma.Est(y=y,
                                        X=X,
@@ -63,6 +66,7 @@ lm.ma.default <- function(y=NULL,
                                        compute.deriv=compute.deriv,
                                        deriv.order=deriv.order,
                                        degree.max=degree.max,
+                                       segments.max=segments.max,
                                        knots=knots,
                                        S=S,
                                        exhaustive=exhaustive,
@@ -73,6 +77,7 @@ lm.ma.default <- function(y=NULL,
                                        verbose=verbose)
     
     Est$rank.vec <- K.rank
+    Est$DS <- DS
     
     if(bootstrap.ci) {
 
@@ -97,6 +102,7 @@ lm.ma.default <- function(y=NULL,
                                   compute.deriv=compute.deriv,
                                   deriv.order=deriv.order,
                                   degree.max=degree.max,
+                                  segments.max=segments.max,
                                   knots=knots,
                                   S=S,
                                   exhaustive=exhaustive,
@@ -137,6 +143,7 @@ lm.ma.Est <- function(y=NULL,
                       compute.deriv=FALSE,
                       deriv.order=1,
                       degree.max=NULL,
+                      segments.max=3,
                       knots=FALSE,
                       S=10,
                       exhaustive=TRUE,
@@ -181,7 +188,6 @@ lm.ma.Est <- function(y=NULL,
     }
 
     if(is.null(degree.max)) {
-        if(knots) S <- S/2
         degree.max <- max(2,round((S/num.x)*(NROW(X)/100)^0.25))
     }
     
@@ -195,7 +201,7 @@ lm.ma.Est <- function(y=NULL,
         ## Exhaustive evaluation over all combinations of K, search over
         ## lambda for each combination
         if(knots) {
-            K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max, K.vec2=degree.min:degree.max,num.x=num.x)
+            K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max, K.vec2=1:segments.max,num.x=num.x)
         } else {
             K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
             K.mat <- cbind(K.mat[,1:num.x],matrix(1,nrow(K.mat),num.x,byrow=TRUE))
@@ -209,7 +215,7 @@ lm.ma.Est <- function(y=NULL,
         P <- NROW(K.mat)
 
     } else {
-        ## Non-exhaustive
+        ## Non-exhaustive (XXX not using segments.max)
         if(knots) {
             K.mat <- cbind(rep(degree.min:degree.max,length=(degree.max-degree.min+1)*num.x),rep(1,length=(degree.max-degree.min+1)*num.x))
         } else {
@@ -384,6 +390,7 @@ lm.ma.Est <- function(y=NULL,
                 compute.deriv=compute.deriv,
                 deriv.order=deriv.order,
                 degree.max=degree.max,
+                segments.max=segments.max,
                 knots=knots,
                 S=S,
                 exhaustive=exhaustive,
@@ -405,6 +412,7 @@ lm.ma.formula <- function(formula,
                           compute.deriv=FALSE,
                           deriv.order=1,
                           degree.max=NULL,
+                          segments.max=3,
                           knots=FALSE,
                           S=10,
                           exhaustive=TRUE,
@@ -431,6 +439,7 @@ lm.ma.formula <- function(formula,
                        compute.deriv=compute.deriv,
                        deriv.order=deriv.order,
                        degree.max=degree.max,
+                       segments.max=segments.max,
                        knots=knots,
                        S=S,
                        exhaustive=exhaustive,
@@ -509,6 +518,7 @@ predict.lm.ma <- function(object,
                          compute.deriv=object$compute.deriv,
                          deriv.order=object$deriv.order,
                          degree.max=object$degree.max,
+                         segments.max=object$segments.max,
                          knots=object$knots,
                          S=object$S,
                          exhaustive=object$exhaustive,
