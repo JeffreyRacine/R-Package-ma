@@ -162,7 +162,7 @@ This code is in beta status until further notice - proceed accordingly.
 \code{\link{lm}}, \code{\link[crs]{crs}}, \code{\link[np]{npreg}}
 }
 \examples{
-## Example 1
+#### Example 1 - simulated nonlinear one-predictor function
 
 set.seed(42)
 n <- 100
@@ -188,7 +188,7 @@ lines(x,model$deriv.ci.u[,1],col=2,lty=2)
 
 par(mfrow=c(1,1))
 
-## Example 2
+#### Example 2 - simulated multiplicative nonlinear two-predictor function
 
 require(rgl)
 
@@ -240,10 +240,11 @@ persp3d(x.seq,x.seq,z=z,
 
 grid3d(c("x", "y+", "z"))
 
-## Example 3
+#### Example 3 - five predictor (two categorical) earnings function
 
 require(crs)
 data(wage1)
+attach(wage1)
 
 ## Classical linear regression model
 
@@ -254,11 +255,53 @@ summary(model.lm)
 
 ## Compare with the model average estimator (female and married are factors)
 
-model <- lm.ma(lwage ~ female + married + educ + exper + tenure, 
-               compute.deriv = TRUE, 
-               data = wage1)
+model.ma <- lm.ma(lwage ~ female + married + educ + exper + tenure, 
+                  compute.deriv = TRUE, 
+                  data = wage1)
 
-summary(model)
+summary(model.ma)
+
+## Compute parametric and model averaged marriage premiums for males and females
+## at median values of remaining predictors
+
+newdata.female.married <- data.frame(educ=round(median(educ)),
+                                     exper=round(median(exper)),
+                                     tenure=round(median(tenure)),
+                                     female=factor("Female",levels=levels(female)),
+                                     married=factor("Married",levels=levels(married)))
+
+
+newdata.male.married <- data.frame(educ=round(median(educ)),
+                                     exper=round(median(exper)),
+                                     tenure=round(median(tenure)),
+                                     female=factor("Male",levels=levels(female)),
+                                     married=factor("Married",levels=levels(married)))
+                      
+
+newdata.female.notmarried <- data.frame(educ=round(median(educ)),
+                                     exper=round(median(exper)),
+                                     tenure=round(median(tenure)),
+                                     female=factor("Female",levels=levels(female)),
+                                     married=factor("Notmarried",levels=levels(married)))
+
+
+newdata.male.notmarried <- data.frame(educ=round(median(educ)),
+                                     exper=round(median(exper)),
+                                     tenure=round(median(tenure)),
+                                     female=factor("Male",levels=levels(female)),
+                                     married=factor("Notmarried",levels=levels(married)))
+                      
+## Model average female marriage premium
+predict(model.ma,newdata=newdata.female.married)[,1]-predict(model.ma,newdata=newdata.female.notmarried)[,1]
+
+## Linear parametric female marriage premium
+predict(model.ma,newdata=newdata.female.married)[,1]-predict(model.ma,newdata=newdata.female.notmarried)[,1]
+
+## Model average male marriage premium
+predict(model.ma,newdata=newdata.male.married)[,1]-predict(model.ma,newdata=newdata.male.notmarried)[,1]
+
+## Linear parametric male marriage premium
+predict(model.ma,newdata=newdata.male.married)[,1]-predict(model.ma,newdata=newdata.male.notmarried)[,1]
 
 ## Compare coefficients from the linear model with the values from model averaging 
 ## for the non-factor predictors
@@ -266,7 +309,7 @@ summary(model)
 apply(coef(model),2,summary)
 coef(model.lm)[4:6]
 
-## Example 4
+#### Example 4 - Canadian Current Population Survey earnings data
 
 data(cps71)
 attach(cps71)

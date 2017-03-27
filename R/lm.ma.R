@@ -547,8 +547,6 @@ predict.lm.ma <- function(object,
     deriv <- Est$deriv
   }
 
-  attr(fitted.values, "deriv") <- deriv
-
   if(is.null(Est$deriv)) {
       return(fitted.values)
   } else {
