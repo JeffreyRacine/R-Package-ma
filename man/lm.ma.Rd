@@ -118,8 +118,8 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     summary(model)
     fitted(model)
     coef(model)
-    ## For predicting create foo, a dataframe with names elements equal to the 
-    ## predictors, then call predict, e.g.,
+    ## For generating predictions, create foo, a dataframe with named elements (important)
+    ## for all predictors in the object model, then call predict, e.g.,
     foo <- data.frame(x1=c(1,2),x2=c(3,4))
     predict(model,newdata=foo)
     ## If you want to see the degrees and knots selected by the procedure
