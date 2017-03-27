@@ -138,12 +138,10 @@ An object of class "lm.ma" is a list containing at least the following component
   \item{deriv}{matrix of derivative vectors for each predictor}
   \item{ma.weights}{model average weights}
   \item{degree.max}{value of degree.max for each dimension (set by the default rule given above unless manually overridden)}
-  \item{fitted.ci.l}{\eqn{\alpha/2} nonparametric confidence value for the fitted/predicted values}
-  \item{fitted.ci.u}{\eqn{1-\alpha/2} nonparametric confidence value for the fitted/predicted values}  
-  \item{deriv.ci.l}{\eqn{\alpha/2} nonparametric confidence value matrix for
-    the derivatives}
-  \item{deriv.ci.u}{\eqn{1-\alpha/2} nonparametric confidence value matrix for
-    the derivatives}
+  \item{fitted.ci.l}{\eqn{\alpha/2} nonparametric confidence value vector for the vector of fitted/predicted values}
+  \item{fitted.ci.u}{\eqn{1-\alpha/2} nonparametric confidence value vector for the vector fitted/predicted values}  
+  \item{deriv.ci.l}{\eqn{\alpha/2} nonparametric confidence value matrix for the matrix of derivatives}
+  \item{deriv.ci.u}{\eqn{1-\alpha/2} nonparametric confidence value matrix for the matrix of derivatives}
   \item{r.squared}{appropriate measure of goodness of fit (Doksum and Samarov (1995))}
   \item{residuals}{model residuals}
 
