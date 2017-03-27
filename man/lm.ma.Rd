@@ -279,6 +279,12 @@ model.ma <- lm.ma(lwage ~ female + married + educ + exper + tenure,
 
 summary(model.ma)
 
+## Compare coefficients from the simple linear model with the (vector summary) values 
+## from model averaging for the non-factor predictors
+
+apply(coef(model.ma),2,summary)
+coef(model.lm)[4:6]
+
 ## Compute parametric and model averaged marriage premiums for males and females
 ## at median values of remaining predictors
 
@@ -297,23 +303,17 @@ newdata.female.notmarried <- data.frame(educ=round(median(educ)),
 ## Compute the so-called marriage premium - try three simple parametric 
 ## specifications (take your pick - is the premium +13%? +3%? -12%?) 
 
-## Linear parametric female marriage premiums
+## Linear parametric
 predict(model.lm,newdata=newdata.female.married)-predict(model.lm,newdata=newdata.female.notmarried)
 
-## Murphy-Welch specification parametric female marriage premiums
+## Murphy-Welch parametric
 predict(model.lm.mw,newdata=newdata.female.married)-predict(model.lm.mw,newdata=newdata.female.notmarried)
 
-## Murphy-Welch dummy interaction specification parametric female marriage premiums
+## Murphy-Welch parametric augmented with a dummy interaction
 predict(model.lm.mwint,newdata=newdata.female.married)-predict(model.lm.mwint,newdata=newdata.female.notmarried)
 
-## Model average female marriage premium
+## Model average
 predict(model.ma,newdata=newdata.female.married)$fit-predict(model.ma,newdata=newdata.female.notmarried)$fit
-
-## Compare coefficients from the linear model with the (vector summary) values 
-## from model averaging for the non-factor predictors
-
-apply(coef(model.ma),2,summary)
-coef(model.lm)[4:6]
 
 detach(wage1)
 
