@@ -203,7 +203,7 @@ lm.ma.Est <- function(y=NULL,
 
         if(!is.null(ma.weights)) {
             K.mat <- K.mat[ma.weights>1e-05,]
-            ma.weights <- ma.weights[ma.weights>1e-05]
+            ma.weights <- ma.weights[ma.weights>1e-05]/sum(ma.weights[ma.weights>1e-05])
         }
 
         P <- NROW(K.mat)
@@ -484,7 +484,7 @@ summary.lm.ma <- function(object,
   cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
 
   cat("\n\nNon-zero model average weights: ")
-  cat(formatC(object$ma.weights[object$ma.weights>1e-05],format="f",digits=5))
+  cat(formatC(object$ma.weights[object$ma.weights>1e-05]/sum(object$ma.weights[object$ma.weights>1e-05]),format="f",digits=5))
   cat("\nNon-zero weights model ranks: ")
   cat(object$rank.vec[object$ma.weights>1e-05])
   cat("\n\n")
