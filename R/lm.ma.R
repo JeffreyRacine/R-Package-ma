@@ -35,7 +35,8 @@ lm.ma.default <- function(y=NULL,
     if(is.null(y) | is.null(X)) stop("You must provide data for y and X")
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
 
-    ## First fit/obtain weights, then deriv
+    ## First obtain weights, then in subsequent call computes fits and 
+    ## derivatives
 
     Est <- lm.ma.Est(y=y,
                      X=X,
@@ -55,8 +56,8 @@ lm.ma.default <- function(y=NULL,
                      vc=vc,
                      verbose=verbose)
     
-    ## Save rank vector (not computed in next call, needed for
-    ## summary)
+    ## Save rank vector and matrix of degrees and segments (not computed in next 
+    ## call since ma.weights is passed, but needed for summary)
     
     K.rank <- Est$rank.vec
     DS <- Est$DS
@@ -81,6 +82,8 @@ lm.ma.default <- function(y=NULL,
     
     Est$rank.vec <- K.rank
     Est$DS <- DS
+    
+    ## Bootstrap is requested using pre-computed ma.weights
     
     if(bootstrap.ci) {
 
