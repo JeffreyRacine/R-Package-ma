@@ -148,7 +148,7 @@ An object of class "lm.ma" is a list containing at least the following component
 Jeffrey S. Racine
 }
 \note{
-This codes is in beta status until further notice - proceed accordingly.
+This code is in beta status until further notice - proceed accordingly.
 }
 
 \seealso{

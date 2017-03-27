@@ -33,11 +33,13 @@ lm.ma.default <- function(y=NULL,
     if(is.null(y) | is.null(X)) stop("You must provide data for y and X")
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
 
+    ## First fit/obtain weights, then deriv
+
     Est <- lm.ma.Est(y=y,
                      X=X,
                      X.eval=X.eval,
                      basis=basis,
-                     compute.deriv=compute.deriv,
+                     compute.deriv=FALSE,
                      deriv.order=deriv.order,
                      degree.max=degree.max,
                      knots=knots,
@@ -49,9 +51,31 @@ lm.ma.default <- function(y=NULL,
                      vc=vc,
                      verbose=verbose)
     
+    ## Save rank vector (not computed in next call, needed for
+    ## summary)
+    
+    K.rank <- Est$rank.vec
+
+    if(compute.deriv) Est <- lm.ma.Est(y=y,
+                                       X=X,
+                                       X.eval=X.eval,
+                                       basis=basis,
+                                       compute.deriv=compute.deriv,
+                                       deriv.order=deriv.order,
+                                       degree.max=degree.max,
+                                       knots=knots,
+                                       S=S,
+                                       exhaustive=exhaustive,
+                                       method=method,
+                                       ma.weights=Est$ma.weights,
+                                       weights=weights,
+                                       vc=vc,
+                                       verbose=verbose)
+    
+    Est$rank.vec <- K.rank
+    
     if(bootstrap.ci) {
     
-        B <- 100
         if(is.null(X.eval)) {
             n <- NROW(X) 
         } else {
@@ -171,8 +195,8 @@ lm.ma.Est <- function(y=NULL,
         }
 
         if(!is.null(ma.weights)) {
-            K.mat <- K.mat[ma.weights>1e-03,]
-            ma.weights <- ma.weights[ma.weights>1e-03]
+            K.mat <- K.mat[ma.weights>1e-05,]
+            ma.weights <- ma.weights[ma.weights>1e-05]
         }
 
         P <- NROW(K.mat)
@@ -452,9 +476,9 @@ summary.lm.ma <- function(object,
                                                   " on ", format(round(object$nobs-sum(object$rank.vec*object$ma.weights)))," degrees of freedom",sep=""))
   cat(paste("\nModel average criterion: ", object$method, sep=""))
   cat("\nNon-zero model average weights: ")
-  cat(formatC(object$ma.weights[object$ma.weights>1e-03],format="f",digits=3))
+  cat(formatC(object$ma.weights[object$ma.weights>1e-05],format="f",digits=3))
   cat("\nNon-zero weights model ranks: ")
-  cat(object$rank.vec[object$ma.weights>1e-03])
+  cat(object$rank.vec[object$ma.weights>1e-05])
   cat("\n\n")
 
 }
