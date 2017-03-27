@@ -251,6 +251,12 @@ attach(wage1)
 model.lm <- lm(lwage ~ female + married + educ + exper + tenure, 
                data = wage1)
 
+## Murphy-Welch's favourite specification               
+model.lm.mw <- lm(lwage ~ female + married + educ + exper + I(exper^2) + I(exper^3) + I(exper^4) + tenure)   
+
+## Murphy-Welch's favourite specification with interactions in the intercepts              
+model.lm.mwint <- lm(lwage ~ female + married + female:married + educ + exper + I(exper^2) + I(exper^3) + I(exper^4) + tenure)     
+
 summary(model.lm)
 
 ## Compare with the model average estimator (female and married are factors)
@@ -269,44 +275,34 @@ newdata.female.married <- data.frame(educ=round(median(educ)),
                                      female=factor("Female",levels=levels(female)),
                                      married=factor("Married",levels=levels(married)))
 
-
-newdata.male.married <- data.frame(educ=round(median(educ)),
-                                     exper=round(median(exper)),
-                                     tenure=round(median(tenure)),
-                                     female=factor("Male",levels=levels(female)),
-                                     married=factor("Married",levels=levels(married)))
-                      
-
 newdata.female.notmarried <- data.frame(educ=round(median(educ)),
                                      exper=round(median(exper)),
                                      tenure=round(median(tenure)),
                                      female=factor("Female",levels=levels(female)),
                                      married=factor("Notmarried",levels=levels(married)))
+                                     
+## Compute the so-called marriage premium - try three simple parametric 
+## specifications (take your pick - is the premium +12%? 3%? -12%?) 
 
-
-newdata.male.notmarried <- data.frame(educ=round(median(educ)),
-                                     exper=round(median(exper)),
-                                     tenure=round(median(tenure)),
-                                     female=factor("Male",levels=levels(female)),
-                                     married=factor("Notmarried",levels=levels(married)))
-                      
-## Model average female marriage premium
-predict(model.ma,newdata=newdata.female.married)$fit-predict(model.ma,newdata=newdata.female.notmarried)$fit
-
-## Linear parametric female marriage premium
+## Linear parametric female marriage premiums
 predict(model.lm,newdata=newdata.female.married)-predict(model.lm,newdata=newdata.female.notmarried)
 
-## Model average male marriage premium
-predict(model.ma,newdata=newdata.male.married)$fit-predict(model.ma,newdata=newdata.male.notmarried)$fit
+## Murphy-Welch specification parametric female marriage premiums
+predict(model.lm.mw,newdata=newdata.female.married)-predict(model.lm.mw,newdata=newdata.female.notmarried)
 
-## Linear parametric male marriage premium
-predict(model.lm,newdata=newdata.male.married)-predict(model.lm,newdata=newdata.male.notmarried)
+## Murphy-Welch dummy interaction specification parametric female marriage premiums
+predict(model.lm.mwint,newdata=newdata.female.married)-predict(model.lm.mwint,newdata=newdata.female.notmarried)
+
+## Model average female marriage premium
+predict(model.ma,newdata=newdata.female.married)$fit-predict(model.ma,newdata=newdata.female.notmarried)$fit
 
 ## Compare coefficients from the linear model with the (vector summary) values 
 ## from model averaging for the non-factor predictors
 
 apply(coef(model.ma),2,summary)
 coef(model.lm)[4:6]
+
+detach(wage1)
 
 #### Example 4 - Canadian Current Population Survey earnings data
 
@@ -330,6 +326,8 @@ legend("topleft",c("Parametric Model Average",
 summary(model.spline)
 summary(model.kernel)
 summary(model.ma)
+
+detach(cps71)
 }
 
 \keyword{Regression}
