@@ -252,10 +252,12 @@ model.lm <- lm(lwage ~ female + married + educ + exper + tenure,
                data = wage1)
 
 ## Murphy-Welch's favourite specification               
-model.lm.mw <- lm(lwage ~ female + married + educ + exper + I(exper^2) + I(exper^3) + I(exper^4) + tenure)   
+model.lm.mw <- lm(lwage ~ female + married + educ + exper + I(exper^2) 
+                  + I(exper^3) + I(exper^4) + tenure)   
 
 ## Murphy-Welch's favourite specification with interactions in the intercepts              
-model.lm.mwint <- lm(lwage ~ female + married + female:married + educ + exper + I(exper^2) + I(exper^3) + I(exper^4) + tenure)     
+model.lm.mwint <- lm(lwage ~ female + married + female:married + educ + exper 
+                     + I(exper^2) + I(exper^3) + I(exper^4) + tenure)     
 
 summary(model.lm)
 
