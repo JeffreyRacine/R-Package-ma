@@ -246,7 +246,7 @@ require(crs)
 data(wage1)
 attach(wage1)
 
-## Classical linear regression model
+## Classical linear regression model (linear, additive, no interactions)
 
 model.lm <- lm(lwage ~ female + married + educ + exper + tenure, 
                data = wage1)
@@ -255,9 +255,8 @@ summary(model.lm)
 
 ## Compare with the model average estimator (female and married are factors)
 
-model.ma <- lm.ma(lwage ~ female + married + educ + exper + tenure, 
-                  compute.deriv = TRUE, 
-                  data = wage1)
+model.ma <- lm.ma(lwage ~ female + married + educ + exper + tenure,
+                  compute.deriv = TRUE)
 
 summary(model.ma)
 
@@ -292,21 +291,21 @@ newdata.male.notmarried <- data.frame(educ=round(median(educ)),
                                      married=factor("Notmarried",levels=levels(married)))
                       
 ## Model average female marriage premium
-predict(model.ma,newdata=newdata.female.married)[,1]-predict(model.ma,newdata=newdata.female.notmarried)[,1]
+predict(model.ma,newdata=newdata.female.married)$fit-predict(model.ma,newdata=newdata.female.notmarried)$fit
 
 ## Linear parametric female marriage premium
-predict(model.ma,newdata=newdata.female.married)[,1]-predict(model.ma,newdata=newdata.female.notmarried)[,1]
+predict(model.lm,newdata=newdata.female.married)-predict(model.lm,newdata=newdata.female.notmarried)
 
 ## Model average male marriage premium
-predict(model.ma,newdata=newdata.male.married)[,1]-predict(model.ma,newdata=newdata.male.notmarried)[,1]
+predict(model.ma,newdata=newdata.male.married)$fit-predict(model.ma,newdata=newdata.male.notmarried)$fit
 
 ## Linear parametric male marriage premium
-predict(model.ma,newdata=newdata.male.married)[,1]-predict(model.ma,newdata=newdata.male.notmarried)[,1]
+predict(model.lm,newdata=newdata.male.married)-predict(model.lm,newdata=newdata.male.notmarried)
 
-## Compare coefficients from the linear model with the values from model averaging 
-## for the non-factor predictors
+## Compare coefficients from the linear model with the (vector summary) values 
+## from model averaging for the non-factor predictors
 
-apply(coef(model),2,summary)
+apply(coef(model.ma),2,summary)
 coef(model.lm)[4:6]
 
 #### Example 4 - Canadian Current Population Survey earnings data
