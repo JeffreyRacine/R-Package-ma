@@ -295,7 +295,7 @@ newdata.female.notmarried <- data.frame(educ=round(median(educ)),
                                      married=factor("Notmarried",levels=levels(married)))
                                      
 ## Compute the so-called marriage premium - try three simple parametric 
-## specifications (take your pick - is the premium +12%? 3%? -12%?) 
+## specifications (take your pick - is the premium +13%? +3%? -12%?) 
 
 ## Linear parametric female marriage premiums
 predict(model.lm,newdata=newdata.female.married)-predict(model.lm,newdata=newdata.female.notmarried)
