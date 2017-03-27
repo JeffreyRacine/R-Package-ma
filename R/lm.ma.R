@@ -7,6 +7,7 @@ lm.ma.default <- function(y=NULL,
                           compute.deriv=FALSE,
                           deriv.order=1,
                           degree.max=NULL,
+                          lambda=1e-02,
                           segments.max=3,
                           knots=FALSE,
                           S=10,
@@ -43,6 +44,7 @@ lm.ma.default <- function(y=NULL,
                      compute.deriv=FALSE,
                      deriv.order=deriv.order,
                      degree.max=degree.max,
+                     lambda=lambda,
                      segments.max=segments.max,
                      knots=knots,
                      S=S,
@@ -66,6 +68,7 @@ lm.ma.default <- function(y=NULL,
                                        compute.deriv=compute.deriv,
                                        deriv.order=deriv.order,
                                        degree.max=degree.max,
+                                       lambda=lambda,
                                        segments.max=segments.max,
                                        knots=knots,
                                        S=S,
@@ -102,6 +105,7 @@ lm.ma.default <- function(y=NULL,
                                   compute.deriv=compute.deriv,
                                   deriv.order=deriv.order,
                                   degree.max=degree.max,
+                                  lambda=lambda,
                                   segments.max=segments.max,
                                   knots=knots,
                                   S=S,
@@ -143,6 +147,7 @@ lm.ma.Est <- function(y=NULL,
                       compute.deriv=FALSE,
                       deriv.order=1,
                       degree.max=NULL,
+                      lambda=1e-02,
                       segments.max=3,
                       knots=FALSE,
                       S=10,
@@ -181,10 +186,9 @@ lm.ma.Est <- function(y=NULL,
     rm(xztmp)
     if(is.null(z)) {
         include <- NULL
-        lambda <- NULL
     } else {
         include <- rep(1,num.z)
-        lambda <- rep(sqrt(.Machine$double.eps),num.z)
+        lambda.vec <- rep(lambda,num.z)
     }
 
     if(is.null(degree.max)) {
@@ -198,8 +202,7 @@ lm.ma.Est <- function(y=NULL,
         
         degree.min = deriv.order
         
-        ## Exhaustive evaluation over all combinations of K, search over
-        ## lambda for each combination
+        ## Exhaustive evaluation over all combinations of K
         if(knots) {
             K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max, K.vec2=1:segments.max,num.x=num.x)
         } else {
@@ -256,11 +259,20 @@ lm.ma.Est <- function(y=NULL,
                                                                          y,
                                                                          z,
                                                                          K=DS,
-                                                                         lambda=lambda,
+                                                                         lambda=lambda.vec,
                                                                          is.ordered.z=is.ordered.z,
                                                                          basis=basis,
-                                                                         weights=weights,
-                                                                         model.return=TRUE)$model[[1]])
+                                                                         weights=weights))
+
+                if(method=="mma") {
+                    ma.mat[,p] <- y - model.ma$fitted[,1]
+                } else {
+                    htt <- model.ma$hatvalues
+                    ma.mat[,p] <- model.ma$fitted[,1] - htt*(y - model.ma$fitted[,1])/(1-htt)
+                }
+
+                sigsq <- sqrt(sum((y - model.ma$fitted[,1])^2)/model.ma$df.residual)
+
             } else {
             
                 model.ma <- suppressWarnings(crs:::predict.factor.spline(x,
@@ -271,12 +283,19 @@ lm.ma.Est <- function(y=NULL,
                                                                          basis=basis,
                                                                          weights=weights)$model)
 
+                if(method=="mma") {
+                    ma.mat[,p] <- residuals(model.ma)
+                } else {
+                    htt <- hatvalues(model.ma)
+                    ma.mat[,p] <- fitted(model.ma) - htt*residuals(model.ma)/(1-htt)
+                }
+
+                sigsq <- summary(model.ma)$sigma^2
+
             }
 
             K.rank[p] <- model.ma$rank
 
-            ma.mat[,p] <- Dmat.func(model.ma,method=method)
-        
         }
 
         if(vc & !is.null(num.z)) {
@@ -287,7 +306,7 @@ lm.ma.Est <- function(y=NULL,
                                                                            xeval=xeval,
                                                                            zeval=zeval,
                                                                            K=DS,
-                                                                           lambda=lambda,
+                                                                           lambda=lambda.vec,
                                                                            is.ordered.z=is.ordered.z,
                                                                            basis=basis,
                                                                            weights=weights)$fitted.values[,1])
@@ -315,7 +334,7 @@ lm.ma.Est <- function(y=NULL,
                                                                               y,
                                                                               z,
                                                                               K=DS,
-                                                                              lambda=lambda,
+                                                                              lambda=lambda.vec,
                                                                               is.ordered.z=is.ordered.z,
                                                                               xeval=xeval,
                                                                               zeval=zeval,
@@ -350,10 +369,6 @@ lm.ma.Est <- function(y=NULL,
 
     if(is.null(ma.weights)) {
 
-        ## Largest dimensional model is the last
-        
-        sigsq <- summary(model.ma)$sigma^2
-        
         ## Solve the quadratic program for the Mallows model average weights
         
         M <- ncol(ma.mat)
@@ -390,6 +405,7 @@ lm.ma.Est <- function(y=NULL,
                 compute.deriv=compute.deriv,
                 deriv.order=deriv.order,
                 degree.max=degree.max,
+                lambda=lambda,
                 segments.max=segments.max,
                 knots=knots,
                 S=S,
@@ -412,6 +428,7 @@ lm.ma.formula <- function(formula,
                           compute.deriv=FALSE,
                           deriv.order=1,
                           degree.max=NULL,
+                          lambda=1e-02,
                           segments.max=3,
                           knots=FALSE,
                           S=10,
@@ -439,6 +456,7 @@ lm.ma.formula <- function(formula,
                        compute.deriv=compute.deriv,
                        deriv.order=deriv.order,
                        degree.max=degree.max,
+                       lambda=lambda,
                        segments.max=segments.max,
                        knots=knots,
                        S=S,
@@ -518,6 +536,7 @@ predict.lm.ma <- function(object,
                          compute.deriv=object$compute.deriv,
                          deriv.order=object$deriv.order,
                          degree.max=object$degree.max,
+                         lambda=object$lambda,
                          segments.max=object$segments.max,
                          knots=object$knots,
                          S=object$S,

@@ -68,12 +68,3 @@ RSQfunc <- function(y,y.pred,weights=NULL) {
   y.mean <- mean(y)
   return((sum((y-y.mean)*(y.pred-y.mean))^2)/(sum((y-y.mean)^2)*sum((y.pred-y.mean)^2)))
 }
-
-Dmat.func <- function(model,method=c("mma","jma")) {
-    method <- match.arg(method)
-    ## Residuals (Mallows model averaging)
-    if(method=="mma") return(residuals(model))
-    ## Jackknife fitted values (jackknife model averaging)
-    htt <- hatvalues(model)
-    if(method=="jma") return(fitted(model) - htt*residuals(model)/(1-htt))    
-}

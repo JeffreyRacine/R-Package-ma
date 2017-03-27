@@ -18,6 +18,7 @@ lm.ma(...)
       compute.deriv = FALSE,
       deriv.order = 1,
       degree.max = NULL,
+      lambda = 1e-02,
       segments.max = 3,
       knots = FALSE,
       S = 10,
@@ -41,6 +42,7 @@ lm.ma(...)
       compute.deriv = FALSE,
       deriv.order = 1,
       degree.max = NULL,
+      lambda = 1e-02,
       segments.max = 3,
       knots = FALSE,
       S = 10,
@@ -76,6 +78,9 @@ lm.ma(...)
 
   \item{degree.max}{maximum value for the basis in each dimension (defaults to \code{max(2,round((S/num.x)*(n/100)^0.25)} where \code{num.x} is the number of numeric (i.e., non categorical) predictors and n the number of observations}
 
+  \item{lambda}{smoothing parameter for weight function for the
+  categorical predictors when \code{vc=TRUE}}
+  
   \item{segments.max}{when \code{knots=TRUE} the maximum number of segments (i.e., interior knots plus 1) to use for the B-spline basis}
   
   \item{knots}{a logical value indicating whether to include interior knots or not (set equal to the degree)}
