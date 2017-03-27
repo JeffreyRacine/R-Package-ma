@@ -118,7 +118,14 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     summary(model)
     fitted(model)
     coef(model)
+    ## For predicting create foo, a dataframe with names elements equal to the 
+    ## predictors, then call predict, e.g.,
+    foo <- data.frame(x1=c(1,2),x2=c(3,4))
     predict(model,newdata=foo)
+    ## If you want to see the degrees and knots selected by the procedure
+    ## for the models that receive positive model average weights, try the
+    ## following:
+    model$DS[model$ma.weights>1e-05,]
 }
 
 Note that, unlike \code{lm} in which the formula interface specifies the functional form, in \code{lm.ma} the formula interface is strictly for listing the variables involved, while the bases will determine an appropriate model averaged functional form.
