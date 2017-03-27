@@ -25,10 +25,11 @@ lm.ma.default <- function(y=NULL,
     basis <- match.arg(basis)
     method <- match.arg(method)
     
-    if(verbose) {
+    if(getOption("crs.messages")) {
         options(crs.messages=FALSE)
+        exists.crs.messages <- TRUE
     } else {
-        options(crs.messages=TRUE)
+        exists.crs.messages <- FALSE
     }
     
     if(!is.null(degree.max)) if(degree.max < 2) stop("You must average over at least two models")
@@ -99,7 +100,7 @@ lm.ma.default <- function(y=NULL,
         if(compute.deriv) boot.deriv.array <- array(NA,c(n,B,Est$num.x))
     
         for(b in 1:B) {
-            cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
+            if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
             ii <- sample(1:n,replace=TRUE)
             out.boot <- lm.ma.Est(y=y[ii],
                                   X=X[ii,],
@@ -137,6 +138,8 @@ lm.ma.default <- function(y=NULL,
         }
         cat("\r                                     ")        
     }
+
+    if(exists.crs.messages) options(crs.messages=TRUE)
 
     class(Est) <- "lm.ma"
     return(Est)
@@ -251,7 +254,7 @@ lm.ma.Est <- function(y=NULL,
         } else {
             DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
         }
-        
+
         if(verbose) cat(paste("\rCandidate model ",p," of ",P," (degree.max = ",degree.max,")...",sep=""))
 
         if(is.null(ma.weights)) {
@@ -468,7 +471,11 @@ lm.ma.formula <- function(formula,
                        ma.weights=ma.weights,
                        bootstrap.ci=bootstrap.ci,
                        B=B,
-                       alpha=alpha)
+                       alpha=alpha,
+                       weights=weights,
+                       vc=vc,
+                       verbose=verbose,
+                       ...)
 
   Est$r.squared <- RSQfunc(tydat,Est$fitted.values)
   Est$residuals <- tydat - Est$fitted.values
