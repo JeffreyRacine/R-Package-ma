@@ -75,6 +75,8 @@ lm.ma.default <- function(y=NULL,
     Est$rank.vec <- K.rank
     
     if(bootstrap.ci) {
+
+        options(crs.messages=FALSE)
     
         if(is.null(X.eval)) {
             n <- NROW(X) 
@@ -86,6 +88,7 @@ lm.ma.default <- function(y=NULL,
         if(compute.deriv) boot.deriv.array <- array(NA,c(n,B,Est$num.x))
     
         for(b in 1:B) {
+            cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
             ii <- sample(1:n,replace=TRUE)
             out.boot <- lm.ma.Est(y=y[ii],
                                   X=X[ii,],
@@ -101,10 +104,13 @@ lm.ma.default <- function(y=NULL,
                                   ma.weights=Est$ma.weights,
                                   weights=weights,
                                   vc=vc,
-                                  verbose=verbose)
+                                  verbose=FALSE)
             boot.mat[,b] <- out.boot$fitted
             if(compute.deriv) for(k in 1:Est$num.x) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
         }
+
+        cat("\r                                     ")        
+        cat("\rComputing quantiles...")
 
         Est$fitted.ci.l <- apply(boot.mat,1,quantile,prob=alpha/2,type=1)
         Est$fitted.ci.u <- apply(boot.mat,1,quantile,prob=1-alpha/2,type=1)
@@ -116,6 +122,7 @@ lm.ma.default <- function(y=NULL,
                 Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1)        
             }
         }
+        cat("\r                                     ")        
     }
 
     class(Est) <- "lm.ma"
@@ -476,7 +483,7 @@ summary.lm.ma <- function(object,
                                                   " on ", format(round(object$nobs-sum(object$rank.vec*object$ma.weights)))," degrees of freedom",sep=""))
   cat(paste("\nModel average criterion: ", object$method, sep=""))
   cat("\nNon-zero model average weights: ")
-  cat(formatC(object$ma.weights[object$ma.weights>1e-05],format="f",digits=3))
+  cat(formatC(object$ma.weights[object$ma.weights>1e-05],format="f",digits=5))
   cat("\nNon-zero weights model ranks: ")
   cat(object$rank.vec[object$ma.weights>1e-05])
   cat("\n\n")
