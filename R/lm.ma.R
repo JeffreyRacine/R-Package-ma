@@ -55,7 +55,8 @@ lm.ma.default <- function(y=NULL,
                      ma.weights=ma.weights,
                      weights=weights,
                      vc=vc,
-                     verbose=verbose)
+                     verbose=verbose,
+                     ...)
     
     ## Save rank vector and matrix of degrees and segments (not computed in next 
     ## call since ma.weights is passed, but needed for summary)
@@ -79,7 +80,8 @@ lm.ma.default <- function(y=NULL,
                                        ma.weights=Est$ma.weights,
                                        weights=weights,
                                        vc=vc,
-                                       verbose=verbose)
+                                       verbose=verbose,
+                                       ...)
     
     Est$rank.vec <- K.rank
     Est$DS <- DS
@@ -118,7 +120,8 @@ lm.ma.default <- function(y=NULL,
                                   ma.weights=Est$ma.weights,
                                   weights=weights,
                                   vc=vc,
-                                  verbose=FALSE)
+                                  verbose=FALSE,
+                                  ...)
             boot.mat[,b] <- out.boot$fitted
             if(compute.deriv) for(k in 1:Est$num.x) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
         }
@@ -162,7 +165,8 @@ lm.ma.Est <- function(y=NULL,
                       ma.weights=NULL,
                       weights=NULL,
                       vc=TRUE,
-                      verbose=TRUE) {
+                      verbose=TRUE,
+                      ...) {
     
     ## Divide into factors and numeric
     if(!vc) {
@@ -421,7 +425,9 @@ lm.ma.Est <- function(y=NULL,
                 num.z=num.z,
                 rank.vec=K.rank,
                 nobs=NROW(y),
-                DS=K.mat))
+                DS=K.mat,
+                vc=vc,
+                verbose=verbose))
 
 }
 
@@ -511,7 +517,8 @@ summary.lm.ma <- function(object,
 
   cat("Call:\n")
   print(object$call)
-  cat("\nModel Averaging Linear Regression\n",sep="")
+  cat("\nModel Averaging Linear Regression",sep="")
+  if(object$vc) {cat(paste(" (Varying Coefficient Specification)",sep=""))}else{cat(paste(" (Additive Dummy Specification)",sep=""))}
   cat(paste("\nModel average criterion: ", object$method, sep=""))
   cat(paste("\nMaximum degree: ", object$degree.max, sep=""))  
   cat(paste("\nNumber of observations: ", object$nobs, sep=""))
@@ -552,7 +559,11 @@ predict.lm.ma <- function(object,
                          S=object$S,
                          exhaustive=object$exhaustive,
                          method=object$method,
-                         ma.weights=object$ma.weights)
+                         ma.weights=object$ma.weights,
+                         weights=object$weights,
+                         vc=object$vc,
+                         verbose=object$verbose,
+                         ...)
     fitted.values <- Est$fitted.values
     deriv <- Est$deriv
   }
