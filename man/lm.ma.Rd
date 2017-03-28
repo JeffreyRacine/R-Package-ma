@@ -253,7 +253,7 @@ grid3d(c("x", "y+", "z"))
 
 #### Example 3 - five predictor (two categorical) earnings function
 
-require(crs)
+suppressPackageStartupMessages(require(crs))
 data(wage1)
 attach(wage1)
 
@@ -324,7 +324,7 @@ attach(cps71)
 model.ma <- lm.ma(logwage~age)
 plot(age,logwage,cex=0.25)
 lines(age,fitted(model.ma))
-require(np)
+suppressPackageStartupMessages(require(np))
 model.kernel <- npreg(logwage~age,regtype="ll",bwmethod="cv.aic")
 lines(age,fitted(model.kernel),col=2,lty=2)
 model.spline <- crs(logwage~age,cv.threshold=0)
