@@ -89,7 +89,7 @@ lm.ma(...)
   
   \item{exhaustive}{a logical value indicating whether to conduct exhaustive search or not}
   
-  \item{method}{whether to use jackknife model averaging (jma) or Mallows model averaging (mma)}
+  \item{method}{whether to use jackknife model averaging (jma, Hansen and Racine (2013)) or Mallows model averaging (mma, Hansen (2007))}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
   

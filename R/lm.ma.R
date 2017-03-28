@@ -521,18 +521,18 @@ summary.lm.ma <- function(object,
   cat("Call:\n")
   print(object$call)
   cat("\nModel Averaging Linear Regression",sep="")
-  if(object$vc) {cat(paste(" (Varying Coefficient Specification)",sep=""))}else{cat(paste(" (Additive Dummy Specification)",sep=""))}
-  cat(paste("\nModel average criterion: ", ifelse(object$method=="jma","Jacknife (Hansen and Racine 2013)","Mallows (Hansen 2007)"), sep=""))
+  cat(paste(ifelse(object$vc, " (Varying Coefficient Specification)"," (Additive Dummy Specification)"),sep=""))
+  cat(paste("\nModel average criterion: ", ifelse(object$method=="jma","Jacknife (Hansen and Racine (2013))","Mallows  (Hansen (2007))"), sep=""))
   cat(paste("\nMaximum degree: ", object$degree.max, sep=""))  
   cat(paste("\nNumber of observations: ", object$nobs, sep=""))
   cat(paste("\nEquivalent number of parameters: ", formatC(sum(object$rank.vec*object$ma.weights),format="f",digits=2), sep=""))
   cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
-                                                  " on ", format(round(object$nobs-sum(object$rank.vec*object$ma.weights)))," degrees of freedom",sep=""))
+                                                  " on ", formatC(object$nobs-sum(object$rank.vec*object$ma.weights),format="f",digits=2)," degrees of freedom",sep=""))
   cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
 
   cat("\n\nNon-zero model average weights: ")
   cat(formatC(object$ma.weights[object$ma.weights>1e-05]/sum(object$ma.weights[object$ma.weights>1e-05]),format="f",digits=5))
-  cat("\nNon-zero weights model ranks: ")
+  cat("\nNon-zero weight model ranks: ")
   cat(object$rank.vec[object$ma.weights>1e-05])
   cat("\n\n")
 
