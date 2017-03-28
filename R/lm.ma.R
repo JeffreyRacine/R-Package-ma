@@ -3,9 +3,10 @@ lm.ma <- function(...) UseMethod("lm.ma")
 lm.ma.default <- function(y=NULL,
                           X=NULL,
                           X.eval=NULL,
-                          basis=c("glp","tensor","additive"),
+                          basis=c("tensor","glp","additive"),
                           compute.deriv=FALSE,
                           deriv.order=1,
+                          degree.min=1,
                           degree.max=NULL,
                           lambda=1e-02,
                           segments.max=3,
@@ -35,6 +36,8 @@ lm.ma.default <- function(y=NULL,
     if(!is.null(degree.max)) if(degree.max < 2) stop("You must average over at least two models")
     if(is.null(y) | is.null(X)) stop("You must provide data for y and X")
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
+    if(compute.deriv & (degree.min < deriv.order)) stop("minimum degree (degree.min) must be at least as large the order of the derivative required (deriv.order)")
+    if(degree.min < 1) stop("minimum degree (degree.min) must be at least one")
 
     ## First obtain weights, then in subsequent call computes fits and 
     ## derivatives
@@ -45,6 +48,7 @@ lm.ma.default <- function(y=NULL,
                      basis=basis,
                      compute.deriv=FALSE,
                      deriv.order=deriv.order,
+                     degree.min=degree.min,
                      degree.max=degree.max,
                      lambda=lambda,
                      segments.max=segments.max,
@@ -70,6 +74,7 @@ lm.ma.default <- function(y=NULL,
                                        basis=basis,
                                        compute.deriv=compute.deriv,
                                        deriv.order=deriv.order,
+                                       degree.min=degree.min,
                                        degree.max=degree.max,
                                        lambda=lambda,
                                        segments.max=segments.max,
@@ -110,6 +115,7 @@ lm.ma.default <- function(y=NULL,
                                   basis=basis,
                                   compute.deriv=compute.deriv,
                                   deriv.order=deriv.order,
+                                  degree.min=degree.min,
                                   degree.max=degree.max,
                                   lambda=lambda,
                                   segments.max=segments.max,
@@ -152,9 +158,10 @@ lm.ma.default <- function(y=NULL,
 lm.ma.Est <- function(y=NULL,
                       X=NULL,
                       X.eval=NULL,
-                      basis=c("glp","tensor","additive"),
+                      basis=c("tensor","glp","additive"),
                       compute.deriv=FALSE,
                       deriv.order=1,
+                      degree.min=1,
                       degree.max=NULL,
                       lambda=1e-02,
                       segments.max=3,
@@ -209,8 +216,6 @@ lm.ma.Est <- function(y=NULL,
     ma.weights.orig <- ma.weights
     
     if(exhaustive) {
-        
-        degree.min = deriv.order
         
         ## Exhaustive evaluation over all combinations of K
         if(knots) {
@@ -417,6 +422,7 @@ lm.ma.Est <- function(y=NULL,
                 basis=basis,
                 compute.deriv=compute.deriv,
                 deriv.order=deriv.order,
+                degree.min=degree.min,
                 degree.max=degree.max,
                 lambda=lambda,
                 segments.max=segments.max,
@@ -439,9 +445,10 @@ lm.ma.formula <- function(formula,
                           y=NULL,
                           X=NULL,
                           X.eval=NULL,
-                          basis=c("glp","tensor","additive"),
+                          basis=c("tensor","glp","additive"),
                           compute.deriv=FALSE,
                           deriv.order=1,
+                          degree.min=1,
                           degree.max=NULL,
                           lambda=1e-02,
                           segments.max=3,
@@ -470,6 +477,7 @@ lm.ma.formula <- function(formula,
                        basis=basis,
                        compute.deriv=compute.deriv,
                        deriv.order=deriv.order,
+                       degree.min=degree.min,
                        degree.max=degree.max,
                        lambda=lambda,
                        segments.max=segments.max,
@@ -523,7 +531,9 @@ summary.lm.ma <- function(object,
   cat("\nModel Averaging Linear Regression",sep="")
   cat(paste(ifelse(object$vc, " (Varying Coefficient Specification)"," (Additive Dummy Specification)"),sep=""))
   cat(paste("\nModel average criterion: ", ifelse(object$method=="jma","Jacknife (Hansen and Racine (2013))","Mallows  (Hansen (2007))"), sep=""))
-  cat(paste("\nMaximum degree: ", object$degree.max, sep=""))  
+  cat(paste("\nMinimum degree: ", object$degree.min, sep=""))  
+  cat(paste("\nMaximum degree: ", object$degree.max, sep=""))
+  cat(paste("\nBasis: ", object$basis, sep=""))  
   cat(paste("\nNumber of observations: ", object$nobs, sep=""))
   cat(paste("\nEquivalent number of parameters: ", formatC(sum(object$rank.vec*object$ma.weights),format="f",digits=2), sep=""))
   cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),

@@ -14,9 +14,10 @@ lm.ma(...)
 \method{lm.ma}{default}(y = NULL,
       X = NULL,
       X.eval = NULL,
-      basis = c("glp","tensor","additive"),
+      basis = c("tensor","glp","additive"),
       compute.deriv = FALSE,
       deriv.order = 1,
+      degree.min = 1,
       degree.max = NULL,
       lambda = 1e-02,
       segments.max = 3,
@@ -38,9 +39,10 @@ lm.ma(...)
       y = NULL,
       X = NULL,
       X.eval = NULL,
-      basis = c("glp","tensor","additive"),
+      basis = c("tensor","glp","additive"),
       compute.deriv = FALSE,
       deriv.order = 1,
+      degree.min = 1,
       degree.max = NULL,
       lambda = 1e-02,
       segments.max = 3,
@@ -75,6 +77,8 @@ lm.ma(...)
   \item{compute.deriv}{a logical value indicating whether or not to compute derivatives}
   
   \item{deriv.order}{integer indicating order of derivative desired}
+
+  \item{degree.min}{minimum value for the basis in each dimension}
 
   \item{degree.max}{maximum value for the basis in each dimension (defaults to \code{max(2,round((S/num.x)*(n/100)^0.25)} where \code{num.x} is the number of numeric (i.e., non categorical) predictors and n the number of observations}
 
