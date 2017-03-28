@@ -225,25 +225,16 @@ model <- lm.ma(y~x1+x2)
 
 summary(model)
 
-z <- matrix(predict(model,newdata=newdata),n.eval,n.eval)
+## Use the rgl package to render a 3D object (RGL is a 3D real-time rendering 
+## system for R that supports OpenGL, among other formats).
 
+z <- matrix(predict(model,newdata=newdata),n.eval,n.eval)
 num.colors <- 1000
 colorlut <- topo.colors(num.colors)
 col <- colorlut[ (num.colors-1)*(z-min(z))/(max(z)-min(z)) + 1 ]
-
-## Open an rgl 3d window and use `persp3d()', a high-level function
-## for 3D surfaces (and define the size of the window to be
-## 640x640). The function par3d() passes in a window size (the default
-## is 256x256 which is quite small), the function rgl.viewpoint()
-## allows you to modify the `field of view' to get more of a
-## `perspective' feel to the plot, while the function grid3d() adds a
-## grid to the plot.
-
 open3d()
-
 par3d(windowRect=c(900,100,900+640,100+640))
 rgl.viewpoint(theta = 0, phi = -70, fov = 80)
-
 persp3d(x.seq,x.seq,z=z,
         xlab="X1",ylab="X2",zlab="Y",
         ticktype="detailed",
@@ -252,7 +243,6 @@ persp3d(x.seq,x.seq,z=z,
         alpha=.7,
         back="lines",
         main="Conditional Mean")
-
 grid3d(c("x", "y+", "z"))
 
 #### Example 3 - five predictor (two categorical) earnings function
