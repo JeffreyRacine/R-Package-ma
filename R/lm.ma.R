@@ -404,7 +404,10 @@ lm.ma.Est <- function(y=NULL,
         for(k in 1:num.x) deriv[,k] <- deriv.mat[,,k]%*%b
     }
 
-    if(verbose) cat("\r                                                    ")
+    if(verbose) {
+        cat("\r                                                    ")
+        cat("\r")
+    }
 
     return(list(fitted.values=fitted.mat%*%b,
                 deriv=deriv,
