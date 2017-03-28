@@ -160,6 +160,10 @@ An object of class "lm.ma" is a list containing at least the following component
   
   Li, Q. and D. Ouyang and J.S. Racine (2013), \dQuote{Categorical Semiparametric Varying Coefficient Models,} Journal of Applied Econometrics, Volume 28, 551-579.
   
+  Hansen, B. E. (2007), \dQuote{Least Squares Model Averaging,} Econometrica 75, 1175-1189.
+
+  Hansen, B. E. & Racine, J. S. (2012), \dQuote{Jackknife Model Averaging,} Journal of Econometrics 167(1), 38-46.
+
   Racine, J.S. and D. Zhang and Q. Li (2017), \dQuote{Model Averaged Categorical Regression Splines.}
 }
 \author{
