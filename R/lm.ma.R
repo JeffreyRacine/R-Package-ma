@@ -132,8 +132,9 @@ lm.ma.default <- function(y=NULL,
             if(compute.deriv) for(k in 1:Est$num.x) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
         }
 
-        cat("\r                                     ")        
-        cat("\rComputing quantiles...")
+        if(verbose) cat("\r                                     ")
+        if(verbose) cat("\r")
+        if(verbose) cat("\rComputing quantiles...")
 
         Est$fitted.ci.l <- apply(boot.mat,1,quantile,prob=alpha/2,type=1)
         Est$fitted.ci.u <- apply(boot.mat,1,quantile,prob=1-alpha/2,type=1)
@@ -145,7 +146,8 @@ lm.ma.default <- function(y=NULL,
                 Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1)        
             }
         }
-        cat("\r                                     ")        
+        if(verbose) cat("\r                                     ")
+        if(verbose) cat("\r")
     }
 
     if(exists.crs.messages) options(crs.messages=TRUE)
@@ -200,7 +202,23 @@ lm.ma.Est <- function(y=NULL,
         xeval <- x
         zeval <- z
     }
+
     rm(xztmp)
+
+    if(vc & !is.null(num.z)) {
+        z.unique <- crs:::uniquecombs(as.matrix(z))
+        num.z <- ncol(z.unique)
+        ind <-  attr(z.unique,"index")
+        ind.vals <-  unique(ind)
+        nrow.z.unique <- nrow(z.unique)
+        zeval.unique <- crs:::uniquecombs(as.matrix(zeval))
+        num.zeval <- ncol(zeval.unique)
+        ind.zeval <-  attr(zeval.unique,"index")
+        ind.zeval.vals <-  unique(ind.zeval)
+        nrow.zeval.unique <- nrow(zeval.unique)
+        num.eval <- nrow(zeval)
+    }
+
     if(is.null(z)) {
         include <- NULL
     } else {
@@ -270,11 +288,6 @@ lm.ma.Est <- function(y=NULL,
 
             if(vc & !is.null(num.z)) {
 
-                z.unique <- crs:::uniquecombs(as.matrix(z))
-                num.z <- ncol(z.unique)
-                ind <-  attr(z.unique,"index")
-                ind.vals <-  unique(ind)
-                nrow.z.unique <- nrow(z.unique)
                 fit.spline <- numeric(length=NROW(x))
                 htt <- numeric(length=NROW(x))
                 for(i in 1:nrow.z.unique) {
@@ -288,7 +301,7 @@ lm.ma.Est <- function(y=NULL,
                         model.z.unique <- lm(y~P-1,weights=L)
                     }
                     htt[zz] <- hatvalues(model.z.unique)[zz]
-                    P <- crs:::prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis)
+                    P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis))
                     fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
                 }
                 
@@ -332,16 +345,10 @@ lm.ma.Est <- function(y=NULL,
         if(!is.null(ma.weights))  {
             if(vc & !is.null(num.z)) {
 
-                zeval.unique <- crs:::uniquecombs(as.matrix(zeval))
-                num.zeval <- ncol(zeval.unique)
-                ind.zeval <-  attr(zeval.unique,"index")
-                ind.zeval.vals <-  unique(ind.zeval)
-                nrow.zeval.unique <- nrow(zeval.unique)
-                num.eval <- nrow(zeval)
                 fit.spline <- numeric(length=num.eval)
                 for(i in 1:nrow.zeval.unique) {
                     zz <- ind.zeval == ind.zeval.vals[i]
-                    L <- crs:::prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
+                    L <- suppressWarnings(crs:::prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
                     if(!is.null(weights)) L <- weights*L
                     P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
                     if(basis=="additive" || basis=="glp") {
@@ -349,7 +356,7 @@ lm.ma.Est <- function(y=NULL,
                     } else {
                         model.z.unique <- lm(y~P-1,weights=L)
                     }
-                    P <- crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis)
+                    P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis))
                     fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
 
                 }
@@ -365,7 +372,7 @@ lm.ma.Est <- function(y=NULL,
                     model.ma <- lm(y~P-1,weights=weights)
                 }
                 
-                P <- crs:::prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis)
+                P <- suppressWarnings(crs:::prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis))
 
                 fitted.mat[,p] <- predict(model.ma,newdata=data.frame(as.matrix(P)))
                 
@@ -376,20 +383,13 @@ lm.ma.Est <- function(y=NULL,
                     
                     if(vc & !is.null(num.z)) {
 
-                        ## Can take these all out
-                        zeval.unique <- crs:::uniquecombs(as.matrix(zeval))
-                        num.zeval <- ncol(zeval.unique)
-                        ind.zeval <-  attr(zeval.unique,"index")
-                        ind.zeval.vals <-  unique(ind.zeval)
-                        nrow.zeval.unique <- nrow(zeval.unique)
-                        num.eval <- nrow(zeval)
                         deriv.spline <- numeric(length(num.eval))
                         for(i in 1:nrow.zeval.unique) {
                             zz <- ind.zeval == ind.zeval.vals[i]
-                            L <- crs:::prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
+                            L <- suppressWarnings(crs:::prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
                             if(!is.null(weights)) L <- weights*L
                             P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
-                            P.deriv <- crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis,deriv.index=k,deriv=deriv.order)
+                            P.deriv <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis,deriv.index=k,deriv=deriv.order))
                             if(basis=="additive") {
                                 model <- lm(y~P,weights=L)
                                 dim.P.deriv <- sum(K.additive[k,])
@@ -410,10 +410,8 @@ lm.ma.Est <- function(y=NULL,
 
                     } else {
 
-                        ##
-
                         P <- crs:::prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis)
-                        P.deriv <- crs:::prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis,deriv.index=k,deriv=deriv.order)
+                        P.deriv <- suppressWarnings(crs:::prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis,deriv.index=k,deriv=deriv.order))
                         dim.P.tensor <- NCOL(P)
                         deriv.ind.vec <- logical(length=NCOL(P))
                         coef.vec.model <- numeric(length=NCOL(P))
@@ -449,10 +447,10 @@ lm.ma.Est <- function(y=NULL,
     if(is.null(ma.weights)) {
 
         if(verbose) cat("\r                                                    ")
+        if(verbose) cat("\r")
         if(verbose) cat("\rComputing model average weights...")
 
         ## Solve the quadratic program for the Mallows model average weights
-        
         M <- ncol(ma.mat)
         D <- t(ma.mat)%*%ma.mat
         if(qr(D)$rank<M) D <- D + diag(1e-08,M,M)
@@ -472,6 +470,7 @@ lm.ma.Est <- function(y=NULL,
 
     if(compute.deriv) {
         if(verbose) cat("\r                                                    ")
+        if(verbose) cat("\r")
         if(verbose) cat("\rComputing derivatives...")
         for(k in 1:num.x) deriv[,k] <- deriv.mat[,,k]%*%b
     }
