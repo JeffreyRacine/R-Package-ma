@@ -37,8 +37,8 @@ lm.ma.default <- function(y=NULL,
     if(!is.null(degree.max)) if(degree.max < 2) stop("You must average over at least two models")
     if(is.null(y) | is.null(X)) stop("You must provide data for y and X")
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
-    if(compute.deriv & (degree.min < deriv.order)) stop("minimum degree (degree.min) must be at least as large the order of the derivative required (deriv.order)")
-    if(degree.min < 1) stop("minimum degree (degree.min) must be at least one")
+    if(compute.deriv & (degree.min < deriv.order)) stop("Minimum degree (degree.min) must be at least as large the order of the derivative required (deriv.order)")
+    if(degree.min < 1) stop("Minimum degree (degree.min) must be at least one")
 
     ## First obtain weights, then in subsequent call computes fits and 
     ## derivatives
@@ -143,14 +143,14 @@ lm.ma.default <- function(y=NULL,
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing quantiles...")
 
-        Est$fitted.ci.l <- apply(boot.mat,1,quantile,prob=alpha/2,type=1)
-        Est$fitted.ci.u <- apply(boot.mat,1,quantile,prob=1-alpha/2,type=1)
+        Est$fitted.ci.l <- apply(boot.mat,1,quantile,prob=alpha/2,type=1,na.rm=TRUE)
+        Est$fitted.ci.u <- apply(boot.mat,1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE)
         
         if(compute.deriv) {
             Est$deriv.ci.l <- Est$deriv.ci.u <- matrix(NA,n,Est$num.x)
             for(k in 1:Est$num.x) {
-                Est$deriv.ci.l[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=alpha/2,type=1)
-                Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1)        
+                Est$deriv.ci.l[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=alpha/2,type=1,na.rm=TRUE)
+                Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE)        
             }
         }
         if(verbose) cat("\r                                     ")
@@ -303,6 +303,7 @@ lm.ma.Est <- function(y=NULL,
                     L <- crs:::prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
                     if(!is.null(weights)) L <- weights*L
                     P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
+                    if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
                     if(basis=="additive" || basis=="glp") {
                         model.z.unique <- lm(y~P,weights=L)
                     } else {
@@ -318,6 +319,7 @@ lm.ma.Est <- function(y=NULL,
                 if(method=="mma") {
                     ma.mat[,p] <- y - fit.spline
                 } else {
+                    htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
                     ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                 }
 
@@ -327,10 +329,12 @@ lm.ma.Est <- function(y=NULL,
 
             } else {
 
+                P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
+                if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
                 if(basis=="additive" || basis=="glp") {
-                    model.ma <- lm(y~crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis),weights=weights)
+                    model.ma <- lm(y~P,weights=weights)
                 } else {
-                    model.ma <- lm(y~crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)-1,weights=weights)
+                    model.ma <- lm(y~P-1,weights=weights)
                 }
                 
                 fitted.mat[,p] <- fit.spline <- fitted(model.ma)
@@ -339,6 +343,7 @@ lm.ma.Est <- function(y=NULL,
                     ma.mat[,p] <- y - fit.spline
                 } else {
                     htt <- hatvalues(model.ma)
+                    htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
                     ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                 }
 
