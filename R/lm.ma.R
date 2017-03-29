@@ -375,19 +375,39 @@ lm.ma.Est <- function(y=NULL,
                 for(k in 1:num.x) {
                     
                     if(vc & !is.null(num.z)) {
-                        
-                        model.deriv <- suppressWarnings(crs:::deriv.kernel.spline(x,
-                                                                                  y,
-                                                                                  z,
-                                                                                  K=DS,
-                                                                                  lambda=lambda.vec,
-                                                                                  is.ordered.z=is.ordered.z,
-                                                                                  xeval=xeval,
-                                                                                  zeval=zeval,
-                                                                                  basis=basis,
-                                                                                  deriv.index=k,
-                                                                                  deriv=deriv.order,
-                                                                                  weights=weights)[,1])
+
+                        ## Can take these all out
+                        zeval.unique <- crs:::uniquecombs(as.matrix(zeval))
+                        num.zeval <- ncol(zeval.unique)
+                        ind.zeval <-  attr(zeval.unique,"index")
+                        ind.zeval.vals <-  unique(ind.zeval)
+                        nrow.zeval.unique <- nrow(zeval.unique)
+                        num.eval <- nrow(zeval)
+                        deriv.spline <- numeric(length(num.eval))
+                        for(i in 1:nrow.zeval.unique) {
+                            zz <- ind.zeval == ind.zeval.vals[i]
+                            L <- crs:::prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
+                            if(!is.null(weights)) L <- weights*L
+                            P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
+                            P.deriv <- crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis,deriv.index=k,deriv=deriv.order)
+                            if(basis=="additive") {
+                                model <- lm(y~P,weights=L)
+                                dim.P.deriv <- sum(K.additive[k,])
+                                deriv.start <- ifelse(k!=1,sum(K.additive[1:(k-1),])+1,1)
+                                deriv.end <- deriv.start+sum(K.additive[k,])-1
+                                deriv.ind.vec <- deriv.start:deriv.end
+                                deriv.spline[zz] <- P.deriv[,deriv.ind.vec,drop=FALSE]%*%(coef(model)[-1])[deriv.ind.vec]
+                            } else if(basis=="tensor") {
+                                model <- lm(y~P-1,weights=L)
+                                deriv.spline[zz] <- P.deriv%*%coef(model)
+                            } else if(basis=="glp") {
+                                model <- lm(y~P,weights=L)
+                                deriv.spline[zz] <- P.deriv%*%coef(model)[-1]
+                            }
+                        }
+
+                        model.deriv <- deriv.spline
+
                     } else {
                         
                         model.deriv <- suppressWarnings(crs:::deriv.factor.spline(x,
