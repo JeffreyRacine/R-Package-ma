@@ -1,3 +1,9 @@
+is.fullrank <- function(x)
+{
+  e <- eigen(crossprod(as.matrix(x)), symmetric = TRUE, only.values = TRUE)$values
+  e[1] > 0 && abs(e[length(e)]/e[1]) > max(dim(x))*max(sqrt(abs(e)))*.Machine$double.eps
+}
+
 splitFrame <- function(xz, factor.to.numeric=FALSE) {
   
   if(missing(xz)) stop(" you must provide xz data")

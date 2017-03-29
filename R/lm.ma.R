@@ -273,7 +273,7 @@ lm.ma.Est <- function(y=NULL,
     ma.mat <- matrix(NA,NROW(X),P.num)
     fitted.mat <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P.num)
 
-    for(p in 1:P.num) {
+    for(p in P.num:1) {
         
         if(!exhaustive) {
             if(knots) {
@@ -285,7 +285,7 @@ lm.ma.Est <- function(y=NULL,
             DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
         }
 
-        if(verbose) cat(paste("\rCandidate model ",p," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+        if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
 
         if(is.null(ma.weights)) {
 
@@ -342,6 +342,8 @@ lm.ma.Est <- function(y=NULL,
                 sigsq <- sqrt(sum(residuals(model.ma)^2)/(NROW(x)-model.ma$rank))
 
             }
+            
+            if(p==P.num) sigsq.largest <- sigsq
 
         }
 
@@ -460,7 +462,7 @@ lm.ma.Est <- function(y=NULL,
         A <- cbind(rep(1,M),diag(1,M,M))
         b0 <- c(1,rep(0,M))
         if(method=="mma") {
-            d <- -sigsq*K.rank
+            d <- -sigsq.largest*K.rank
         } else {
             d <- t(y)%*%ma.mat
         }        

@@ -32,6 +32,7 @@ lm.ma(...)
       weights = NULL,
       vc = TRUE,
       verbose = TRUE,
+      tol = 1e-08,
       ...)
 
 \method{lm.ma}{formula}(formula,
@@ -57,6 +58,7 @@ lm.ma(...)
       weights = NULL,
       vc = TRUE,
       verbose = TRUE,
+      tol = 1e-08,
       ...)
 
 }
@@ -108,6 +110,8 @@ lm.ma(...)
   \item{vc}{a logical value indicating whether to allow the categorical predictors to enter additively (only the intercept can shift) or to instead use a varying coefficient structure (all parameters can shift)}
   
   \item{verbose}{a logical value indicating whether to report detailed progress during computation}
+  
+  \item{tol}{a small constant used to ensure the forcing matrix for the quadratic program is not ill-conditioned}
   
   \item{...}{optional arguments to be passed}
 
