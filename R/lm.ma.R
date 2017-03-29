@@ -409,19 +409,33 @@ lm.ma.Est <- function(y=NULL,
                         model.deriv <- deriv.spline
 
                     } else {
+
+                        ##
+
+                        P <- crs:::prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis)
+                        P.deriv <- crs:::prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis,deriv.index=k,deriv=deriv.order)
+                        dim.P.tensor <- NCOL(P)
+                        deriv.ind.vec <- logical(length=NCOL(P))
+                        coef.vec.model <- numeric(length=NCOL(P))
+                        if(basis=="additive") {
+                            model <- lm(y~P,weights=weights)
+                            coef.vec.model <- coef(model)[-1]
+                            dim.P.deriv <- sum(K.additive[k,])
+                            deriv.start <- ifelse(k!=1,sum(K.additive[1:(k-1),])+1,1)
+                            deriv.end <- deriv.start+sum(K.additive[k,])-1
+                            deriv.ind.vec[deriv.start:deriv.end] <- TRUE
+                        } else if(basis=="tensor") {
+                            model <- lm(y~P-1,weights=weights)
+                            coef.vec.model <- coef(model)
+                            deriv.ind.vec[1:dim.P.tensor] <- TRUE
+                        } else if(basis=="glp") {
+                            model <- lm(y~P,weights=weights)
+                            coef.vec.model <- coef(model)[-1]
+                            deriv.ind.vec[1:dim.P.tensor] <- TRUE
+                        }
                         
-                        model.deriv <- suppressWarnings(crs:::deriv.factor.spline(x,
-                                                                                  y,
-                                                                                  z,
-                                                                                  K=DS,
-                                                                                  I=include,
-                                                                                  xeval=xeval,
-                                                                                  zeval=zeval,
-                                                                                  basis=basis,
-                                                                                  deriv.index=k,
-                                                                                  deriv=deriv.order,
-                                                                                  weights=weights)[,1])
-                        
+                        model.deriv <- P.deriv[,deriv.ind.vec,drop=FALSE]%*%coef.vec.model[deriv.ind.vec]
+
                     }
                     
                     deriv.mat[,p,k] <- model.deriv
