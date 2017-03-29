@@ -394,8 +394,15 @@ lm.ma.Est <- function(y=NULL,
             }
             
             if(compute.deriv) {
+
+                if(basis=="additive" || basis=="glp") {
+                    K.additive <- DS
+                    K.additive[,2] <- ifelse(DS[,1]==0,0,DS[,2])
+                    K.additive[,1] <- ifelse(DS[,1]>0,DS[,1]-1,DS[,1])
+                }
+                
                 for(k in 1:num.x) {
-                    
+                   
                     if(vc & !is.null(num.z)) {
 
                         deriv.spline <- numeric(length(num.eval))
