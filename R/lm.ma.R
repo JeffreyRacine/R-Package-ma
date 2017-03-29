@@ -21,6 +21,7 @@ lm.ma.default <- function(y=NULL,
                           weights=NULL,
                           vc=TRUE,
                           verbose=TRUE,
+                          tol=1e-08,
                           ...) {
 
     basis <- match.arg(basis)
@@ -60,6 +61,7 @@ lm.ma.default <- function(y=NULL,
                      weights=weights,
                      vc=vc,
                      verbose=verbose,
+                     tol=tol,
                      ...)
     
     ## Save rank vector and matrix of degrees and segments (not computed in next 
@@ -87,6 +89,7 @@ lm.ma.default <- function(y=NULL,
                          weights=weights,
                          vc=vc,
                          verbose=verbose,
+                         tol=tol,
                          ...)
         
         Est$rank.vec <- K.rank
@@ -130,6 +133,7 @@ lm.ma.default <- function(y=NULL,
                                   weights=weights,
                                   vc=vc,
                                   verbose=FALSE,
+                                  tol=1e-08,
                                   ...)
             boot.mat[,b] <- out.boot$fitted
             if(compute.deriv) for(k in 1:Est$num.x) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
@@ -178,6 +182,7 @@ lm.ma.Est <- function(y=NULL,
                       weights=NULL,
                       vc=TRUE,
                       verbose=TRUE,
+                      tol=1e-08,
                       ...) {
     
     ## Divide into factors and numeric
@@ -458,7 +463,7 @@ lm.ma.Est <- function(y=NULL,
         ## Solve the quadratic program for the Mallows model average weights
         M <- ncol(ma.mat)
         D <- t(ma.mat)%*%ma.mat
-        if(qr(D)$rank<M) D <- D + diag(1e-08,M,M)
+        if(qr(D)$rank<M) D <- D + diag(tol,M,M)
         A <- cbind(rep(1,M),diag(1,M,M))
         b0 <- c(1,rep(0,M))
         if(method=="mma") {
@@ -507,7 +512,8 @@ lm.ma.Est <- function(y=NULL,
                 nobs=NROW(y),
                 DS=K.mat,
                 vc=vc,
-                verbose=verbose))
+                verbose=verbose,
+                tol=tol))
 
 }
 
@@ -534,6 +540,7 @@ lm.ma.formula <- function(formula,
                           weights=NULL,
                           vc=TRUE,
                           verbose=TRUE,
+                          tol=1e-08,
                           ...) {
 
 
@@ -563,6 +570,7 @@ lm.ma.formula <- function(formula,
                        weights=weights,
                        vc=vc,
                        verbose=verbose,
+                       tol=tol,
                        ...)
 
   Est$r.squared <- RSQfunc(tydat,Est$fitted.values)
@@ -647,6 +655,7 @@ predict.lm.ma <- function(object,
                          weights=object$weights,
                          vc=object$vc,
                          verbose=object$verbose,
+                         tol=object$tol,
                          ...)
     fitted.values <- Est$fitted.values
     deriv <- Est$deriv
