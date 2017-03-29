@@ -197,8 +197,8 @@ lm.ma.Est <- function(y=NULL,
         xeval <- xztmp$x
         zeval <- xztmp$z
     } else {
-        xeval <- NULL
-        zeval <- NULL
+        xeval <- x
+        zeval <- z
     }
     rm(xztmp)
     if(is.null(z)) {
@@ -332,28 +332,42 @@ lm.ma.Est <- function(y=NULL,
         if(!is.null(ma.weights))  {
             if(vc & !is.null(num.z)) {
 
-                fitted.mat[,p] <- suppressWarnings(crs:::predict.kernel.spline(x,
-                                                                               y,
-                                                                               z,
-                                                                               xeval=xeval,
-                                                                               zeval=zeval,
-                                                                               K=DS,
-                                                                               lambda=lambda.vec,
-                                                                               is.ordered.z=is.ordered.z,
-                                                                               basis=basis,
-                                                                               weights=weights)$fitted.values[,1])
-                
+                zeval.unique <- crs:::uniquecombs(as.matrix(zeval))
+                num.zeval <- ncol(zeval.unique)
+                ind.zeval <-  attr(zeval.unique,"index")
+                ind.zeval.vals <-  unique(ind.zeval)
+                nrow.zeval.unique <- nrow(zeval.unique)
+                num.eval <- nrow(zeval)
+                fit.spline <- numeric(length=num.eval)
+                for(i in 1:nrow.zeval.unique) {
+                    zz <- ind.zeval == ind.zeval.vals[i]
+                    L <- crs:::prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
+                    if(!is.null(weights)) L <- weights*L
+                    P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
+                    if(basis=="additive" || basis=="glp") {
+                        model.z.unique <- lm(y~P,weights=L)
+                    } else {
+                        model.z.unique <- lm(y~P-1,weights=L)
+                    }
+                    P <- crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis)
+                    fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
+
+                }
+
+                fitted.mat[,p] <- fit.spline
+
             } else {
+
+                P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
+                if(basis=="additive" || basis=="glp") {
+                    model.ma <- lm(y~P,weights=weights)
+                } else {
+                    model.ma <- lm(y~P-1,weights=weights)
+                }
                 
-                fitted.mat[,p] <- suppressWarnings(crs:::predict.factor.spline(x,
-                                                                               y,
-                                                                               z,
-                                                                               xeval=xeval,
-                                                                               zeval=zeval,
-                                                                               K=DS,
-                                                                               I=include,
-                                                                               basis=basis,
-                                                                               weights=weights)$fitted.values[,1])
+                P <- crs:::prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis)
+
+                fitted.mat[,p] <- predict(model.ma,newdata=data.frame(as.matrix(P)))
                 
             }
             
