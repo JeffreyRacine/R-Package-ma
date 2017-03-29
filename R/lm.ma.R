@@ -230,7 +230,7 @@ lm.ma.Est <- function(y=NULL,
     }
 
     if(is.null(degree.max)) {
-        degree.max <- max(3,floor((S/num.x)*(NROW(X)/100)^0.2))
+        degree.max <- max(3,floor((S/num.x)*(NROW(X)/100)^0.1))
     }
     
     P <- degree.max
