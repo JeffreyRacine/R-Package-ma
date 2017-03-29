@@ -65,32 +65,35 @@ lm.ma.default <- function(y=NULL,
     ## Save rank vector and matrix of degrees and segments (not computed in next 
     ## call since ma.weights is passed, but needed for summary)
     
-    K.rank <- Est$rank.vec
-    DS <- Est$DS
+    if(compute.deriv | !is.null(X.eval)) {
+        K.rank <- Est$rank.vec
+        DS <- Est$DS
 
-    if(compute.deriv) Est <- lm.ma.Est(y=y,
-                                       X=X,
-                                       X.eval=X.eval,
-                                       basis=basis,
-                                       compute.deriv=compute.deriv,
-                                       deriv.order=deriv.order,
-                                       degree.min=degree.min,
-                                       degree.max=degree.max,
-                                       lambda=lambda,
-                                       segments.max=segments.max,
-                                       knots=knots,
-                                       S=S,
-                                       exhaustive=exhaustive,
-                                       method=method,
-                                       ma.weights=Est$ma.weights,
-                                       weights=weights,
-                                       vc=vc,
-                                       verbose=verbose,
-                                       ...)
-    
-    Est$rank.vec <- K.rank
-    Est$DS <- DS
-    
+        Est <- lm.ma.Est(y=y,
+                         X=X,
+                         X.eval=X.eval,
+                         basis=basis,
+                         compute.deriv=compute.deriv,
+                         deriv.order=deriv.order,
+                         degree.min=degree.min,
+                         degree.max=degree.max,
+                         lambda=lambda,
+                         segments.max=segments.max,
+                         knots=knots,
+                         S=S,
+                         exhaustive=exhaustive,
+                         method=method,
+                         ma.weights=Est$ma.weights,
+                         weights=weights,
+                         vc=vc,
+                         verbose=verbose,
+                         ...)
+        
+        Est$rank.vec <- K.rank
+        Est$DS <- DS
+
+    }
+
     ## Bootstrap is requested using pre-computed ma.weights
     
     if(bootstrap.ci) {
