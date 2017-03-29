@@ -290,23 +290,39 @@ lm.ma.Est <- function(y=NULL,
 
             } else {
             
-                model.ma <- suppressWarnings(crs:::predict.factor.spline(x,
-                                                                         y,
-                                                                         z,
-                                                                         K=DS,
-                                                                         I=include,
-                                                                         basis=basis,
-                                                                         weights=weights)$model)
+#                model.ma <- suppressWarnings(crs:::predict.factor.spline(x,
+#                                                                         y,
+#                                                                         z,
+#                                                                         K=DS,
+#                                                                         I=include,
+#                                                                         basis=basis,
+#                                                                         weights=weights)$model)
+#
+#                if(method=="mma") {
+#                    ma.mat[,p] <- residuals(model.ma)
+#                } else {
+#                    htt <- hatvalues(model.ma)
+#                    ma.mat[,p] <- fitted(model.ma) - htt*residuals(model.ma)/(1-htt)
+#                }
+#
+#                sigsq <- summary(model.ma)$sigma^2
+
+                if(basis=="additive" || basis=="glp") {
+                    model.ma <- lm(y~crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis),weights=weights)
+                } else {
+                    model.ma <- lm(y~crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)-1,weights=weights)
+                }
+                fit.spline <- fitted(model.ma)
 
                 if(method=="mma") {
-                    ma.mat[,p] <- residuals(model.ma)
+                    ma.mat[,p] <- y - fit.spline
                 } else {
                     htt <- hatvalues(model.ma)
-                    ma.mat[,p] <- fitted(model.ma) - htt*residuals(model.ma)/(1-htt)
+                    ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                 }
 
                 sigsq <- summary(model.ma)$sigma^2
-
+                
             }
 
             K.rank[p] <- model.ma$rank
