@@ -293,25 +293,29 @@ newdata.female.married <- data.frame(educ=round(median(educ)),
                                      married=factor("Married",levels=levels(married)))
 
 newdata.female.notmarried <- data.frame(educ=round(median(educ)),
-                                     exper=round(median(exper)),
-                                     tenure=round(median(tenure)),
-                                     female=factor("Female",levels=levels(female)),
-                                     married=factor("Notmarried",levels=levels(married)))
+                                        exper=round(median(exper)),
+                                        tenure=round(median(tenure)),
+                                        female=factor("Female",levels=levels(female)),
+                                        married=factor("Notmarried",levels=levels(married)))
                                      
 ## Compute the so-called marriage premium - try three simple parametric 
 ## specifications (take your pick - is the premium +13%? +3%? -12%?) 
 
 ## Linear parametric
-predict(model.lm,newdata=newdata.female.married)-predict(model.lm,newdata=newdata.female.notmarried)
+predict(model.lm,newdata=newdata.female.married)-
+predict(model.lm,newdata=newdata.female.notmarried)
 
 ## Murphy-Welch parametric
-predict(model.lm.mw,newdata=newdata.female.married)-predict(model.lm.mw,newdata=newdata.female.notmarried)
+predict(model.lm.mw,newdata=newdata.female.married)-
+predict(model.lm.mw,newdata=newdata.female.notmarried)
 
 ## Murphy-Welch parametric augmented with a dummy interaction
-predict(model.lm.mwint,newdata=newdata.female.married)-predict(model.lm.mwint,newdata=newdata.female.notmarried)
+predict(model.lm.mwint,newdata=newdata.female.married)-
+predict(model.lm.mwint,newdata=newdata.female.notmarried)
 
 ## Model average
-predict(model.ma,newdata=newdata.female.married)$fit-predict(model.ma,newdata=newdata.female.notmarried)$fit
+predict(model.ma,newdata=newdata.female.married)$fit-
+predict(model.ma,newdata=newdata.female.notmarried)$fit
 
 detach(wage1)
 
