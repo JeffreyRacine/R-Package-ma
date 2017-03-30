@@ -334,8 +334,6 @@ lm.ma.Est <- function(y=NULL,
                             htt.min <- htt
                             rank.min <- model.z.unique$rank
                             basis.vec[p] <- b.basis
-                            print(p)
-                            print(basis.vec[p])
                         }
  
                     }
@@ -391,12 +389,14 @@ lm.ma.Est <- function(y=NULL,
                         } else {
                             model.ma <- lm(y~P-1,weights=weights)
                         }
+                        htt <- hatvalues(model.ma)
+                        htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
+                        cv.val <- mean((y - fitted(model.ma))^2/(1-htt)^2)
                         if(cv.val < cv.min) {
+                            cv.min <- cv.val
                             fit.spline.min <- fitted(model.ma)
                             model.ma.min <- model.ma
                             basis.vec[p] <- b.basis
-                            print(p)
-                            print(basis.vec[p])
                         }
                     }
                     
