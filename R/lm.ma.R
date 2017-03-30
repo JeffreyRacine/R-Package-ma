@@ -3,7 +3,7 @@ lm.ma <- function(...) UseMethod("lm.ma")
 lm.ma.default <- function(y=NULL,
                           X=NULL,
                           X.eval=NULL,
-                          basis=c("tensor","glp","additive"),
+                          basis=c("tensor","glp","additive","auto"),
                           compute.deriv=FALSE,
                           deriv.order=1,
                           degree.min=1,
@@ -15,6 +15,7 @@ lm.ma.default <- function(y=NULL,
                           exhaustive=TRUE,
                           method=c("jma","mma"),
                           ma.weights=NULL,
+                          basis.vec=NULL,
                           bootstrap.ci=FALSE,
                           B=199,
                           alpha=0.05,
@@ -58,6 +59,7 @@ lm.ma.default <- function(y=NULL,
                      exhaustive=exhaustive,
                      method=method,
                      ma.weights=ma.weights,
+                     basis.vec=basis.vec,
                      weights=weights,
                      vc=vc,
                      verbose=verbose,
@@ -86,6 +88,7 @@ lm.ma.default <- function(y=NULL,
                          exhaustive=exhaustive,
                          method=method,
                          ma.weights=Est$ma.weights,
+                         basis.vec=Est$basis.vec,
                          weights=weights,
                          vc=vc,
                          verbose=verbose,
@@ -130,6 +133,7 @@ lm.ma.default <- function(y=NULL,
                                   exhaustive=exhaustive,
                                   method=method,
                                   ma.weights=Est$ma.weights,
+                                  basis.vec=Est$basis.vec,
                                   weights=weights,
                                   vc=vc,
                                   verbose=FALSE,
@@ -167,7 +171,7 @@ lm.ma.default <- function(y=NULL,
 lm.ma.Est <- function(y=NULL,
                       X=NULL,
                       X.eval=NULL,
-                      basis=c("tensor","glp","additive"),
+                      basis=c("tensor","glp","additive","auto"),
                       compute.deriv=FALSE,
                       deriv.order=1,
                       degree.min=1,
@@ -179,6 +183,7 @@ lm.ma.Est <- function(y=NULL,
                       exhaustive=TRUE,
                       method=c("jma","mma"),
                       ma.weights=NULL,
+                      basis.vec=NULL,
                       weights=NULL,
                       vc=TRUE,
                       verbose=TRUE,
@@ -278,6 +283,8 @@ lm.ma.Est <- function(y=NULL,
     ma.mat <- matrix(NA,NROW(X),P.num)
     fitted.mat <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P.num)
 
+    if(basis=="auto" & is.null(basis.vec)) basis.vec <- character()
+
     for(p in P.num:1) {
         
         if(!exhaustive) {
@@ -296,26 +303,71 @@ lm.ma.Est <- function(y=NULL,
 
             if(vc & !is.null(num.z)) {
 
-                fit.spline <- numeric(length=NROW(x))
-                htt <- numeric(length=NROW(x))
-                for(i in 1:nrow.z.unique) {
-                    zz <- ind == ind.vals[i]
-                    L <- crs:::prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
-                    if(!is.null(weights)) L <- weights*L
-                    P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
-                    if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
-                    if(basis=="additive" || basis=="glp") {
-                        model.z.unique <- lm(y~P,weights=L)
-                    } else {
-                        model.z.unique <- lm(y~P-1,weights=L)
-                    }
-                    htt[zz] <- hatvalues(model.z.unique)[zz]
-                    P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis))
-                    fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
-                }
-                
-                fitted.mat[,p] <- fit.spline
+                if(basis=="auto") {
+                    cv.min <- Inf
+                    for(b.basis in c("tensor","glp","additive")) {
 
+                        fit.spline <- numeric(length=NROW(x))
+                        htt <- numeric(length=NROW(x))
+                        for(i in 1:nrow.z.unique) {
+                            zz <- ind == ind.vals[i]
+                            L <- crs:::prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
+                            if(!is.null(weights)) L <- weights*L
+                            P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
+                            if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
+                            if(b.basis=="additive" || b.basis=="glp") {
+                                model.z.unique <- lm(y~P,weights=L)
+                            } else {
+                                model.z.unique <- lm(y~P-1,weights=L)
+                            }
+                            htt[zz] <- hatvalues(model.z.unique)[zz]
+                            P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=b.basis))
+                            fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
+                        }
+                        
+                        htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
+                        cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
+                        
+                        if(cv.val < cv.min) {
+                            cv.min <- cv.val
+                            fit.spline.min <- fit.spline
+                            htt.min <- htt
+                            rank.min <- model.z.unique$rank
+                            basis.vec[p] <- b.basis
+                            print(p)
+                            print(basis.vec[p])
+                        }
+ 
+                    }
+
+                    fit.spline <- fit.spline.min
+                    htt.min <- htt
+                    model.z.unique$rank <- rank.min
+
+                } else {
+
+                    fit.spline <- numeric(length=NROW(x))
+                    htt <- numeric(length=NROW(x))
+                    for(i in 1:nrow.z.unique) {
+                        zz <- ind == ind.vals[i]
+                        L <- crs:::prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
+                        if(!is.null(weights)) L <- weights*L
+                        P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
+                        if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
+                        if(basis=="additive" || basis=="glp") {
+                            model.z.unique <- lm(y~P,weights=L)
+                        } else {
+                            model.z.unique <- lm(y~P-1,weights=L)
+                        }
+                        htt[zz] <- hatvalues(model.z.unique)[zz]
+                        P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis))
+                        fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
+                    }
+                    
+                }
+
+                fitted.mat[,p] <- fit.spline
+                    
                 if(method=="mma") {
                     ma.mat[,p] <- y - fit.spline
                 } else {
@@ -329,15 +381,43 @@ lm.ma.Est <- function(y=NULL,
 
             } else {
 
-                P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
-                if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
-                if(basis=="additive" || basis=="glp") {
-                    model.ma <- lm(y~P,weights=weights)
+                if(basis=="auto") {
+                    cv.min <- Inf
+                    for(b.basis in c("tensor","glp","additive")) {
+                        P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
+                        if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
+                        if(b.basis=="additive" || b.basis=="glp") {
+                            model.ma <- lm(y~P,weights=weights)
+                        } else {
+                            model.ma <- lm(y~P-1,weights=weights)
+                        }
+                        if(cv.val < cv.min) {
+                            fit.spline.min <- fitted(model.ma)
+                            model.ma.min <- model.ma
+                            basis.vec[p] <- b.basis
+                            print(p)
+                            print(basis.vec[p])
+                        }
+                    }
+                    
+                    model.ma <- model.ma.min
+                    fit.spline <- fitted(model.ma)
+
                 } else {
-                    model.ma <- lm(y~P-1,weights=weights)
+
+                    P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
+                    if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
+                    if(basis=="additive" || basis=="glp") {
+                        model.ma <- lm(y~P,weights=weights)
+                    } else {
+                        model.ma <- lm(y~P-1,weights=weights)
+                    }
+
+                    fit.spline <- fitted(model.ma)
+
                 }
                 
-                fitted.mat[,p] <- fit.spline <- fitted(model.ma)
+                fitted.mat[,p] <- fit.spline
 
                 if(method=="mma") {
                     ma.mat[,p] <- y - fit.spline
@@ -466,6 +546,9 @@ lm.ma.Est <- function(y=NULL,
             
     }
     
+    print(basis.vec)
+    stop()
+    
     if(is.null(ma.weights)) {
 
         if(verbose) cat("\r                                                    ")
@@ -505,6 +588,7 @@ lm.ma.Est <- function(y=NULL,
     return(list(fitted.values=fitted.mat%*%b,
                 deriv=deriv,
                 ma.weights=if(is.null(ma.weights)){abs(b)}else{ma.weights.orig},
+                basis.vec=basis.vec,
                 y=y,
                 X=X,
                 basis=basis,
@@ -534,7 +618,7 @@ lm.ma.formula <- function(formula,
                           y=NULL,
                           X=NULL,
                           X.eval=NULL,
-                          basis=c("tensor","glp","additive"),
+                          basis=c("tensor","glp","additive","auto"),
                           compute.deriv=FALSE,
                           deriv.order=1,
                           degree.min=1,
@@ -546,6 +630,7 @@ lm.ma.formula <- function(formula,
                           exhaustive=TRUE,
                           method=c("jma","mma"),
                           ma.weights=NULL,
+                          basis.vec=NULL,
                           bootstrap.ci=FALSE,
                           B=199,
                           alpha=0.05,
@@ -576,6 +661,7 @@ lm.ma.formula <- function(formula,
                        exhaustive=exhaustive,
                        method=method,
                        ma.weights=ma.weights,
+                       basis.vec=basis.vec,
                        bootstrap.ci=bootstrap.ci,
                        B=B,
                        alpha=alpha,
@@ -664,6 +750,7 @@ predict.lm.ma <- function(object,
                          exhaustive=object$exhaustive,
                          method=object$method,
                          ma.weights=object$ma.weights,
+                         basis.vec=object$basis.vec,
                          weights=object$weights,
                          vc=object$vc,
                          verbose=object$verbose,
