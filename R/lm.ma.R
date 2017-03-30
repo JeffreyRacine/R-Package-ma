@@ -72,6 +72,7 @@ lm.ma.default <- function(y=NULL,
     if(compute.deriv | !is.null(X.eval)) {
         K.rank <- Est$rank.vec
         DS <- Est$DS
+        basis.vec <- Est$basis.vec
 
         Est <- lm.ma.Est(y=y,
                          X=X,
@@ -97,6 +98,7 @@ lm.ma.default <- function(y=NULL,
         
         Est$rank.vec <- K.rank
         Est$DS <- DS
+        Est$DS <- basis.vec
 
     }
 
@@ -286,8 +288,6 @@ lm.ma.Est <- function(y=NULL,
             basis.vec <- rep(basis,nrow(K.mat))
         }
     }
-    
-    
 
     deriv <- NULL
     if(compute.deriv) {
