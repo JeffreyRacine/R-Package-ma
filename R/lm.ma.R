@@ -350,7 +350,7 @@ lm.ma.Est <- function(y=NULL,
                         zz <- ind == ind.vals[i]
                         L <- crs:::prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
                         if(!is.null(weights)) L <- weights*L
-                        P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
+                        P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                         if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
                         if(basis=="additive" || basis=="glp") {
                             model.z.unique <- lm(y~P,weights=L)
@@ -358,7 +358,7 @@ lm.ma.Est <- function(y=NULL,
                             model.z.unique <- lm(y~P-1,weights=L)
                         }
                         htt[zz] <- hatvalues(model.z.unique)[zz]
-                        P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis))
+                        P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
                         fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
                     }
                     
@@ -405,7 +405,7 @@ lm.ma.Est <- function(y=NULL,
 
                 } else {
 
-                    P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
+                    P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                     if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
                     if(basis=="additive" || basis=="glp") {
                         model.ma <- lm(y~P,weights=weights)
@@ -445,13 +445,13 @@ lm.ma.Est <- function(y=NULL,
                     zz <- ind.zeval == ind.zeval.vals[i]
                     L <- suppressWarnings(crs:::prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
                     if(!is.null(weights)) L <- weights*L
-                    P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
+                    P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                     if(basis=="additive" || basis=="glp") {
                         model.z.unique <- lm(y~P,weights=L)
                     } else {
                         model.z.unique <- lm(y~P-1,weights=L)
                     }
-                    P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis))
+                    P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
                     fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
 
                 }
@@ -460,14 +460,14 @@ lm.ma.Est <- function(y=NULL,
 
             } else {
 
-                P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
+                P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                 if(basis=="additive" || basis=="glp") {
                     model.ma <- lm(y~P,weights=weights)
                 } else {
                     model.ma <- lm(y~P-1,weights=weights)
                 }
                 
-                P <- suppressWarnings(crs:::prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis))
+                P <- suppressWarnings(crs:::prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p]))
 
                 fitted.mat[,p] <- predict(model.ma,newdata=data.frame(as.matrix(P)))
                 
@@ -490,8 +490,8 @@ lm.ma.Est <- function(y=NULL,
                             zz <- ind.zeval == ind.zeval.vals[i]
                             L <- suppressWarnings(crs:::prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
                             if(!is.null(weights)) L <- weights*L
-                            P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis)
-                            P.deriv <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis,deriv.index=k,deriv=deriv.order))
+                            P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
+                            P.deriv <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p],deriv.index=k,deriv=deriv.order))
                             if(basis=="additive") {
                                 model <- lm(y~P,weights=L)
                                 dim.P.deriv <- sum(K.additive[k,])
@@ -512,8 +512,8 @@ lm.ma.Est <- function(y=NULL,
 
                     } else {
 
-                        P <- crs:::prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis)
-                        P.deriv <- suppressWarnings(crs:::prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis,deriv.index=k,deriv=deriv.order))
+                        P <- crs:::prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
+                        P.deriv <- suppressWarnings(crs:::prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p],deriv.index=k,deriv=deriv.order))
                         dim.P.tensor <- NCOL(P)
                         deriv.ind.vec <- logical(length=NCOL(P))
                         coef.vec.model <- numeric(length=NCOL(P))
@@ -545,10 +545,7 @@ lm.ma.Est <- function(y=NULL,
         }
             
     }
-    
-    print(basis.vec)
-    stop()
-    
+
     if(is.null(ma.weights)) {
 
         if(verbose) cat("\r                                                    ")
@@ -721,6 +718,10 @@ summary.lm.ma <- function(object,
   cat(formatC(object$ma.weights[object$ma.weights>1e-05]/sum(object$ma.weights[object$ma.weights>1e-05]),format="f",digits=5))
   cat("\nNon-zero weight model ranks: ")
   cat(object$rank.vec[object$ma.weights>1e-05])
+  if(object$basis=="auto") {
+      cat("\nNon-zero weight model bases: ")
+      cat(object$basis.vec[object$ma.weights>1e-05])    
+  }
   cat("\n\n")
 
 }
