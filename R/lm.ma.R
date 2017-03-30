@@ -3,7 +3,7 @@ lm.ma <- function(...) UseMethod("lm.ma")
 lm.ma.default <- function(y=NULL,
                           X=NULL,
                           X.eval=NULL,
-                          basis=c("tensor","glp","additive","auto"),
+                          basis=c("auto","tensor","glp","additive"),
                           compute.deriv=FALSE,
                           deriv.order=1,
                           degree.min=1,
@@ -12,7 +12,6 @@ lm.ma.default <- function(y=NULL,
                           segments.max=3,
                           knots=FALSE,
                           S=10,
-                          exhaustive=TRUE,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           basis.vec=NULL,
@@ -56,7 +55,6 @@ lm.ma.default <- function(y=NULL,
                      segments.max=segments.max,
                      knots=knots,
                      S=S,
-                     exhaustive=exhaustive,
                      method=method,
                      ma.weights=ma.weights,
                      basis.vec=basis.vec,
@@ -86,7 +84,6 @@ lm.ma.default <- function(y=NULL,
                          segments.max=segments.max,
                          knots=knots,
                          S=S,
-                         exhaustive=exhaustive,
                          method=method,
                          ma.weights=Est$ma.weights,
                          basis.vec=Est$basis.vec,
@@ -132,7 +129,6 @@ lm.ma.default <- function(y=NULL,
                                   segments.max=segments.max,
                                   knots=knots,
                                   S=S,
-                                  exhaustive=exhaustive,
                                   method=method,
                                   ma.weights=Est$ma.weights,
                                   basis.vec=Est$basis.vec,
@@ -182,7 +178,6 @@ lm.ma.Est <- function(y=NULL,
                       segments.max=3,
                       knots=FALSE,
                       S=10,
-                      exhaustive=TRUE,
                       method=c("jma","mma"),
                       ma.weights=NULL,
                       basis.vec=NULL,
@@ -249,45 +244,25 @@ lm.ma.Est <- function(y=NULL,
     ma.weights.orig <- ma.weights
     basis.vec.orig <- basis.vec
 
-    if(exhaustive) {
-        
-        ## Exhaustive evaluation over all combinations of K
-        if(knots) {
-            K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max, K.vec2=1:segments.max,num.x=num.x)
-        } else {
-            K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
-            K.mat <- cbind(K.mat[,1:num.x],matrix(1,nrow(K.mat),num.x,byrow=TRUE))
-        }
-        
-        
-        if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
-            basis.vec <- character()
-        } else if(basis=="auto" & !is.null(basis.vec) & !is.null(ma.weights)) {
-            basis.vec <- basis.vec[ma.weights>1e-05]
-        }  else if(basis!="auto") {
-            basis.vec <- rep(basis,nrow(K.mat))
-        }
-
-        if(!is.null(ma.weights)) {
-            K.mat <- K.mat[ma.weights>1e-05,]
-            ma.weights <- ma.weights[ma.weights>1e-05]/sum(ma.weights[ma.weights>1e-05])
-        }
-
-        P.num <- NROW(K.mat)
-
+    if(knots) {
+        K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1:segments.max,num.x=num.x)
     } else {
-        ## Non-exhaustive (XXX not using segments.max)
-        if(knots) {
-            K.mat <- cbind(rep(degree.min:degree.max,length=(degree.max-degree.min+1)*num.x),rep(1,length=(degree.max-degree.min+1)*num.x))
-        } else {
-            K.mat <- cbind(rep(degree.min:degree.max,length=(degree.max-degree.min+1)*num.x),rep(1,length=(degree.max-degree.min+1)*num.x))
-        }
-        if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
-            basis.vec <- character()
-        } else if(basis!="auto") {
-            basis.vec <- rep(basis,nrow(K.mat))
-        }
+        K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
+        K.mat <- cbind(K.mat[,1:num.x],matrix(1,nrow(K.mat),num.x,byrow=TRUE))
     }
+    if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
+        basis.vec <- character()
+    } else if(basis=="auto" & !is.null(basis.vec) & !is.null(ma.weights)) {
+        basis.vec <- basis.vec[ma.weights>1e-05]
+    }  else if(basis!="auto") {
+        basis.vec <- rep(basis,nrow(K.mat))
+    }
+        if(!is.null(ma.weights)) {
+        K.mat <- K.mat[ma.weights>1e-05,]
+        ma.weights <- ma.weights[ma.weights>1e-05]/sum(ma.weights[ma.weights>1e-05])
+    }
+
+    P.num <- NROW(K.mat)
 
     deriv <- NULL
     if(compute.deriv) {
@@ -302,15 +277,7 @@ lm.ma.Est <- function(y=NULL,
 
     for(p in P.num:1) {
         
-        if(!exhaustive) {
-            if(knots) {
-                DS <- cbind(rep(p+deriv.order-1,num.x),rep(p+deriv.order-1,num.x))
-            } else {
-                DS <- cbind(rep(p+deriv.order-1,num.x),rep(1,num.x))
-            }
-        } else {
-            DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
-        }
+        DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
 
         if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
 
@@ -612,7 +579,6 @@ lm.ma.Est <- function(y=NULL,
                 segments.max=segments.max,
                 knots=knots,
                 S=S,
-                exhaustive=exhaustive,
                 method=method,
                 num.x=num.x,
                 num.z=num.z,
@@ -630,7 +596,7 @@ lm.ma.formula <- function(formula,
                           y=NULL,
                           X=NULL,
                           X.eval=NULL,
-                          basis=c("tensor","glp","additive","auto"),
+                          basis=c("auto","tensor","glp","additive"),
                           compute.deriv=FALSE,
                           deriv.order=1,
                           degree.min=1,
@@ -639,7 +605,6 @@ lm.ma.formula <- function(formula,
                           segments.max=3,
                           knots=FALSE,
                           S=10,
-                          exhaustive=TRUE,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           basis.vec=NULL,
@@ -670,7 +635,6 @@ lm.ma.formula <- function(formula,
                        segments.max=segments.max,
                        knots=knots,
                        S=S,
-                       exhaustive=exhaustive,
                        method=method,
                        ma.weights=ma.weights,
                        basis.vec=basis.vec,
@@ -763,7 +727,6 @@ predict.lm.ma <- function(object,
                          segments.max=object$segments.max,
                          knots=object$knots,
                          S=object$S,
-                         exhaustive=object$exhaustive,
                          method=object$method,
                          ma.weights=object$ma.weights,
                          basis.vec=object$basis.vec,
