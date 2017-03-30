@@ -272,6 +272,7 @@ lm.ma.Est <- function(y=NULL,
     }
 
     K.rank <- numeric(length=P.num)
+    sigsq <- numeric(length=P.num)
     ma.mat <- matrix(NA,NROW(X),P.num)
     fitted.mat <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P.num)
 
@@ -357,7 +358,7 @@ lm.ma.Est <- function(y=NULL,
 
                 K.rank[p] <- model.z.unique$rank
 
-                sigsq <- sqrt(sum((y - fit.spline)^2)/(NROW(x)-model.z.unique$rank))
+                sigsq[p] <- sqrt(sum((y - fit.spline)^2)/(NROW(x)-model.z.unique$rank))
 
             } else {
 
@@ -411,12 +412,10 @@ lm.ma.Est <- function(y=NULL,
 
                 K.rank[p] <- model.ma$rank
 
-                sigsq <- sqrt(sum(residuals(model.ma)^2)/(NROW(x)-model.ma$rank))
+                sigsq[p] <- sqrt(sum(residuals(model.ma)^2)/(NROW(x)-model.ma$rank))
 
             }
             
-            if(p==P.num) sigsq.largest <- sigsq
-
         }
 
         if(!is.null(ma.weights))  {
@@ -541,7 +540,7 @@ lm.ma.Est <- function(y=NULL,
         A <- cbind(rep(1,M),diag(1,M,M))
         b0 <- c(1,rep(0,M))
         if(method=="mma") {
-            d <- -sigsq.largest*K.rank
+            d <- -sigsq[which.max(K.rank)]*K.rank
         } else {
             d <- t(y)%*%ma.mat
         }        
