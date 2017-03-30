@@ -27,7 +27,7 @@ lm.ma.default <- function(y=NULL,
 
     basis <- match.arg(basis)
     method <- match.arg(method)
-    
+
     if(getOption("crs.messages")) {
         options(crs.messages=FALSE)
         exists.crs.messages <- TRUE
@@ -245,7 +245,8 @@ lm.ma.Est <- function(y=NULL,
     
     P <- degree.max
     ma.weights.orig <- ma.weights
-    
+    basis.vec.orig <- basis.vec
+
     if(exhaustive) {
         
         ## Exhaustive evaluation over all combinations of K
@@ -254,6 +255,15 @@ lm.ma.Est <- function(y=NULL,
         } else {
             K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
             K.mat <- cbind(K.mat[,1:num.x],matrix(1,nrow(K.mat),num.x,byrow=TRUE))
+        }
+        
+        
+        if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
+            basis.vec <- character()
+        } else if(basis=="auto" & !is.null(basis.vec) & !is.null(ma.weights)) {
+            basis.vec <- basis.vec[ma.weights>1e-05]
+        }  else if(basis!="auto") {
+            basis.vec <- rep(basis,nrow(K.mat))
         }
 
         if(!is.null(ma.weights)) {
@@ -270,7 +280,14 @@ lm.ma.Est <- function(y=NULL,
         } else {
             K.mat <- cbind(rep(degree.min:degree.max,length=(degree.max-degree.min+1)*num.x),rep(1,length=(degree.max-degree.min+1)*num.x))
         }
+        if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
+            basis.vec <- character()
+        } else if(basis!="auto") {
+            basis.vec <- rep(basis,nrow(K.mat))
+        }
     }
+    
+    
 
     deriv <- NULL
     if(compute.deriv) {
@@ -282,8 +299,6 @@ lm.ma.Est <- function(y=NULL,
     K.rank <- numeric(length=P.num)
     ma.mat <- matrix(NA,NROW(X),P.num)
     fitted.mat <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P.num)
-
-    if(basis=="auto" & is.null(basis.vec)) basis.vec <- character()
 
     for(p in P.num:1) {
         
@@ -352,7 +367,7 @@ lm.ma.Est <- function(y=NULL,
                         if(!is.null(weights)) L <- weights*L
                         P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                         if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
-                        if(basis=="additive" || basis=="glp") {
+                        if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
                             model.z.unique <- lm(y~P,weights=L)
                         } else {
                             model.z.unique <- lm(y~P-1,weights=L)
@@ -407,7 +422,7 @@ lm.ma.Est <- function(y=NULL,
 
                     P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                     if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
-                    if(basis=="additive" || basis=="glp") {
+                    if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
                         model.ma <- lm(y~P,weights=weights)
                     } else {
                         model.ma <- lm(y~P-1,weights=weights)
@@ -446,7 +461,7 @@ lm.ma.Est <- function(y=NULL,
                     L <- suppressWarnings(crs:::prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
                     if(!is.null(weights)) L <- weights*L
                     P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
-                    if(basis=="additive" || basis=="glp") {
+                    if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
                         model.z.unique <- lm(y~P,weights=L)
                     } else {
                         model.z.unique <- lm(y~P-1,weights=L)
@@ -461,7 +476,7 @@ lm.ma.Est <- function(y=NULL,
             } else {
 
                 P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
-                if(basis=="additive" || basis=="glp") {
+                if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
                     model.ma <- lm(y~P,weights=weights)
                 } else {
                     model.ma <- lm(y~P-1,weights=weights)
@@ -475,7 +490,7 @@ lm.ma.Est <- function(y=NULL,
             
             if(compute.deriv) {
 
-                if(basis=="additive" || basis=="glp") {
+                if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
                     K.additive <- DS
                     K.additive[,2] <- ifelse(DS[,1]==0,0,DS[,2])
                     K.additive[,1] <- ifelse(DS[,1]>0,DS[,1]-1,DS[,1])
@@ -492,17 +507,17 @@ lm.ma.Est <- function(y=NULL,
                             if(!is.null(weights)) L <- weights*L
                             P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                             P.deriv <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p],deriv.index=k,deriv=deriv.order))
-                            if(basis=="additive") {
+                            if(basis.vec[p]=="additive") {
                                 model <- lm(y~P,weights=L)
                                 dim.P.deriv <- sum(K.additive[k,])
                                 deriv.start <- ifelse(k!=1,sum(K.additive[1:(k-1),])+1,1)
                                 deriv.end <- deriv.start+sum(K.additive[k,])-1
                                 deriv.ind.vec <- deriv.start:deriv.end
                                 deriv.spline[zz] <- P.deriv[,deriv.ind.vec,drop=FALSE]%*%(coef(model)[-1])[deriv.ind.vec]
-                            } else if(basis=="tensor") {
+                            } else if(basis.vec[p]=="tensor") {
                                 model <- lm(y~P-1,weights=L)
                                 deriv.spline[zz] <- P.deriv%*%coef(model)
-                            } else if(basis=="glp") {
+                            } else if(basis.vec[p]=="glp") {
                                 model <- lm(y~P,weights=L)
                                 deriv.spline[zz] <- P.deriv%*%coef(model)[-1]
                             }
@@ -517,18 +532,18 @@ lm.ma.Est <- function(y=NULL,
                         dim.P.tensor <- NCOL(P)
                         deriv.ind.vec <- logical(length=NCOL(P))
                         coef.vec.model <- numeric(length=NCOL(P))
-                        if(basis=="additive") {
+                        if(basis.vec[p]=="additive") {
                             model <- lm(y~P,weights=weights)
                             coef.vec.model <- coef(model)[-1]
                             dim.P.deriv <- sum(K.additive[k,])
                             deriv.start <- ifelse(k!=1,sum(K.additive[1:(k-1),])+1,1)
                             deriv.end <- deriv.start+sum(K.additive[k,])-1
                             deriv.ind.vec[deriv.start:deriv.end] <- TRUE
-                        } else if(basis=="tensor") {
+                        } else if(basis.vec[p]=="tensor") {
                             model <- lm(y~P-1,weights=weights)
                             coef.vec.model <- coef(model)
                             deriv.ind.vec[1:dim.P.tensor] <- TRUE
-                        } else if(basis=="glp") {
+                        } else if(basis.vec[p]=="glp") {
                             model <- lm(y~P,weights=weights)
                             coef.vec.model <- coef(model)[-1]
                             deriv.ind.vec[1:dim.P.tensor] <- TRUE
@@ -585,7 +600,7 @@ lm.ma.Est <- function(y=NULL,
     return(list(fitted.values=fitted.mat%*%b,
                 deriv=deriv,
                 ma.weights=if(is.null(ma.weights)){abs(b)}else{ma.weights.orig},
-                basis.vec=basis.vec,
+                basis.vec=basis.vec.orig,
                 y=y,
                 X=X,
                 basis=basis,
