@@ -63,7 +63,7 @@ lm.ma.default <- function(y=NULL,
                      verbose=verbose,
                      tol=tol,
                      ...)
-    
+
     ## Save rank vector and matrix of degrees and segments (not computed in next 
     ## call since ma.weights is passed, but needed for summary)
     
@@ -160,8 +160,6 @@ lm.ma.default <- function(y=NULL,
         if(verbose) cat("\r                                     ")
         if(verbose) cat("\r")
     }
-
-    if(exists.crs.messages) options(crs.messages=TRUE)
 
     class(Est) <- "lm.ma"
     return(Est)
@@ -627,7 +625,10 @@ lm.ma.Est <- function(y=NULL,
                 DS=K.mat,
                 vc=vc,
                 verbose=verbose,
-                tol=tol))
+                tol=tol,
+                xnames=xnames,
+                znames=znames,
+                yname=deparse(substitute(y))))
 
 }
 
@@ -817,11 +818,16 @@ plot.lm.ma <- function(object,
                                  basis.vec=object$basis.vec,
                                  weights=object$weights,
                                  vc=object$vc,
-                                 verbose=object$verbose,
+                                 verbose=FALSE,
                                  tol=object$tol,
                                  ...)
             fitted.values <- Est$fitted.values
-            plot(object$X[,i],object$y,cex=0.25,...)
+            plot(Est$X[,i],Est$y,
+                 ylab=Est$yname,
+                 xlab=Est$xnames[i],
+                 cex=0.1,
+                 col="grey",
+                 ...)
             lines(object$X[order(object$X[,i]),i],fitted.values[order(object$X[,i])],col=1)
         }
         
