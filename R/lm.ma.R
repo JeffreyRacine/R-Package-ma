@@ -627,8 +627,7 @@ lm.ma.Est <- function(y=NULL,
                 verbose=verbose,
                 tol=tol,
                 xnames=xnames,
-                znames=znames,
-                yname=deparse(substitute(y))))
+                znames=znames))
 
 }
 
@@ -796,7 +795,10 @@ plot.lm.ma <- function(x,
                        ...) {
     
     x$verbose <- FALSE    
-
+    
+    yname <- all.vars(x$call)[1]
+    xznames <- names(x$X)
+    
     if(!plot.deriv) {
         xeval.median <- x$X
         is.numeric.X <- logical(NCOL(x$X))
@@ -804,7 +806,6 @@ plot.lm.ma <- function(x,
             is.numeric.X[i] <- is.numeric(x$X[,i])
             xeval.median[,i] <- uocquantile(xeval.median[,i],prob=0.5)
         }
-        xznames <- names(x$X)
         if(NCOL(x$X) > 1) par(mfrow=c(2,ifelse(NCOL(x$X) %%2 == 0, NCOL(x$X)/2, (NCOL(x$X)+1)/2)))
         for(i in 1:NCOL(x$X)) {
             xeval <- xeval.median
@@ -812,7 +813,7 @@ plot.lm.ma <- function(x,
             x$compute.deriv <- FALSE
             if(plot.data) {
                 plot(xeval[,i],x$y,
-                     ylab=x$yname,
+                     ylab=yname,
                      xlab=xznames[i],
                      cex=0.1,
                      col="grey",
@@ -827,14 +828,14 @@ plot.lm.ma <- function(x,
                 foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
                 if(!plot.ci) {
                     plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
-                         ylab=x$yname,
+                         ylab=yname,
                          xlab=xznames[i],
                          type="l",
                          ...)
                 } else {
                     ylim <- range(c(foo$fit.low,foo$fit.up))
                     plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
-                         ylab=x$yname,
+                         ylab=yname,
                          xlab=xznames[i],
                          type="l",
                          ylim=ylim,
@@ -868,15 +869,15 @@ plot.lm.ma <- function(x,
             foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
             if(!plot.ci) {
                 plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
-                     ylab=paste("d",x$yname,"/d",x$xnames[i],sep=""),
-                     xlab=x$xnames[j],
+                     ylab=paste("d",yname,"/d",xznames[i],sep=""),
+                     xlab=xznames[i],
                      type="l",
                     ...)
             } else {
                 ylim <- range(c(foo$deriv.low[,j],foo$deriv.up[,j]))
                 plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
-                     ylab=x$yname,
-                     xlab=x$xnames[j],
+                     ylab=paste("d",yname,"/d",xznames[i],sep=""),
+                     xlab=xznames[i],
                      type="l",
                      ylim=ylim,
                      ...)
