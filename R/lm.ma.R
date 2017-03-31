@@ -776,9 +776,14 @@ predict.lm.ma <- function(object,
                          verbose=object$verbose,
                          tol=object$tol,
                          ...)
-    fitted.values <- Est$fitted.values
-    deriv <- Est$deriv
-    return(list(fit=fitted.values,deriv=deriv))
+
+    return(list(fit=Est$fitted.values,
+                deriv=Est$deriv,
+                fit.low=Est$fitted.ci.l,
+                fit.up=Est$fitted.ci.u,
+                deriv.low=Est$deriv.ci.l,
+                deriv.up=Est$deriv.ci.u))
+
   }
 
 }
@@ -817,8 +822,8 @@ plot.lm.ma <- function(object,
                      type="l",
                      ...)
                 if(bootstrap.ci) {
-                    lines(Est$X[order(Est$X[,i]),i],Est$deriv.ci.l[order(Est$X[,i],i)],col=2,lty=2)
-                    lines(Est$X[order(Est$X[,i]),i],Est$deriv.ci.l[order(Est$X[,i],i)],col=2,lty=2)
+                    lines(xeval[order(xeval[,i]),i],predict(object,newdata=xeval,bootstrap.ci=bootstrap.ci)$deriv.low[order(xeval[,i]),i],col=2,lty=2)
+                    lines(xeval[order(xeval[,i]),i],predict(object,newdata=xeval,bootstrap.ci=bootstrap.ci)$deriv.up[order(xeval[,i]),i],col=2,lty=2)
                 }
             }
         }
