@@ -796,10 +796,10 @@ plot.lm.ma <- function(x,
                        ...) {
     
     x$verbose <- FALSE    
-    xeval.median <- x$X
-    for(i in 1:NCOL(xeval.median)) xeval.median[,i] <- uocquantile(xeval.median[,i],prob=0.5)
 
     if(!plot.deriv) {
+        xeval.median <- x$X
+        for(i in 1:NCOL(xeval.median)) xeval.median[,i] <- uocquantile(xeval.median[,i],prob=0.5)
         if(NCOL(x$X) > 1) par(mfrow=c(2,ifelse(NCOL(x$X) %%2 == 0, NCOL(x$X)/2, (NCOL(x$X)+1)/2)))
         for(i in 1:NCOL(x$X)) {
             xeval <- xeval.median
@@ -843,11 +843,16 @@ plot.lm.ma <- function(x,
         par(mfrow=c(1,1))
 
     } else {
-
-      j <- 1
+        
+      is.numeric.X <- logical(NCOL(x$X))
+      xeval.median <- x$X
+      for(i in 1:NCOL(x$X)) {
+          is.numeric.X[i] <- is.numeric(x$X[,i])
+          xeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
+      }
 
       if(x$num.x > 1) par(mfrow=c(2,ifelse(x$num.x %%2 == 0, x$num.x/2, (x$num.x+1)/2)))        
-      
+      j <- 1
       for(i in 1:NCOL(x$X)) {
           
           if(is.numeric(x$X[,i])) {
@@ -858,7 +863,7 @@ plot.lm.ma <- function(x,
             foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
             if(!plot.ci) {
                 plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
-                     ylab=paste("d",x$yname,"/d",x$xnames[j],sep=""),
+                     ylab=paste("d",x$yname,"/d",x$xnames[i],sep=""),
                      xlab=x$xnames[j],
                      type="l",
                     ...)
@@ -875,7 +880,6 @@ plot.lm.ma <- function(x,
             }
             
             j <- j+1
-
         }  
       }
     }
