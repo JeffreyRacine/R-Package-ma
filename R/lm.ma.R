@@ -546,6 +546,30 @@ lm.ma.Est <- function(y=NULL,
         }        
         b <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
 
+        rebalance <- TRUE
+        if(rebalance) {
+            ## Solve the quadratic program for the Mallows model average weights
+            ma.mat.reb <- ma.mat[,b>1e-05,drop=FALSE]
+            M <- ncol(ma.mat.reb)
+            D <- t(ma.mat.reb)%*%ma.mat.reb
+            if(qr(D)$rank<M) D <- D + diag(tol,M,M)
+            A <- cbind(rep(1,M),diag(1,M,M))
+            b0 <- c(1,rep(0,M))
+            K.rank.reb <- K.rank[b>1e-05]
+            if(method=="mma") {
+                d <- -sigsq[which.max(K.rank)]*K.rank.reb
+            } else {
+                d <- t(y)%*%ma.mat.reb
+            }        
+            b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
+            if(!all.equal(b[b>1e-05],b.reb)) {
+                warning("rebalancing occured")
+                foo <- cbind(b[b>1e-05],b.reb)
+                names(foo) <- c("original","rebalanced")
+                warning(foo)
+            }
+        }
+
     } else {
         ## For bootstrapping use weights from initial call
         b <- ma.weights
