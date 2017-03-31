@@ -796,13 +796,11 @@ plot.lm.ma <- function(x,
                        ...) {
     
     x$verbose <- FALSE    
-    if(NCOL(x$X) > 1) par(mfrow=c(2,ifelse(NCOL(x$X) %%2 == 0, NCOL(x$X)/2, (NCOL(x$X)+1)/2)))
     xeval.median <- x$X
     for(i in 1:NCOL(xeval.median)) xeval.median[,i] <- uocquantile(xeval.median[,i],prob=0.5)
-    print(xeval.median)[1:5,]
-    print(class(xeval.median))
-    
+
     if(!plot.deriv) {
+        if(NCOL(x$X) > 1) par(mfrow=c(2,ifelse(NCOL(x$X) %%2 == 0, NCOL(x$X)/2, (NCOL(x$X)+1)/2)))
         for(i in 1:NCOL(x$X)) {
             xeval <- xeval.median
             xeval[,i] <- x$X[,i]
@@ -841,34 +839,45 @@ plot.lm.ma <- function(x,
                 }
             }
         }
+        
+        par(mfrow=c(1,1))
 
     } else {
 
-      for(i in 1:NCOL(x$X)) {
+      j <- 1
 
-        xeval <- xeval.median
-        xeval[,i] <- x$X[,i]
-        x$compute.deriv <- TRUE
+      if(x$num.x > 1) par(mfrow=c(2,ifelse(x$num.x %%2 == 0, x$num.x/2, (x$num.x+1)/2)))        
+      
+      for(i in 1:NCOL(x$X)) {
+          
+          if(is.numeric(x$X[,i])) {
+            xeval <- xeval.median
+            xeval[,i] <- x$X[,i]
+            x$compute.deriv <- TRUE
         
-        foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
-        if(!plot.ci) {
-            plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
-                 ylab=paste("d",x$yname,"/d",x$xnames[i],sep=""),
-                 xlab=x$xnames[i],
-                 type="l",
-                ...)
-        } else {
-            ylim <- range(c(foo$deriv.low[,i],foo$deriv.up[,i]))
-            plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
-                 ylab=x$yname,
-                 xlab=x$xnames[i],
-                 type="l",
-                 ylim=ylim,
-                 ...)
-            lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),i],col=2,lty=2)
-            lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),i],col=2,lty=2)
-        }
-      }  
+            foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
+            if(!plot.ci) {
+                plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
+                     ylab=paste("d",x$yname,"/d",x$xnames[j],sep=""),
+                     xlab=x$xnames[j],
+                     type="l",
+                    ...)
+            } else {
+                ylim <- range(c(foo$deriv.low[,j],foo$deriv.up[,j]))
+                plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
+                     ylab=x$yname,
+                     xlab=x$xnames[j],
+                     type="l",
+                     ylim=ylim,
+                     ...)
+                lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),j],col=2,lty=2)
+                lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),j],col=2,lty=2)
+            }
+            
+            j <- j+1
+
+        }  
+      }
     }
     
     par(mfrow=c(1,1))
