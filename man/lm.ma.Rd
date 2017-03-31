@@ -122,7 +122,9 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
 \preformatted{
     model <- lm.ma(y~x1+x2)
     model <- lm.ma(y~x1+x2,compute.deriv=TRUE)
-    model <- lm.ma(y~x1+x2,bootstrap.ci=TRUE)    
+    model <- lm.ma(y~x1+x2,bootstrap.ci=TRUE)  
+    plot(model,data=TRUE)
+    plot(model,deriv.order=1)
     summary(model)
     fitted(model)
     coef(model)
@@ -147,7 +149,7 @@ This approach frees the user from using either model assertion or selection meth
 
 \code{lm.ma} returns an object of class "lm.ma".
 
-The function summary is used to obtain and print a summary of the results. The generic accessor functions \code{coef}, \code{fitted}, \code{predict} and \code{residuals} extract various useful features of the value returned by lm.ma.
+The function summary is used to obtain and print a summary of the results. The generic accessor functions \code{coef}, \code{fitted}, \code{predict}, \code{plot} and \code{residuals} extract various useful features of the value returned by lm.ma.
 
 An object of class "lm.ma" is a list containing at least the following components:
 

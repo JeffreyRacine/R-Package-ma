@@ -625,6 +625,7 @@ lm.ma.Est <- function(y=NULL,
                 DS=K.mat,
                 vc=vc,
                 verbose=verbose,
+                bootstrap.ci=bootstrap.ci,
                 tol=tol,
                 xnames=xnames,
                 znames=znames,
@@ -753,7 +754,7 @@ predict.lm.ma <- function(object,
                           ...) {
 
   if(is.null(newdata)) {
-      fitted.values <- fitted(object)
+      return(fitted(object))
   } else{
     tt <- terms(object)
     exdat <- model.frame(delete.response(tt),newdata,xlev=object$xlevels)
@@ -778,17 +779,14 @@ predict.lm.ma <- function(object,
                          ...)
     fitted.values <- Est$fitted.values
     deriv <- Est$deriv
-  }
-
-  if(is.null(Est$deriv)) {
-      return(fitted.values)
-  } else {
-      return(list(fit=fitted.values,deriv=deriv))
+    return(list(fit=fitted.values,deriv=deriv))
   }
 
 }
 
 plot.lm.ma <- function(object,
+                       bootstrap.ci=FALSE,
+                       B=99,
                        deriv.order=0,
                        ci=FALSE,
                        num.eval=100,
@@ -821,6 +819,8 @@ plot.lm.ma <- function(object,
                                  vc=object$vc,
                                  verbose=FALSE,
                                  tol=object$tol,
+                                 bootstrap.ci=bootstrap.ci,
+                                 B=B,
                                  ...)
 
             if(data) {
@@ -837,6 +837,10 @@ plot.lm.ma <- function(object,
                      xlab=Est$xnames[i],
                      type="l",
                      ...)
+                if(bootstrap.ci) {
+                    lines(Est$X[order(Est$X[,i]),i],Est$deriv.ci.l[order(Est$X[,i],i)],col=2,lty=2)
+                    lines(Est$X[order(Est$X[,i]),i],Est$deriv.ci.l[order(Est$X[,i],i)],col=2,lty=2)
+                }
             }
         }
 
