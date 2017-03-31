@@ -147,12 +147,14 @@ lm.ma.default <- function(y=NULL,
 
         Est$fitted.ci.l <- apply(boot.mat,1,quantile,prob=alpha/2,type=1,na.rm=TRUE)
         Est$fitted.ci.u <- apply(boot.mat,1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE)
+        Est$fitted.scale <- apply(boot.mat,1,mad,na.rm=TRUE)
         
         if(compute.deriv) {
-            Est$deriv.ci.l <- Est$deriv.ci.u <- matrix(NA,n,Est$num.x)
+            Est$deriv.ci.l <- Est$deriv.ci.u <- Est$deriv.scale <- matrix(NA,n,Est$num.x)
             for(k in 1:Est$num.x) {
                 Est$deriv.ci.l[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=alpha/2,type=1,na.rm=TRUE)
-                Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE)        
+                Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE)     
+                Est$deriv.scale[,k] <- apply(boot.deriv.array[,,k],1,mad,na.rm=TRUE)  
             }
         }
         if(verbose) cat("\r                                     ")
@@ -580,7 +582,7 @@ lm.ma.Est <- function(y=NULL,
             b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
 
             if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
-                if(verbose) warning("rebalancing occured")
+                if(verbose) warning("rebalancing occurred")
                 b[b>1e-05] <- b.reb
             }
         }
@@ -721,7 +723,7 @@ summary.lm.ma <- function(object,
   print(object$call)
   cat("\nModel Averaging Linear Regression",sep="")
   cat(paste(ifelse(object$vc, " (Varying Coefficient Specification)"," (Additive Dummy Specification)"),sep=""))
-  cat(paste("\nModel average criterion: ", ifelse(object$method=="jma","Jacknife (Hansen and Racine (2013))","Mallows  (Hansen (2007))"), sep=""))
+  cat(paste("\nModel average criterion: ", ifelse(object$method=="jma","Jackknife (Hansen and Racine (2013))","Mallows  (Hansen (2007))"), sep=""))
   cat(paste("\nMinimum degree: ", object$degree.min, sep=""))  
   cat(paste("\nMaximum degree: ", object$degree.max, sep=""))
   cat(paste("\nBasis: ", object$basis, sep=""))  
