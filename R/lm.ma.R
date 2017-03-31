@@ -789,17 +789,17 @@ predict.lm.ma <- function(object,
 }
 
 plot.lm.ma <- function(object,
-                       deriv=0,
+                       deriv.order=0,
                        ci=FALSE,
                        num.eval=100,
                        data=FALSE,
                        ...) {
     
-    if(deriv == 0) {
-        ## mean  
-
-        if(NCOL(object$X) > 1) par(mfrow=c(2,ifelse(NCOL(object$X) %%2 == 0, NCOL(object$X)/2, (NCOL(object$X)+1)/2)))
-        xeval.median <- matrix(apply(object$X,2,median),NROW(object$X),NCOL(object$X),byrow=TRUE)
+    
+    if(NCOL(object$X) > 1) par(mfrow=c(2,ifelse(NCOL(object$X) %%2 == 0, NCOL(object$X)/2, (NCOL(object$X)+1)/2)))
+    xeval.median <- matrix(apply(object$X,2,median),NROW(object$X),NCOL(object$X),byrow=TRUE)
+    
+    if(deriv.order == 0) {
         for(i in 1:NCOL(object$X)) {
             xeval <- xeval.median
             xeval[,i] <- object$X[,i]
@@ -822,9 +822,6 @@ plot.lm.ma <- function(object,
                                  verbose=FALSE,
                                  tol=object$tol,
                                  ...)
-            #print(cbind(Est$X[,i],Est$fitted.values))
-            #print(summary(Est$y))
-            #stop()
 
             if(data) {
                 plot(Est$X[,i],Est$y,
@@ -842,35 +839,41 @@ plot.lm.ma <- function(object,
                      ...)
             }
         }
-        
-        par(mfrow=c(1,1))
-        
+
     } else {
+
+        for(i in 1:NCOL(object$X)) {
+            xeval <- xeval.median
+            xeval[,i] <- object$X[,i]
+            Est <- lm.ma.default(y=object$y,
+                                 X=object$X,
+                                 X.eval=xeval,
+                                 basis=object$basis,
+                                 compute.deriv=TRUE,
+                                 deriv.order=deriv.order,
+                                 degree.max=object$degree.max,
+                                 lambda=object$lambda,
+                                 segments.max=object$segments.max,
+                                 knots=object$knots,
+                                 S=object$S,
+                                 method=object$method,
+                                 ma.weights=object$ma.weights,
+                                 basis.vec=object$basis.vec,
+                                 weights=object$weights,
+                                 vc=object$vc,
+                                 verbose=FALSE,
+                                 tol=object$tol,
+                                 ...)
+            
+            plot(Est$X[order(Est$X[,i]),i],Est$deriv.matrix[order(Est$X[,i]),i],
+                 ylab=Est$yname,
+                 xlab=Est$xnames[i],
+                 type="l",
+                 ...)
+        }
         
-        tt <- terms(object)
-        exdat <- model.frame(delete.response(tt),newdata,xlev=object$xlevels)
-        Est <- lm.ma.default(y=object$y,
-                             X=object$X,
-                             X.eval=object$X,
-                             basis=object$basis,
-                             compute.deriv=object$compute.deriv,
-                             deriv.order=object$deriv.order,
-                             degree.max=object$degree.max,
-                             lambda=object$lambda,
-                             segments.max=object$segments.max,
-                             knots=object$knots,
-                             S=object$S,
-                             method=object$method,
-                             ma.weights=object$ma.weights,
-                             basis.vec=object$basis.vec,
-                             weights=object$weights,
-                             vc=object$vc,
-                             verbose=object$verbose,
-                             tol=object$tol,
-                             ...)
-        fitted.values <- Est$fitted.values
-        deriv <- Est$deriv
-        ## deriv    
     }
+    
+    par(mfrow=c(1,1))
     
 }
