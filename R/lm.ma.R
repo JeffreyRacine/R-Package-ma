@@ -789,7 +789,6 @@ predict.lm.ma <- function(object,
 }
 
 plot.lm.ma <- function(object,
-                       bootstrap.ci=FALSE,
                        B=99,
                        plot.deriv=FALSE,
                        ci=FALSE,
@@ -814,16 +813,29 @@ plot.lm.ma <- function(object,
                      cex=0.1,
                      col="grey",
                      ...)
-                lines(xeval[order(xeval[,i]),i],predict(object,newdata=xeval,bootstrap.ci=bootstrap.ci)$fit[order(xeval[,i])],col=1)
+                foo <- predict(object,newdata=xeval,bootstrap.ci=ci)
+                lines(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],col=1)
+                if(ci) {
+                    lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),i],col=2,lty=2)
+                    lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),i],col=2,lty=2)
+                }
             } else {
-                plot(xeval[order(xeval[,i]),i],predict(object,newdata=xeval,bootstrap.ci=bootstrap.ci)$fit[order(xeval[,i])],
+                foo <- predict(object,newdata=xeval,bootstrap.ci=ci)
+                plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
                      ylab=object$yname,
                      xlab=object$xnames[i],
                      type="l",
                      ...)
-                if(bootstrap.ci) {
-                    lines(xeval[order(xeval[,i]),i],predict(object,newdata=xeval,bootstrap.ci=bootstrap.ci)$deriv.low[order(xeval[,i]),i],col=2,lty=2)
-                    lines(xeval[order(xeval[,i]),i],predict(object,newdata=xeval,bootstrap.ci=bootstrap.ci)$deriv.up[order(xeval[,i]),i],col=2,lty=2)
+                if(ci) {
+                    ylim <- range(c(foo$deriv.low[,i],foo$deriv.up[,i]))
+                    plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
+                         ylab=object$yname,
+                         xlab=object$xnames[i],
+                         type="l",
+                         ylim=ylim,
+                         ...)
+                    lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),i],col=2,lty=2)
+                    lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),i],col=2,lty=2)
                 }
             }
         }
@@ -834,8 +846,8 @@ plot.lm.ma <- function(object,
             xeval <- xeval.median
             xeval[,i] <- object$X[,i]
             object$compute.deriv <- TRUE
-            plot(xeval[order(xeval[,i]),i],predict(object,newdata=xeval,bootstrap.ci=bootstrap.ci)$deriv[order(xeval[,i]),i],
-                 ylab=object$yname,
+            plot(xeval[order(xeval[,i]),i],predict(object,newdata=xeval,bootstrap.ci=ci)$deriv[order(xeval[,i]),i],
+                 ylab=paste("d",object$yname,"/d",object$xnames[i],sep=""),
                  xlab=object$xnames[i],
                  type="l",
                  ...)
