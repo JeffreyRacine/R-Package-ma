@@ -828,7 +828,7 @@ plot.lm.ma <- function(object,
                          type="l",
                          ...)
                 } else {
-                    ylim <- range(c(foo$fit.low[i],foo$fit.up[i]))
+                    ylim <- range(c(foo$fit.low,foo$fit.up))
                     plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
                          ylab=object$yname,
                          xlab=object$xnames[i],
@@ -843,7 +843,7 @@ plot.lm.ma <- function(object,
 
     } else {
 
-       # for(i in 1:NCOL(object$X)) {
+      for(i in 1:NCOL(object$X)) {
     #        xeval <- xeval.median
     #        xeval[,i] <- object$X[,i]
     #        object$compute.deriv <- TRUE
@@ -859,14 +859,14 @@ plot.lm.ma <- function(object,
         object$compute.deriv <- TRUE
         
         foo <- predict(object,newdata=xeval,bootstrap.ci=plot.ci)
-        plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i])],
+        plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
              ylab=paste("d",object$yname,"/d",object$xnames[i],sep=""),
              xlab=object$xnames[i],
              type="l",
              ...)
         if(plot.ci) {
             ylim <- range(c(foo$deriv.low[,i],foo$deriv.up[,i]))
-            plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
+            plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
                  ylab=object$yname,
                  xlab=object$xnames[i],
                  type="l",
@@ -875,7 +875,7 @@ plot.lm.ma <- function(object,
             lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),i],col=2,lty=2)
             lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),i],col=2,lty=2)
         }
-        
+      }  
     }
     
     par(mfrow=c(1,1))
