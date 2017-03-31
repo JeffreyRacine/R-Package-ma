@@ -541,7 +541,15 @@ lm.ma.Est <- function(y=NULL,
         ## Solve the quadratic program for the Mallows model average weights
         M <- ncol(ma.mat)
         D <- t(ma.mat)%*%ma.mat
-        if(qr(D)$rank<M) D <- D + diag(tol,M,M)
+        #if(qr(D)$rank<M) D <- D + diag(tol,M,M)
+        tol.ridge <- tol
+        #while(!is.fullrank(D)) {
+        while(qr(D)$rank<M) {
+            D <- D + diag(tol.ridge,M,M)
+            tol.ridge <- tol.ridge*10
+            print("ridging")
+            print(tol.ridge)
+        }
         A <- cbind(rep(1,M),diag(1,M,M))
         b0 <- c(1,rep(0,M))
         if(method=="mma") {
@@ -557,7 +565,15 @@ lm.ma.Est <- function(y=NULL,
             ma.mat.reb <- ma.mat[,b>1e-05,drop=FALSE]
             M <- ncol(ma.mat.reb)
             D <- t(ma.mat.reb)%*%ma.mat.reb
-            if(qr(D)$rank<M) D <- D + diag(tol,M,M)
+            #if(qr(D)$rank<M) D <- D + diag(tol,M,M)
+            tol.ridge <- tol
+            #while(!is.fullrank(D)) {
+            while(qr(D)$rank<M) {
+                D <- D + diag(tol.ridge,M,M)
+                tol.ridge <- tol.ridge*10
+                print("rebalance ridging")
+                print(tol.ridge)
+            }
             A <- cbind(rep(1,M),diag(1,M,M))
             b0 <- c(1,rep(0,M))
             K.rank.reb <- K.rank[b>1e-05]
@@ -567,11 +583,10 @@ lm.ma.Est <- function(y=NULL,
                 d <- t(y)%*%ma.mat.reb
             }        
             b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
-            if(!all.equal(b[b>1e-05],b.reb)) {
+
+            if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
                 warning("rebalancing occured")
-                foo <- cbind(b[b>1e-05],b.reb)
-                names(foo) <- c("original","rebalanced")
-                warning(foo)
+                b[b>1e-05] <- b.reb
             }
         }
 
