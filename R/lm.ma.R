@@ -11,7 +11,7 @@ lm.ma.default <- function(y=NULL,
                           lambda=1e-02,
                           segments.max=3,
                           knots=FALSE,
-                          S=1,
+                          S=2,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           basis.vec=NULL,
@@ -177,7 +177,7 @@ lm.ma.Est <- function(y=NULL,
                       lambda=1e-02,
                       segments.max=3,
                       knots=FALSE,
-                      S=1,
+                      S=2,
                       method=c("jma","mma"),
                       ma.weights=NULL,
                       basis.vec=NULL,
@@ -237,7 +237,7 @@ lm.ma.Est <- function(y=NULL,
     }
 
     if(is.null(degree.max)) {
-        degree.max <- max(2,ceiling(S*log(NROW(X))))
+        degree.max <- max(2,ceiling(S*log(NROW(X))/num.x))
     }
     
     P <- degree.max
@@ -323,7 +323,7 @@ lm.ma.Est <- function(y=NULL,
  
                     }
 
-                    if(basis.singular.min) warning("dimension basis is ill-conditioned - reduce degree.max")
+                    if(basis.singular.min & verbose) warning("dimension basis is ill-conditioned - reduce degree.max")
 
                     fit.spline <- fit.spline.min
                     htt.min <- htt
@@ -349,7 +349,7 @@ lm.ma.Est <- function(y=NULL,
                         P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
                         fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                     }
-                    if(any(basis.singular==TRUE)) warning("dimension basis is ill-conditioned - reduce degree.max")
+                    if(any(basis.singular==TRUE) & verbose) warning("dimension basis is ill-conditioned - reduce degree.max")
                  }
 
                 fitted.mat[,p] <- fit.spline
@@ -368,6 +368,7 @@ lm.ma.Est <- function(y=NULL,
 
                 if(basis=="auto") {
                     cv.min <- Inf
+                    basis.singular <- logical(1)
                     for(b.basis in c("tensor","glp","additive")) {
                         P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
                         if(!is.fullrank(P)) basis.singular <- TRUE
@@ -388,7 +389,7 @@ lm.ma.Est <- function(y=NULL,
                         }
                     }
                     
-                    if(basis.singular.min) warning("dimension basis is ill-conditioned - reduce degree.max")
+                    if(basis.singular.min & verbose) warning("dimension basis is ill-conditioned - reduce degree.max")
                     
                     model.ma <- model.ma.min
                     fit.spline <- fitted(model.ma)
@@ -396,7 +397,7 @@ lm.ma.Est <- function(y=NULL,
                 } else {
 
                     P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
-                    if(!is.fullrank(P)) warning("dimension basis is ill-conditioned - reduce degree.max")
+                    if(!is.fullrank(P) & verbose) warning("dimension basis is ill-conditioned - reduce degree.max")
                     if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
                         model.ma <- lm(y~P,weights=weights)
                     } else {
@@ -545,7 +546,7 @@ lm.ma.Est <- function(y=NULL,
         while(qr(D)$rank<M) {
             D <- D + diag(tol.ridge,M,M)
             tol.ridge <- tol.ridge*10
-            warning(paste("Ridge factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
+            if(verbose) warning(paste("Ridge factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
         }
         A <- cbind(rep(1,M),diag(1,M,M))
         b0 <- c(1,rep(0,M))
@@ -566,7 +567,7 @@ lm.ma.Est <- function(y=NULL,
             while(qr(D)$rank<M) {
                 D <- D + diag(tol.ridge,M,M)
                 tol.ridge <- tol.ridge*10
-                warning(paste("Ridge factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
+                if(verbose) warning(paste("Ridge factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
             }
             A <- cbind(rep(1,M),diag(1,M,M))
             b0 <- c(1,rep(0,M))
@@ -579,7 +580,7 @@ lm.ma.Est <- function(y=NULL,
             b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
 
             if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
-                warning("rebalancing occured")
+                if(verbose) warning("rebalancing occured")
                 b[b>1e-05] <- b.reb
             }
         }
@@ -641,7 +642,7 @@ lm.ma.formula <- function(formula,
                           lambda=1e-02,
                           segments.max=3,
                           knots=FALSE,
-                          S=1,
+                          S=2,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           basis.vec=NULL,
