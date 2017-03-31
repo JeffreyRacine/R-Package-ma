@@ -792,7 +792,6 @@ plot.lm.ma <- function(object,
                        B=99,
                        plot.deriv=FALSE,
                        plot.ci=FALSE,
-                       num.eval=100,
                        plot.data=FALSE,
                        ...) {
     
@@ -813,14 +812,14 @@ plot.lm.ma <- function(object,
                      cex=0.1,
                      col="grey",
                      ...)
-                foo <- predict(object,newdata=xeval,bootstrap.ci=plot.ci)
+                foo <- predict(object,newdata=xeval,bootstrap.ci=plot.ci,B=B)
                 lines(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],col=1)
                 if(plot.ci) {
                     lines(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],col=2,lty=2)
                     lines(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],col=2,lty=2)
                 }
             } else {
-                foo <- predict(object,newdata=xeval,bootstrap.ci=plot.ci)
+                foo <- predict(object,newdata=xeval,bootstrap.ci=plot.ci,B=B)
                 if(!plot.ci) {
                     plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
                          ylab=object$yname,
@@ -844,27 +843,19 @@ plot.lm.ma <- function(object,
     } else {
 
       for(i in 1:NCOL(object$X)) {
-    #        xeval <- xeval.median
-    #        xeval[,i] <- object$X[,i]
-    #        object$compute.deriv <- TRUE
-    #        plot(xeval[order(xeval[,i]),i],predict(object,newdata=xeval,bootstrap.ci=plot.ci)$deriv[order(xeval[,i]),i],
-    #             ylab=paste("d",object$yname,"/d",object$xnames[i],sep=""),
-    ##             xlab=object$xnames[i],
-     #            type="l",
-     #            ...)
-     #   }
-        
+
         xeval <- xeval.median
         xeval[,i] <- object$X[,i]
         object$compute.deriv <- TRUE
         
-        foo <- predict(object,newdata=xeval,bootstrap.ci=plot.ci)
-        plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
-             ylab=paste("d",object$yname,"/d",object$xnames[i],sep=""),
-             xlab=object$xnames[i],
-             type="l",
-             ...)
-        if(plot.ci) {
+        foo <- predict(object,newdata=xeval,bootstrap.ci=plot.ci,B=B)
+        if(!plot.ci) {
+            plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
+                 ylab=paste("d",object$yname,"/d",object$xnames[i],sep=""),
+                 xlab=object$xnames[i],
+                 type="l",
+                ...)
+        } else {
             ylim <- range(c(foo$deriv.low[,i],foo$deriv.up[,i]))
             plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
                  ylab=object$yname,

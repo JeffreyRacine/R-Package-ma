@@ -123,15 +123,23 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     model <- lm.ma(y~x1+x2)
     model <- lm.ma(y~x1+x2,compute.deriv=TRUE)
     model <- lm.ma(y~x1+x2,bootstrap.ci=TRUE)  
-    plot(model,data=TRUE)
-    plot(model,deriv.order=1)
+
+    plot(model)
+    plot(model,plot.data=TRUE)
+    plot(model,plot.ci=TRUE,B=19)    
+    plot(model,plot.data=TRUE,plot.ci=TRUE,B=19)
+    plot(model,plot.deriv=TRUE)    
+    plot(model,plot.deriv=TRUE,plot.ci=TRUE,B=19)        
+
     summary(model)
     fitted(model)
     coef(model)
+
     ## For generating predictions, create foo, a dataframe with named elements (important)
     ## for all predictors in the object model, then call predict, e.g.,
     foo <- data.frame(x1=c(1,2),x2=c(3,4))
     predict(model,newdata=foo)
+
     ## If you want to see the degrees and knots selected by the procedure
     ## for the models that receive positive model average weights, try the
     ## following:
