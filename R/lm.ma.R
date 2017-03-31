@@ -869,14 +869,14 @@ plot.lm.ma <- function(x,
             foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
             if(!plot.ci) {
                 plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
-                     ylab=paste("d ",yname,"/d ",xznames[i],sep=""),
+                     ylab=paste("d ",yname," / d ",xznames[i],sep=""),
                      xlab=xznames[i],
                      type="l",
                     ...)
             } else {
                 ylim <- range(c(foo$deriv.low[,j],foo$deriv.up[,j]))
                 plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
-                     ylab=paste("d ",yname,"/d ",xznames[i],sep=""),
+                     ylab=paste("d ",yname," / d ",xznames[i],sep=""),
                      xlab=xznames[i],
                      type="l",
                      ylim=ylim,
