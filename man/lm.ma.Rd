@@ -127,9 +127,9 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     plot(model)
     plot(model,plot.data=TRUE)
     plot(model,plot.ci=TRUE,B=19)    
-    plot(model,plot.data=TRUE,plot.ci=TRUE,B=19)
+    plot(model,plot.data=TRUE,plot.ci=TRUE,B=199)
     plot(model,plot.deriv=TRUE)    
-    plot(model,plot.deriv=TRUE,plot.ci=TRUE,B=19)        
+    plot(model,plot.deriv=TRUE,plot.ci=TRUE,B=399)        
 
     summary(model)
     fitted(model)
@@ -205,22 +205,13 @@ x <- sort(runif(n))
 dgp <- cos(2*pi*x)
 y <- dgp + rnorm(n,sd=0.5*sd(dgp))
 
-model <- lm.ma(y~x,bootstrap.ci=TRUE,compute.deriv=TRUE)
+model <- lm.ma(y~x)
 
 summary(model)
 
 par(mfrow=c(1,2))
-
-plot(x,y,cex=0.25)
-lines(x,fitted(model))
-lines(x,model$fitted.ci.l,col=2,lty=2)
-lines(x,model$fitted.ci.u,col=2,lty=2)
-
-ylim <- range(c(model$deriv.ci.l[,1],model$deriv.ci.u[,1]))
-plot(x,model$deriv[,1],ylim=ylim,ylab="First derivative",type="l")
-lines(x,model$deriv.ci.l[,1],col=2,lty=2)
-lines(x,model$deriv.ci.u[,1],col=2,lty=2)
-
+plot(model.ma,plot.data=TRUE,plot.ci=TRUE)
+plot(model.ma,plot.data=TRUE,plot.ci=TRUE,plot.deriv=TRUE)
 par(mfrow=c(1,1))
 
 #### Example 2 - simulated multiplicative nonlinear two-predictor function
@@ -340,13 +331,12 @@ detach(wage1)
 data(cps71)
 attach(cps71)
 model.ma <- lm.ma(logwage~age)
-plot(age,logwage,cex=0.25)
-lines(age,fitted(model.ma))
+plot(model.ma,plot.data=TRUE,plot.ci=TRUE)
 suppressPackageStartupMessages(require(np))
 model.kernel <- npreg(logwage~age,regtype="ll",bwmethod="cv.aic")
-lines(age,fitted(model.kernel),col=2,lty=2)
+lines(age,fitted(model.kernel),col=2,lty=2,lwd=2)
 model.spline <- crs(logwage~age,cv.threshold=0)
-lines(age,fitted(model.spline),col=3,lty=3)
+lines(age,fitted(model.spline),col=3,lty=3,lwd=2)
 legend("topleft",c("Parametric Model Average",
                    "Nonparametric Kernel",
                    "Nonparametric B-Spline"),

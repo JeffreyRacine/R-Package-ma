@@ -846,7 +846,7 @@ plot.lm.ma <- function(x,
             }
         }
         
-        par(mfrow=c(1,1))
+        if(NCOL(x$X) > 1) par(mfrow=c(1,1))
 
     } else {
         
@@ -890,6 +890,6 @@ plot.lm.ma <- function(x,
       }
     }
     
-    par(mfrow=c(1,1))
+    if(NCOL(x$X) > 1) par(mfrow=c(1,1))
     
 }
