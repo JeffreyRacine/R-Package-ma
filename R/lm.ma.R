@@ -792,7 +792,7 @@ plot.lm.ma <- function(object,
                        deriv=0,
                        ci=FALSE,
                        num.eval=100,
-                       with.data=TRUE,
+                       data=FALSE,
                        ...) {
     
     if(deriv == 0) {
@@ -802,7 +802,7 @@ plot.lm.ma <- function(object,
         
         for(i in 1:NCOL(object$X)) {
             xeval <- object$X
-            xeval[,-i] <- colMeans(xeval[,-i,drop=FALSE])
+            xeval[,-i] <- apply(xeval[,-i,drop=FALSE],2,median)
             Est <- lm.ma.default(y=object$y,
                                  X=object$X,
                                  X.eval=xeval,
@@ -823,21 +823,20 @@ plot.lm.ma <- function(object,
                                  tol=object$tol,
                                  ...)
             fitted.values <- Est$fitted.values
-            if(with.data) {
+            if(data) {
                 plot(Est$X[,i],Est$y,
                      ylab=Est$yname,
                      xlab=Est$xnames[i],
                      cex=0.1,
                      col="grey",
                      ...)
-                lines(object$X[order(object$X[,i]),i],fitted.values[order(object$X[,i])],col=1)
+                lines(Est$X[order(Est$X[,i]),i],fitted.values[order(Est$X[,i])],col=1)
             } else {
-                plot(object$X[order(object$X[,i]),i],fitted.values[order(object$X[,i])],
+                plot(Est$X[order(Est$X[,i]),i],fitted.values[order(Est$X[,i])],
                      ylab=Est$yname,
                      xlab=Est$xnames[i],
                      type="l",
                      ...)
-                lines(object$X[order(object$X[,i]),i],fitted.values[order(object$X[,i])],col=1)                
             }
         }
         
