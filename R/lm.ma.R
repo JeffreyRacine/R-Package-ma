@@ -292,12 +292,13 @@ lm.ma.Est <- function(y=NULL,
 
                         fit.spline <- numeric(length=NROW(x))
                         htt <- numeric(length=NROW(x))
+                        basis.singular <- logical(length=nrow.z.unique)
                         for(i in 1:nrow.z.unique) {
                             zz <- ind == ind.vals[i]
                             L <- crs:::prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
                             if(!is.null(weights)) L <- weights*L
                             P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
-                            if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
+                            if(!is.fullrank(P)) basis.singular[i] <- TRUE
                             if(b.basis=="additive" || b.basis=="glp") {
                                 model.z.unique <- lm(y~P,weights=L)
                             } else {
@@ -305,7 +306,7 @@ lm.ma.Est <- function(y=NULL,
                             }
                             htt[zz] <- hatvalues(model.z.unique)[zz]
                             P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=b.basis))
-                            fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
+                            fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                         }
                         
                         htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
@@ -316,10 +317,13 @@ lm.ma.Est <- function(y=NULL,
                             fit.spline.min <- fit.spline
                             htt.min <- htt
                             rank.min <- model.z.unique$rank
+                            basis.singular.min <- any(basis.singular==TRUE)
                             basis.vec[p] <- b.basis
                         }
  
                     }
+
+                    if(basis.singular.min) warning("dimension basis is ill-conditioned - reduce degree.max")
 
                     fit.spline <- fit.spline.min
                     htt.min <- htt
@@ -329,12 +333,13 @@ lm.ma.Est <- function(y=NULL,
 
                     fit.spline <- numeric(length=NROW(x))
                     htt <- numeric(length=NROW(x))
+                    basis.singular <- logical(length=nrow.z.unique)
                     for(i in 1:nrow.z.unique) {
                         zz <- ind == ind.vals[i]
                         L <- crs:::prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
                         if(!is.null(weights)) L <- weights*L
                         P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
-                        if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
+                        if(!is.fullrank(P)) basis.singular[i] <- TRUE
                         if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
                             model.z.unique <- lm(y~P,weights=L)
                         } else {
@@ -342,10 +347,10 @@ lm.ma.Est <- function(y=NULL,
                         }
                         htt[zz] <- hatvalues(model.z.unique)[zz]
                         P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
-                        fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
+                        fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                     }
-                    
-                }
+                    if(any(basis.singular==TRUE)) warning("dimension basis is ill-conditioned - reduce degree.max")
+                 }
 
                 fitted.mat[,p] <- fit.spline
                     
@@ -357,7 +362,6 @@ lm.ma.Est <- function(y=NULL,
                 }
 
                 K.rank[p] <- model.z.unique$rank
-
                 sigsq[p] <- sqrt(sum((y - fit.spline)^2)/(NROW(x)-model.z.unique$rank))
 
             } else {
@@ -366,7 +370,7 @@ lm.ma.Est <- function(y=NULL,
                     cv.min <- Inf
                     for(b.basis in c("tensor","glp","additive")) {
                         P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
-                        if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
+                        if(!is.fullrank(P)) basis.singular <- TRUE
                         if(b.basis=="additive" || b.basis=="glp") {
                             model.ma <- lm(y~P,weights=weights)
                         } else {
@@ -380,8 +384,11 @@ lm.ma.Est <- function(y=NULL,
                             fit.spline.min <- fitted(model.ma)
                             model.ma.min <- model.ma
                             basis.vec[p] <- b.basis
+                            basis.singular.min <- basis.singular
                         }
                     }
+                    
+                    if(basis.singular.min) warning("dimension basis is ill-conditioned - reduce degree.max")
                     
                     model.ma <- model.ma.min
                     fit.spline <- fitted(model.ma)
@@ -389,15 +396,13 @@ lm.ma.Est <- function(y=NULL,
                 } else {
 
                     P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
-                    if(!is.fullrank(P) & p==P.num) stop("Largest dimension basis is ill-conditioned - reduce degree.max")
+                    if(!is.fullrank(P)) warning("dimension basis is ill-conditioned - reduce degree.max")
                     if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
                         model.ma <- lm(y~P,weights=weights)
                     } else {
                         model.ma <- lm(y~P-1,weights=weights)
                     }
-
                     fit.spline <- fitted(model.ma)
-
                 }
                 
                 fitted.mat[,p] <- fit.spline
@@ -433,7 +438,7 @@ lm.ma.Est <- function(y=NULL,
                         model.z.unique <- lm(y~P-1,weights=L)
                     }
                     P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
-                    fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
+                    fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
 
                 }
 
@@ -450,7 +455,7 @@ lm.ma.Est <- function(y=NULL,
                 
                 P <- suppressWarnings(crs:::prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p]))
 
-                fitted.mat[,p] <- predict(model.ma,newdata=data.frame(as.matrix(P)))
+                fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                 
             }
             
