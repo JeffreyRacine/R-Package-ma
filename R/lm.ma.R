@@ -625,7 +625,6 @@ lm.ma.Est <- function(y=NULL,
                 DS=K.mat,
                 vc=vc,
                 verbose=verbose,
-                bootstrap.ci=bootstrap.ci,
                 tol=tol,
                 xnames=xnames,
                 znames=znames,
@@ -787,54 +786,34 @@ predict.lm.ma <- function(object,
 plot.lm.ma <- function(object,
                        bootstrap.ci=FALSE,
                        B=99,
-                       deriv.order=0,
+                       plot.deriv=FALSE,
                        ci=FALSE,
                        num.eval=100,
                        data=FALSE,
                        ...) {
     
-    
+    object$verbose <- FALSE    
     if(NCOL(object$X) > 1) par(mfrow=c(2,ifelse(NCOL(object$X) %%2 == 0, NCOL(object$X)/2, (NCOL(object$X)+1)/2)))
-    xeval.median <- matrix(apply(object$X,2,median),NROW(object$X),NCOL(object$X),byrow=TRUE)
+    xeval.median <- data.frame(matrix(apply(object$X,2,median),NROW(object$X),NCOL(object$X),byrow=TRUE))
+    names(xeval.median) <- names(object$X)
     
-    if(deriv.order == 0) {
+    if(!plot.deriv) {
         for(i in 1:NCOL(object$X)) {
             xeval <- xeval.median
             xeval[,i] <- object$X[,i]
-            Est <- lm.ma.default(y=object$y,
-                                 X=object$X,
-                                 X.eval=xeval,
-                                 basis=object$basis,
-                                 compute.deriv=FALSE,
-                                 deriv.order=object$deriv.order,
-                                 degree.max=object$degree.max,
-                                 lambda=object$lambda,
-                                 segments.max=object$segments.max,
-                                 knots=object$knots,
-                                 S=object$S,
-                                 method=object$method,
-                                 ma.weights=object$ma.weights,
-                                 basis.vec=object$basis.vec,
-                                 weights=object$weights,
-                                 vc=object$vc,
-                                 verbose=FALSE,
-                                 tol=object$tol,
-                                 bootstrap.ci=bootstrap.ci,
-                                 B=B,
-                                 ...)
-
+            object$compute.deriv <- FALSE
             if(data) {
-                plot(Est$X[,i],Est$y,
-                     ylab=Est$yname,
-                     xlab=Est$xnames[i],
+                plot(xeval[,i],object$y,
+                     ylab=object$yname,
+                     xlab=object$xnames[i],
                      cex=0.1,
                      col="grey",
                      ...)
-                lines(Est$X[order(Est$X[,i]),i],Est$fitted.values[order(Est$X[,i])],col=1)
+                lines(xeval[order(xeval[,i]),i],predict(object,newdata=xeval,bootstrap.ci=bootstrap.ci)$fit[order(xeval[,i])],col=1)
             } else {
-                plot(Est$X[order(Est$X[,i]),i],Est$fitted.values[order(Est$X[,i])],
-                     ylab=Est$yname,
-                     xlab=Est$xnames[i],
+                plot(xeval[order(xeval[,i]),i],predict(object,newdata=xeval,bootstrap.ci=bootstrap.ci)$fit[order(xeval[,i])],
+                     ylab=object$yname,
+                     xlab=object$xnames[i],
                      type="l",
                      ...)
                 if(bootstrap.ci) {
@@ -849,29 +828,10 @@ plot.lm.ma <- function(object,
         for(i in 1:NCOL(object$X)) {
             xeval <- xeval.median
             xeval[,i] <- object$X[,i]
-            Est <- lm.ma.default(y=object$y,
-                                 X=object$X,
-                                 X.eval=xeval,
-                                 basis=object$basis,
-                                 compute.deriv=TRUE,
-                                 deriv.order=deriv.order,
-                                 degree.max=object$degree.max,
-                                 lambda=object$lambda,
-                                 segments.max=object$segments.max,
-                                 knots=object$knots,
-                                 S=object$S,
-                                 method=object$method,
-                                 ma.weights=object$ma.weights,
-                                 basis.vec=object$basis.vec,
-                                 weights=object$weights,
-                                 vc=object$vc,
-                                 verbose=FALSE,
-                                 tol=object$tol,
-                                 ...)
-            
-            plot(Est$X[order(Est$X[,i]),i],Est$deriv.matrix[order(Est$X[,i]),i],
-                 ylab=Est$yname,
-                 xlab=Est$xnames[i],
+            object$compute.deriv <- TRUE
+            plot(xeval[order(xeval[,i]),i],predict(object,newdata=xeval,bootstrap.ci=bootstrap.ci)$deriv[order(xeval[,i]),i],
+                 ylab=object$yname,
+                 xlab=object$xnames[i],
                  type="l",
                  ...)
         }
