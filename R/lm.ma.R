@@ -792,6 +792,7 @@ plot.lm.ma <- function(object,
                        deriv=0,
                        ci=FALSE,
                        num.eval=100,
+                       with.data=TRUE,
                        ...) {
     
     if(deriv == 0) {
@@ -822,13 +823,22 @@ plot.lm.ma <- function(object,
                                  tol=object$tol,
                                  ...)
             fitted.values <- Est$fitted.values
-            plot(Est$X[,i],Est$y,
-                 ylab=Est$yname,
-                 xlab=Est$xnames[i],
-                 cex=0.1,
-                 col="grey",
-                 ...)
-            lines(object$X[order(object$X[,i]),i],fitted.values[order(object$X[,i])],col=1)
+            if(with.data) {
+                plot(Est$X[,i],Est$y,
+                     ylab=Est$yname,
+                     xlab=Est$xnames[i],
+                     cex=0.1,
+                     col="grey",
+                     ...)
+                lines(object$X[order(object$X[,i]),i],fitted.values[order(object$X[,i])],col=1)
+            } else {
+                plot(object$X[order(object$X[,i]),i],fitted.values[order(object$X[,i])],
+                     ylab=Est$yname,
+                     xlab=Est$xnames[i],
+                     type="l",
+                     ...)
+                lines(object$X[order(object$X[,i]),i],fitted.values[order(object$X[,i])],col=1)                
+            }
         }
         
         par(mfrow=c(1,1))
