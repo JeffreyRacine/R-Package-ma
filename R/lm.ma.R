@@ -786,3 +786,73 @@ predict.lm.ma <- function(object,
   }
 
 }
+
+plot.lm.ma <- function(object,
+                       deriv=0,
+                       ci=FALSE,
+                       num.eval=100,
+                       ...) {
+    
+    if(deriv == 0) {
+        ## mean  
+       ## tt <- terms(object)
+       ## exdat <- model.frame(delete.response(tt),newdata,xlev=object$xlevels)
+
+        if(NCOL(object$X) > 1) par(mfrow=c(2,ifelse(NCOL(object$X) %%2 == 0, NCOL(object$X)/2, (NCOL(object$X)+1)/2)))
+        
+        for(i in 1:NCOL(object$X)) {
+            Est <- lm.ma.default(y=object$y,
+                                 X=object$X,
+                                 X.eval=object$X,
+                                 basis=object$basis,
+                                 compute.deriv=FALSE,
+                                 deriv.order=object$deriv.order,
+                                 degree.max=object$degree.max,
+                                 lambda=object$lambda,
+                                 segments.max=object$segments.max,
+                                 knots=object$knots,
+                                 S=object$S,
+                                 method=object$method,
+                                 ma.weights=object$ma.weights,
+                                 basis.vec=object$basis.vec,
+                                 weights=object$weights,
+                                 vc=object$vc,
+                                 verbose=object$verbose,
+                                 tol=object$tol,
+                                 ...)
+            fitted.values <- Est$fitted.values
+            plot(object$X[,i],object$y,cex=0.25,...)
+            lines(object$X[order(object$X[,i]),i],fitted.values[order(object$X[,i])],col=1)
+        }
+        
+        par(mfrow=c(1,1))
+        
+    } else {
+        
+        tt <- terms(object)
+        exdat <- model.frame(delete.response(tt),newdata,xlev=object$xlevels)
+        Est <- lm.ma.default(y=object$y,
+                             X=object$X,
+                             X.eval=object$X,
+                             basis=object$basis,
+                             compute.deriv=object$compute.deriv,
+                             deriv.order=object$deriv.order,
+                             degree.max=object$degree.max,
+                             lambda=object$lambda,
+                             segments.max=object$segments.max,
+                             knots=object$knots,
+                             S=object$S,
+                             method=object$method,
+                             ma.weights=object$ma.weights,
+                             basis.vec=object$basis.vec,
+                             weights=object$weights,
+                             vc=object$vc,
+                             verbose=object$verbose,
+                             tol=object$tol,
+                             ...)
+        fitted.values <- Est$fitted.values
+        deriv <- Est$deriv
+        ## deriv    
+    }
+    
+}
