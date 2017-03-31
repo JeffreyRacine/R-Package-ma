@@ -11,7 +11,7 @@ lm.ma.default <- function(y=NULL,
                           lambda=1e-02,
                           segments.max=3,
                           knots=FALSE,
-                          S=10,
+                          S=1,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           basis.vec=NULL,
@@ -21,7 +21,7 @@ lm.ma.default <- function(y=NULL,
                           weights=NULL,
                           vc=TRUE,
                           verbose=TRUE,
-                          tol=1e-08,
+                          tol=1e-12,
                           ...) {
 
     basis <- match.arg(basis)
@@ -135,7 +135,7 @@ lm.ma.default <- function(y=NULL,
                                   weights=weights,
                                   vc=vc,
                                   verbose=FALSE,
-                                  tol=1e-08,
+                                  tol=1e-12,
                                   ...)
             boot.mat[,b] <- out.boot$fitted
             if(compute.deriv) for(k in 1:Est$num.x) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
@@ -177,14 +177,14 @@ lm.ma.Est <- function(y=NULL,
                       lambda=1e-02,
                       segments.max=3,
                       knots=FALSE,
-                      S=10,
+                      S=1,
                       method=c("jma","mma"),
                       ma.weights=NULL,
                       basis.vec=NULL,
                       weights=NULL,
                       vc=TRUE,
                       verbose=TRUE,
-                      tol=1e-08,
+                      tol=1e-12,
                       ...) {
     
     ## Divide into factors and numeric
@@ -237,7 +237,7 @@ lm.ma.Est <- function(y=NULL,
     }
 
     if(is.null(degree.max)) {
-        degree.max <- max(3,floor((S/num.x)*(NROW(X)/100)^0.1))
+        degree.max <- max(2,ceiling(S*log(NROW(X))))
     }
     
     P <- degree.max
@@ -641,7 +641,7 @@ lm.ma.formula <- function(formula,
                           lambda=1e-02,
                           segments.max=3,
                           knots=FALSE,
-                          S=10,
+                          S=1,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           basis.vec=NULL,
@@ -651,7 +651,7 @@ lm.ma.formula <- function(formula,
                           weights=NULL,
                           vc=TRUE,
                           verbose=TRUE,
-                          tol=1e-08,
+                          tol=1e-12,
                           ...) {
 
 
