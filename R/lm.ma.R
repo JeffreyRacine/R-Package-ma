@@ -799,10 +799,10 @@ plot.lm.ma <- function(object,
         ## mean  
 
         if(NCOL(object$X) > 1) par(mfrow=c(2,ifelse(NCOL(object$X) %%2 == 0, NCOL(object$X)/2, (NCOL(object$X)+1)/2)))
-        
+        xeval.median <- matrix(apply(object$X,2,median),NROW(object$X),NCOL(object$X),byrow=TRUE)
         for(i in 1:NCOL(object$X)) {
-            xeval <- object$X
-            xeval[,-i] <- apply(xeval[,-i,drop=FALSE],2,median)
+            xeval <- xeval.median
+            xeval[,i] <- object$X[,i]
             Est <- lm.ma.default(y=object$y,
                                  X=object$X,
                                  X.eval=xeval,
@@ -822,7 +822,10 @@ plot.lm.ma <- function(object,
                                  verbose=FALSE,
                                  tol=object$tol,
                                  ...)
-            fitted.values <- Est$fitted.values
+            #print(cbind(Est$X[,i],Est$fitted.values))
+            #print(summary(Est$y))
+            #stop()
+
             if(data) {
                 plot(Est$X[,i],Est$y,
                      ylab=Est$yname,
@@ -830,9 +833,9 @@ plot.lm.ma <- function(object,
                      cex=0.1,
                      col="grey",
                      ...)
-                lines(Est$X[order(Est$X[,i]),i],fitted.values[order(Est$X[,i])],col=1)
+                lines(Est$X[order(Est$X[,i]),i],Est$fitted.values[order(Est$X[,i])],col=1)
             } else {
-                plot(Est$X[order(Est$X[,i]),i],fitted.values[order(Est$X[,i])],
+                plot(Est$X[order(Est$X[,i]),i],Est$fitted.values[order(Est$X[,i])],
                      ylab=Est$yname,
                      xlab=Est$xnames[i],
                      type="l",
