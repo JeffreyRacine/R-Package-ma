@@ -788,49 +788,51 @@ predict.lm.ma <- function(object,
 
 }
 
-plot.lm.ma <- function(object,
+plot.lm.ma <- function(x,
                        B=99,
                        plot.deriv=FALSE,
                        plot.ci=FALSE,
                        plot.data=FALSE,
                        ...) {
     
-    object$verbose <- FALSE    
-    if(NCOL(object$X) > 1) par(mfrow=c(2,ifelse(NCOL(object$X) %%2 == 0, NCOL(object$X)/2, (NCOL(object$X)+1)/2)))
-    xeval.median <- data.frame(matrix(apply(object$X,2,median),NROW(object$X),NCOL(object$X),byrow=TRUE))
-    names(xeval.median) <- names(object$X)
+    x$verbose <- FALSE    
+    if(NCOL(x$X) > 1) par(mfrow=c(2,ifelse(NCOL(x$X) %%2 == 0, NCOL(x$X)/2, (NCOL(x$X)+1)/2)))
+    xeval.median <- x$X
+    for(i in 1:NCOL(xeval.median)) xeval.median[,i] <- uocquantile(xeval.median[,i],prob=0.5)
+    print(xeval.median)[1:5,]
+    print(class(xeval.median))
     
     if(!plot.deriv) {
-        for(i in 1:NCOL(object$X)) {
+        for(i in 1:NCOL(x$X)) {
             xeval <- xeval.median
-            xeval[,i] <- object$X[,i]
-            object$compute.deriv <- FALSE
+            xeval[,i] <- x$X[,i]
+            x$compute.deriv <- FALSE
             if(plot.data) {
-                plot(xeval[,i],object$y,
-                     ylab=object$yname,
-                     xlab=object$xnames[i],
+                plot(xeval[,i],x$y,
+                     ylab=x$yname,
+                     xlab=x$xnames[i],
                      cex=0.1,
                      col="grey",
                      ...)
-                foo <- predict(object,newdata=xeval,bootstrap.ci=plot.ci,B=B)
+                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
                 lines(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],col=1)
                 if(plot.ci) {
                     lines(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],col=2,lty=2)
                     lines(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],col=2,lty=2)
                 }
             } else {
-                foo <- predict(object,newdata=xeval,bootstrap.ci=plot.ci,B=B)
+                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
                 if(!plot.ci) {
                     plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
-                         ylab=object$yname,
-                         xlab=object$xnames[i],
+                         ylab=x$yname,
+                         xlab=x$xnames[i],
                          type="l",
                          ...)
                 } else {
                     ylim <- range(c(foo$fit.low,foo$fit.up))
                     plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
-                         ylab=object$yname,
-                         xlab=object$xnames[i],
+                         ylab=x$yname,
+                         xlab=x$xnames[i],
                          type="l",
                          ylim=ylim,
                          ...)
@@ -842,24 +844,24 @@ plot.lm.ma <- function(object,
 
     } else {
 
-      for(i in 1:NCOL(object$X)) {
+      for(i in 1:NCOL(x$X)) {
 
         xeval <- xeval.median
-        xeval[,i] <- object$X[,i]
-        object$compute.deriv <- TRUE
+        xeval[,i] <- x$X[,i]
+        x$compute.deriv <- TRUE
         
-        foo <- predict(object,newdata=xeval,bootstrap.ci=plot.ci,B=B)
+        foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
         if(!plot.ci) {
             plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
-                 ylab=paste("d",object$yname,"/d",object$xnames[i],sep=""),
-                 xlab=object$xnames[i],
+                 ylab=paste("d",x$yname,"/d",x$xnames[i],sep=""),
+                 xlab=x$xnames[i],
                  type="l",
                 ...)
         } else {
             ylim <- range(c(foo$deriv.low[,i],foo$deriv.up[,i]))
             plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
-                 ylab=object$yname,
-                 xlab=object$xnames[i],
+                 ylab=x$yname,
+                 xlab=x$xnames[i],
                  type="l",
                  ylim=ylim,
                  ...)

@@ -138,7 +138,7 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     ## For generating predictions, create foo, a dataframe with named elements (important)
     ## for all predictors in the object model, then call predict, e.g.,
     foo <- data.frame(x1=c(1,2),x2=c(3,4))
-    predict(model,newdata=foo)
+    predict(model,newdata=foo)$fit
 
     ## If you want to see the degrees and knots selected by the procedure
     ## for the models that receive positive model average weights, try the
@@ -248,7 +248,7 @@ summary(model)
 ## Use the rgl package to render a 3D object (RGL is a 3D real-time rendering 
 ## system for R that supports OpenGL, among other formats).
 
-z <- matrix(predict(model,newdata=newdata),n.eval,n.eval)
+z <- matrix(predict(model,newdata=newdata)$fit,n.eval,n.eval)
 num.colors <- 1000
 colorlut <- topo.colors(num.colors)
 col <- colorlut[ (num.colors-1)*(z-min(z))/(max(z)-min(z)) + 1 ]

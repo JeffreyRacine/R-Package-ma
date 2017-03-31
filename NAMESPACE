@@ -1,4 +1,5 @@
 import(stats, crs, quadprog)
+importFrom("graphics", "lines", "par", "plot")
 
 export(lm.ma)
 

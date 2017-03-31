@@ -1,3 +1,19 @@
+uocquantile = function(x, prob = 0.5) {
+  if (is.ordered(x)){
+    tq = unclass(table(x))
+    tq = tq / sum(tq)
+    j = which(sapply(1:length(tq), function(y){ sum(tq[1:y]) }) >= prob)[1]
+    sort(unique(x))[j]
+  } else if (is.factor(x)) {
+    ## just returns mode
+    tq = unclass(table(x))
+    j = which(tq == max(tq))[1]
+    sort(unique(x))[j]
+  } else {
+    quantile(x, probs = prob)
+  }
+}
+
 is.fullrank <- function(x)
 {
   e <- eigen(crossprod(as.matrix(x)), symmetric = TRUE, only.values = TRUE)$values
