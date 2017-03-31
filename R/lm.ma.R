@@ -795,15 +795,15 @@ plot.lm.ma <- function(object,
     
     if(deriv == 0) {
         ## mean  
-       ## tt <- terms(object)
-       ## exdat <- model.frame(delete.response(tt),newdata,xlev=object$xlevels)
 
         if(NCOL(object$X) > 1) par(mfrow=c(2,ifelse(NCOL(object$X) %%2 == 0, NCOL(object$X)/2, (NCOL(object$X)+1)/2)))
         
         for(i in 1:NCOL(object$X)) {
+            xeval <- object$X
+            xeval[,-i] <- colMeans(xeval[,-i,drop=FALSE])
             Est <- lm.ma.default(y=object$y,
                                  X=object$X,
-                                 X.eval=object$X,
+                                 X.eval=xeval,
                                  basis=object$basis,
                                  compute.deriv=FALSE,
                                  deriv.order=object$deriv.order,
