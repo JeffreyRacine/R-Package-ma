@@ -82,7 +82,7 @@ lm.ma(...)
 
   \item{degree.min}{minimum value for the basis in each dimension}
 
-  \item{degree.max}{maximum value for the basis in each dimension (defaults to \code{max(2,ceiling(S*log(NROW(X))))} where \code{num.x} is the number of numeric (i.e., non categorical) predictors and n the number of observations}
+  \item{degree.max}{maximum value for the basis in each dimension (defaults to \code{max(2,ceiling(S*log(NROW(X))/num.x))} where \code{num.x} is the number of numeric (i.e., non categorical) predictors and n the number of observations}
 
   \item{lambda}{smoothing parameter for weight function for the
   categorical predictors when \code{vc=TRUE}}
