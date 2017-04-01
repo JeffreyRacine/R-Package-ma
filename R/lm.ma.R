@@ -33,152 +33,8 @@ lm.ma.default <- function(y=NULL,
     if(compute.deriv & (degree.min < deriv.order)) stop("Minimum degree (degree.min) must be at least as large the order of the derivative required (deriv.order)")
     if(degree.min < 1) stop("Minimum degree (degree.min) must be at least one")
 
-    ## First obtain weights, then in subsequent call computes fits and 
-    ## derivatives
-
-    Est <- lm.ma.Est(y=y,
-                     X=X,
-                     X.eval=X.eval,
-                     basis=basis,
-                     compute.deriv=FALSE,
-                     deriv.order=deriv.order,
-                     degree.min=degree.min,
-                     degree.max=degree.max,
-                     lambda=lambda,
-                     segments.max=segments.max,
-                     knots=knots,
-                     S=S,
-                     method=method,
-                     ma.weights=ma.weights,
-                     basis.vec=basis.vec,
-                     weights=weights,
-                     vc=vc,
-                     verbose=verbose,
-                     tol=tol,
-                     ...)
-
-    ## Save rank vector and matrix of degrees and segments (not computed in next 
-    ## call since ma.weights is passed, but needed for summary)
-    
-    if(compute.deriv | !is.null(X.eval)) {
-        K.rank <- Est$rank.vec
-        DS <- Est$DS
-        basis.vec <- Est$basis.vec
-
-        Est <- lm.ma.Est(y=y,
-                         X=X,
-                         X.eval=X.eval,
-                         basis=basis,
-                         compute.deriv=compute.deriv,
-                         deriv.order=deriv.order,
-                         degree.min=degree.min,
-                         degree.max=degree.max,
-                         lambda=lambda,
-                         segments.max=segments.max,
-                         knots=knots,
-                         S=S,
-                         method=method,
-                         ma.weights=Est$ma.weights,
-                         basis.vec=Est$basis.vec,
-                         weights=weights,
-                         vc=vc,
-                         verbose=verbose,
-                         tol=tol,
-                         ...)
-        
-        Est$rank.vec <- K.rank
-        Est$DS <- DS
-        Est$DS <- basis.vec
-
-    }
-
-    ## Bootstrap is requested using pre-computed ma.weights
-    
-    if(bootstrap.ci) {
-
-        if(is.null(X.eval)) {
-            n <- NROW(X) 
-        } else {
-            n <- NROW(X.eval)
-        }
-    
-        boot.mat <- matrix(NA,n,B)
-        if(compute.deriv) boot.deriv.array <- array(NA,c(n,B,Est$num.x))
-    
-        for(b in 1:B) {
-            if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
-            ii <- sample(1:n,replace=TRUE)
-            out.boot <- lm.ma.Est(y=y[ii],
-                                  X=X[ii,],
-                                  X.eval=if(is.null(X.eval)) { X } else {X.eval},
-                                  basis=basis,
-                                  compute.deriv=compute.deriv,
-                                  deriv.order=deriv.order,
-                                  degree.min=degree.min,
-                                  degree.max=degree.max,
-                                  lambda=lambda,
-                                  segments.max=segments.max,
-                                  knots=knots,
-                                  S=S,
-                                  method=method,
-                                  ma.weights=Est$ma.weights,
-                                  basis.vec=Est$basis.vec,
-                                  weights=weights,
-                                  vc=vc,
-                                  verbose=FALSE,
-                                  tol=1e-12,
-                                  ...)
-            boot.mat[,b] <- out.boot$fitted
-            if(compute.deriv) for(k in 1:Est$num.x) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
-        }
-
-        if(verbose) cat("\r                                     ")
-        if(verbose) cat("\r")
-        if(verbose) cat("\rComputing quantiles...")
-
-        Est$fitted.ci.l <- apply(boot.mat,1,quantile,prob=alpha/2,type=1,na.rm=TRUE)
-        Est$fitted.ci.u <- apply(boot.mat,1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE)
-        Est$fitted.scale <- apply(boot.mat,1,mad,na.rm=TRUE)
-        
-        if(compute.deriv) {
-            Est$deriv.ci.l <- Est$deriv.ci.u <- Est$deriv.scale <- matrix(NA,n,Est$num.x)
-            for(k in 1:Est$num.x) {
-                Est$deriv.ci.l[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=alpha/2,type=1,na.rm=TRUE)
-                Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE)     
-                Est$deriv.scale[,k] <- apply(boot.deriv.array[,,k],1,mad,na.rm=TRUE)  
-            }
-        }
-        if(verbose) cat("\r                                     ")
-        if(verbose) cat("\r")
-    }
-
-    class(Est) <- "lm.ma"
-    return(Est)
-
-}
-
-lm.ma.Est <- function(y=NULL,
-                      X=NULL,
-                      X.eval=NULL,
-                      basis=c("tensor","glp","additive","auto"),
-                      compute.deriv=FALSE,
-                      deriv.order=1,
-                      degree.min=1,
-                      degree.max=NULL,
-                      lambda=1e-02,
-                      segments.max=3,
-                      knots=FALSE,
-                      S=2,
-                      method=c("jma","mma"),
-                      ma.weights=NULL,
-                      basis.vec=NULL,
-                      weights=NULL,
-                      vc=TRUE,
-                      verbose=TRUE,
-                      tol=1e-12,
-                      ...) {
-    
     ## Divide into factors and numeric
+
     if(!vc) {
         xztmp <- splitFrame(as.data.frame(X))
     } else {
@@ -218,10 +74,23 @@ lm.ma.Est <- function(y=NULL,
         ind.zeval.vals <-  unique(ind.zeval)
         nrow.zeval.unique <- nrow(zeval.unique)
         num.eval <- nrow(zeval)
+    } else {
+        z.unique <- NULL
+        num.z <- NULL
+        ind <-  NULL
+        ind.vals <-  NULL
+        nrow.z.unique <- NULL
+        zeval.unique <- NULL
+        num.zeval <- NULL
+        ind.zeval <- NULL 
+        ind.zeval.vals <- NULL
+        nrow.zeval.unique <- NULL
+        num.eval <- NULL
     }
 
     if(is.null(z)) {
         include <- NULL
+        lambda.vec <- NULL
     } else {
         include <- rep(1,num.z)
         lambda.vec <- rep(lambda,num.z)
@@ -231,6 +100,229 @@ lm.ma.Est <- function(y=NULL,
         degree.max <- max(2,ceiling(S*log(NROW(X))/num.x))
     }
     
+
+    ## First obtain ma.weights, then in subsequent call computes fits and 
+    ## derivatives
+
+    Est <- lm.ma.Est(basis.vec=basis.vec,
+                     basis=basis,
+                     compute.deriv=FALSE,
+                     degree.max=degree.max,
+                     degree.min=degree.min,
+                     deriv.order=deriv.order,
+                     include=include,
+                     ind.vals=ind.vals,
+                     ind.zeval.vals=ind.zeval.vals,
+                     ind.zeval=ind.zeval,
+                     ind=ind,
+                     is.ordered.z=is.ordered.z,
+                     knots=knots,
+                     lambda=lambda,
+                     lambda.vec=lambda.vec,
+                     ma.weights=ma.weights,
+                     method=method,
+                     nrow.z.unique=nrow.z.unique,
+                     nrow.zeval.unique=nrow.zeval.unique,
+                     num.eval=num.eval,
+                     num.x=num.x,
+                     num.z=num.z,
+                     num.zeval=num.zeval,
+                     S=S,
+                     segments.max=segments.max,
+                     tol=tol,
+                     vc=vc,
+                     verbose=verbose,
+                     weights=weights,
+                     x=x,
+                     xeval=xeval,
+                     xnames=xnames,
+                     y=y,
+                     z.unique=z.unique,
+                     z=z,
+                     zeval.unique=zeval.unique,
+                     zeval=zeval,
+                     znames=znames,
+                     ...)
+
+    ## Save rank vector and matrix of degrees and segments (not computed in next 
+    ## call since ma.weights is passed, but needed for summary)
+    
+    if(compute.deriv | !is.null(X.eval)) {
+        K.rank <- Est$rank.vec
+        DS <- Est$DS
+        basis.vec <- Est$basis.vec
+
+        Est <- lm.ma.Est(basis.vec=Est$basis.vec,
+                         basis=basis,
+                         compute.deriv=compute.deriv,
+                         degree.max=degree.max,
+                         degree.min=degree.min,
+                         deriv.order=deriv.order,
+                         include=include,
+                         ind.vals=ind.vals,
+                         ind.zeval.vals=ind.zeval.vals,
+                         ind.zeval=ind.zeval,
+                         ind=ind,
+                         is.ordered.z=is.ordered.z,
+                         knots=knots,
+                         lambda=lambda,
+                         lambda.vec=lambda.vec,
+                         ma.weights=Est$ma.weights,
+                         method=method,
+                         nrow.z.unique=nrow.z.unique,
+                         nrow.zeval.unique=nrow.zeval.unique,
+                         num.eval=num.eval,
+                         num.x=num.x,
+                         num.z=num.z,
+                         num.zeval=num.zeval,
+                         S=S,
+                         segments.max=segments.max,
+                         tol=tol,
+                         vc=vc,
+                         verbose=verbose,
+                         weights=weights,
+                         x=x,
+                         xeval=xeval,
+                         xnames=xnames,
+                         y=y,
+                         z.unique=z.unique,
+                         z=z,
+                         zeval.unique=zeval.unique,
+                         zeval=zeval,
+                         znames=znames,
+                         ...)
+        
+        Est$rank.vec <- K.rank
+        Est$DS <- DS
+        Est$DS <- basis.vec
+
+    }
+
+    ## Bootstrap is requested using pre-computed ma.weights
+    
+    if(bootstrap.ci) {
+
+        if(is.null(X.eval)) {
+            n <- NROW(X) 
+        } else {
+            n <- NROW(X.eval)
+        }
+    
+        boot.mat <- matrix(NA,n,B)
+        if(compute.deriv) boot.deriv.array <- array(NA,c(n,B,Est$num.x))
+    
+        for(b in 1:B) {
+            if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
+            ii <- sample(1:n,replace=TRUE)
+            out.boot <- lm.ma.Est(basis.vec=Est$basis.vec,
+                                  basis=basis,
+                                  compute.deriv=compute.deriv,
+                                  degree.max=degree.max,
+                                  degree.min=degree.min,
+                                  deriv.order=deriv.order,
+                                  include=include,
+                                  ind.vals=ind.vals,
+                                  ind.zeval.vals=ind.zeval.vals,
+                                  ind.zeval=ind.zeval,
+                                  ind=ind,
+                                  is.ordered.z=is.ordered.z,
+                                  knots=knots,
+                                  lambda=lambda,
+                                  lambda.vec=lambda.vec,
+                                  ma.weights=Est$ma.weights,
+                                  method=method,
+                                  nrow.z.unique=nrow.z.unique,
+                                  nrow.zeval.unique=nrow.zeval.unique,
+                                  num.eval=num.eval,
+                                  num.x=num.x,
+                                  num.z=num.z,
+                                  num.zeval=num.zeval,
+                                  S=S,
+                                  segments.max=segments.max,
+                                  tol=tol,
+                                  vc=vc,
+                                  verbose=FALSE,
+                                  weights=weights,
+                                  x=x[ii,],
+                                  xeval=xeval,
+                                  xnames=xnames,
+                                  y=y[ii],
+                                  z.unique=z.unique,
+                                  z=z[ii,],
+                                  zeval.unique=zeval.unique,
+                                  zeval=zeval,
+                                  znames=znames,
+                                  ...)
+            
+            boot.mat[,b] <- out.boot$fitted
+            if(compute.deriv) for(k in 1:Est$num.x) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
+        }
+
+        if(verbose) cat("\r                                     ")
+        if(verbose) cat("\r")
+        if(verbose) cat("\rComputing quantiles...")
+
+        Est$fitted.ci.l <- apply(boot.mat,1,quantile,prob=alpha/2,type=1,na.rm=TRUE)
+        Est$fitted.ci.u <- apply(boot.mat,1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE)
+        Est$fitted.scale <- apply(boot.mat,1,mad,na.rm=TRUE)
+        
+        if(compute.deriv) {
+            Est$deriv.ci.l <- Est$deriv.ci.u <- Est$deriv.scale <- matrix(NA,n,Est$num.x)
+            for(k in 1:Est$num.x) {
+                Est$deriv.ci.l[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=alpha/2,type=1,na.rm=TRUE)
+                Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE)     
+                Est$deriv.scale[,k] <- apply(boot.deriv.array[,,k],1,mad,na.rm=TRUE)  
+            }
+        }
+        if(verbose) cat("\r                                     ")
+        if(verbose) cat("\r")
+    }
+
+    class(Est) <- "lm.ma"
+    return(Est)
+
+}
+
+lm.ma.Est <- function(basis.vec=NULL,
+                      basis=c("tensor","glp","additive","auto"),
+                      compute.deriv=FALSE,
+                      degree.max=NULL,
+                      degree.min=1,
+                      deriv.order=1,
+                      include=NULL,
+                      ind.vals=NULL,
+                      ind.zeval.vals=NULL,
+                      ind.zeval=NULL,
+                      ind=NULL,
+                      is.ordered.z=NULL,
+                      knots=NULL,
+                      lambda=1e-02,
+                      lambda.vec=NULL,
+                      ma.weights=NULL,
+                      method=NULL,
+                      nrow.z.unique=NULL,
+                      nrow.zeval.unique=NULL,
+                      num.eval=NULL,
+                      num.x=NULL,
+                      num.z=NULL,
+                      num.zeval=NULL,
+                      S=2,
+                      segments.max=3,
+                      tol=1e-12,
+                      vc=TRUE,
+                      verbose=TRUE,
+                      weights=NULL,
+                      x=NULL,
+                      xeval=NULL,
+                      xnames=NULL,
+                      y=NULL,
+                      z.unique=NULL,
+                      z=NULL,
+                      zeval.unique=NULL,
+                      zeval=NULL,
+                      znames=NULL,
+                      ...) {
+
     P <- degree.max
     ma.weights.orig <- ma.weights
     basis.vec.orig <- basis.vec
@@ -257,15 +349,15 @@ lm.ma.Est <- function(y=NULL,
 
     deriv <- NULL
     if(compute.deriv) {
-        deriv.mat <- array(NA,c(if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P.num,num.x))
-        deriv <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},num.x)
+        deriv.mat <- array(NA,c(if(is.null(xeval)){NROW(z)}else{NROW(xeval)},P.num,num.x))
+        deriv <- matrix(NA,if(is.null(xeval)){NROW(x)}else{NROW(xeval)},num.x)
         colnames(deriv) <- xnames
     }
 
     K.rank <- numeric(length=P.num)
     sigsq <- numeric(length=P.num)
-    ma.mat <- matrix(NA,NROW(X),P.num)
-    fitted.mat <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P.num)
+    ma.mat <- matrix(NA,NROW(x),P.num)
+    fitted.mat <- matrix(NA,if(is.null(xeval)){NROW(x)}else{NROW(xeval)},P.num)
 
     for(p in P.num:1) {
         
@@ -593,31 +685,33 @@ lm.ma.Est <- function(y=NULL,
         cat("\r")
     }
 
-    return(list(fitted.values=fitted.mat%*%b,
-                deriv=deriv,
-                ma.weights=if(is.null(ma.weights)){abs(b)}else{ma.weights.orig},
-                basis.vec=if(is.null(ma.weights)){basis.vec}else{basis.vec.orig},
-                y=y,
-                X=X,
+    return(list(basis.vec=if(is.null(ma.weights)){basis.vec}else{basis.vec.orig},
                 basis=basis,
                 compute.deriv=compute.deriv,
-                deriv.order=deriv.order,
-                degree.min=degree.min,
                 degree.max=degree.max,
-                lambda=lambda,
-                segments.max=segments.max,
+                degree.min=degree.min,
+                deriv.order=deriv.order,
+                deriv=deriv,
+                DS=K.mat,
+                fitted.values=fitted.mat%*%b,
                 knots=knots,
-                S=S,
+                lambda=lambda,
+                ma.weights=if(is.null(ma.weights)){abs(b)}else{ma.weights.orig},
                 method=method,
+                nobs=NROW(y),
                 num.x=num.x,
                 num.z=num.z,
                 rank.vec=K.rank,
-                nobs=NROW(y),
-                DS=K.mat,
+                S=S,
+                segments.max=segments.max,
+                tol=tol,
                 vc=vc,
                 verbose=verbose,
-                tol=tol,
+                x=x,
+                xeval=xeval,
                 xnames=xnames,
+                y=y,
+                zeval=zeval,
                 znames=znames))
 
 }
