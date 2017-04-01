@@ -202,8 +202,14 @@ lm.ma.default <- function(y=NULL,
             ## With > 1 predictor, restricted model does not incorporate the kth predictor
 
             if(NCOL(X)>1) {
-                X.res <- X[,-k]
-print("here we are")
+                X.res <- X[,-k,drop=FALSE]
+#print("here we are")
+#print(dim(X))
+#print(dim(X.res))
+#print(X[,k])
+#print(is.numeric(X[,k]))
+#stop()
+
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
                                      X.eval=NULL,
@@ -219,15 +225,14 @@ print("here we are")
                                      method=method,
                                      ma.weights=Est$ma.weights,
                                      basis.vec=Est$basis.vec,
-                                     rank.vec=rank.vec,
-                                     K.mat=Est$DS[,c(-k,-(k+Est$num.x)),drop=FALSE],
+                                     rank.vec=Est$rank.vec,
+                                     K.mat=if(is.numeric(X[,k])){Est$DS[,c(-k,-(k+Est$num.x)),drop=FALSE]}else{Est$DS},
                                      weights=weights,
                                      vc=vc,
                                      verbose=FALSE,
                                      tol=tol,
                                      ...)
 
-                print("exiting")
                 ssr <- sum((y-Est.ssr$fitted.values)^2) 
                 ssr.rank <- Est.ssr$ma.model.rank
             } else {
