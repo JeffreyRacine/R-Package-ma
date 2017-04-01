@@ -16,6 +16,7 @@ lm.ma.default <- function(y=NULL,
                           ma.weights=NULL,
                           basis.vec=NULL,
                           rank.vec=NULL,
+                          K.mat=NULL,
                           bootstrap.ci=FALSE,
                           B=199,
                           alpha=0.05,
@@ -54,6 +55,7 @@ lm.ma.default <- function(y=NULL,
                      ma.weights=ma.weights,
                      basis.vec=basis.vec,
                      rank.vec=rank.vec,
+                     K.mat=K.mat,
                      weights=weights,
                      vc=vc,
                      verbose=verbose,
@@ -84,6 +86,7 @@ lm.ma.default <- function(y=NULL,
                          ma.weights=Est$ma.weights,
                          basis.vec=Est$basis.vec,
                          rank.vec=Est$rank.vec,
+                         K.mat=Est$DS,
                          weights=weights,
                          vc=vc,
                          verbose=verbose,
@@ -128,6 +131,7 @@ lm.ma.default <- function(y=NULL,
                                   ma.weights=Est$ma.weights,
                                   basis.vec=Est$basis.vec,
                                   rank.vec=Est$rank.vec,
+                                  K.mat=Est$DS,
                                   weights=weights,
                                   vc=vc,
                                   verbose=FALSE,
@@ -178,6 +182,7 @@ lm.ma.default <- function(y=NULL,
                              ma.weights=Est$ma.weights,
                              basis.vec=Est$basis.vec,
                              rank.vec=Est$rank.vec,
+                             K.mat=Est$DS,
                              weights=weights,
                              vc=vc,
                              verbose=FALSE,
@@ -194,7 +199,7 @@ lm.ma.default <- function(y=NULL,
 
             if(NCOL(X)>1) {
                 X.res <- X[,-k]
-                ## Restricted model has to be estimated from scratch so not strictly speaking nested
+
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
                                      X.eval=NULL,
@@ -208,11 +213,10 @@ lm.ma.default <- function(y=NULL,
                                      knots=knots,
                                      S=S,
                                      method=method,
-                                     #ma.weights=Est$ma.weights,
-                                     #basis.vec=Est$basis.vec,
-                                     ma.weights=ma.weights,
-                                     basis.vec=basis.vec,
+                                     ma.weights=Est$ma.weights,
+                                     basis.vec=Est$basis.vec,
                                      rank.vec=rank.vec,
+                                     K.mat=Est$DS[,c(-k,-(k+Est$num.x)),drop=FALSE],
                                      weights=weights,
                                      vc=vc,
                                      verbose=FALSE,
@@ -225,7 +229,13 @@ lm.ma.default <- function(y=NULL,
                 ssr <- sum((y-mean(y))^2)
                 ssr.rank <- 1
             }
-            F.stat[k] <- (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
+            #print("ssu")
+            #print(ssu)
+            #print("ssr")
+            #print(ssr)
+            #print(ssu.rank)
+            #print(ssr.rank)
+            F.stat[k] <-  (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
             F.boot <- numeric(length=B)
 
             for(b in 1:B) {
@@ -236,7 +246,7 @@ lm.ma.default <- function(y=NULL,
                 } else {
                     y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
                 }
-                
+
                 Est.ssu.boot <- lm.ma.Est(y=y.boot,
                                           X=X,
                                           X.eval=NULL,
@@ -253,12 +263,13 @@ lm.ma.default <- function(y=NULL,
                                           ma.weights=Est.ssu$ma.weights,
                                           basis.vec=Est.ssu$basis.vec,
                                           rank.vec=Est.ssu$rank.vec,
+                                          K.mat=Est.ssu$DS,
                                           weights=weights,
                                           vc=vc,
                                           verbose=FALSE,
                                           tol=tol,
                                           ...)
-                
+
                 ssu.boot <- sum((y-Est.ssu.boot$fitted.values)^2)  
                 ssu.boot.rank <- Est.ssu.boot$ma.model.rank
                 
@@ -284,6 +295,7 @@ lm.ma.default <- function(y=NULL,
                                          ma.weights=Est.ssr$ma.weights,
                                          basis.vec=Est.ssr$basis.vec,
                                          rank.vec=Est.ssr$rank.vec,
+                                         K.mat=Est.ssr$DS,
                                          weights=weights,
                                          vc=vc,
                                          verbose=FALSE,
@@ -297,8 +309,17 @@ lm.ma.default <- function(y=NULL,
                 }
                 
                # F.boot[b] <- (ssr.boot-ssu.boot)/ssu.boot
-                F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
+                print("ssu")
+                print(ssu.boot)
+                print("ssr")
+                print(ssr)
+                print(ssr.rank)
+                print(ssu.boot.rank)
+               # F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
+                F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr-ssu.boot)/((ssu.boot.rank-ssr.rank)*ssu.boot)
             }
+            
+            print(F.boot)
 
             P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
             
@@ -337,6 +358,7 @@ lm.ma.Est <- function(y=NULL,
                       ma.weights=NULL,
                       basis.vec=NULL,
                       rank.vec=NULL,
+                      K.mat=NULL,
                       weights=NULL,
                       vc=TRUE,
                       verbose=TRUE,
@@ -400,12 +422,17 @@ lm.ma.Est <- function(y=NULL,
     ma.weights.orig <- ma.weights
     basis.vec.orig <- basis.vec
 
-    if(knots) {
-        K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1:segments.max,num.x=num.x)
-    } else {
-        K.mat <- matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
-        K.mat <- cbind(K.mat[,1:num.x],matrix(1,nrow(K.mat),num.x,byrow=TRUE))
+    if(is.null(K.mat)) {
+        if(knots) {
+            K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1:segments.max,num.x=num.x)
+        } else {
+            K.mat <- matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
+            K.mat <- cbind(K.mat[,1:num.x],matrix(1,nrow(K.mat),num.x,byrow=TRUE))
+        }
     }
+    
+    K.mat.orig <- K.mat
+    
     if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
         basis.vec <- character()
     } else if(basis=="auto" & !is.null(basis.vec) & !is.null(ma.weights)) {
@@ -784,7 +811,7 @@ lm.ma.Est <- function(y=NULL,
                 rank.vec=rank.vec,
                 ma.model.rank=sum(rank.vec*if(is.null(ma.weights)){abs(b)}else{ma.weights.orig}),
                 nobs=NROW(y),
-                DS=K.mat,
+                DS=K.mat.orig,
                 vc=vc,
                 verbose=verbose,
                 tol=tol,
