@@ -185,9 +185,10 @@ lm.ma.default <- function(y=NULL,
         for(k in 1:NCOL(X)) {
             
             ## Restricted model does not incorporate the kth predictor
-            if(NCOL(X)>1) {
-                X.res <- X[,-k]
-#                X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
+            if(NCOL(X)>0) {
+#                X.res <- X[,-k]
+                X.res <- X
+                X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
                                      X.eval=NULL,
@@ -201,8 +202,8 @@ lm.ma.default <- function(y=NULL,
                                      knots=knots,
                                      S=S,
                                      method=method,
-                                     ma.weights=ma.weights,
-                                     basis.vec=basis.vec,
+                                     ma.weights=Est$ma.weights,
+                                     basis.vec=Est$basis.vec,
                                      weights=weights,
                                      vc=vc,
                                      verbose=FALSE,
@@ -214,11 +215,11 @@ lm.ma.default <- function(y=NULL,
             }
             F.stat <- (ssr-ssu)/ssu
             F.boot <- numeric(length=B)
-            
+
             for(b in 1:B) {
                 if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X)," (bootstrap replication ",b," of ",B,")",sep=""))
                 ## Residual bootstrap from the null model, use original model configuration with bootstrap y
-                if(NCOL(X)>1) {
+                if(NCOL(X)>0) {
                     X.res <- X
                     X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
                     Est.ssu <- lm.ma.Est(y=y,
