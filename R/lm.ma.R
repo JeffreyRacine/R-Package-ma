@@ -15,6 +15,7 @@ lm.ma.default <- function(y=NULL,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           basis.vec=NULL,
+                          rank.vec=NULL,
                           bootstrap.ci=FALSE,
                           B=199,
                           alpha=0.05,
@@ -52,17 +53,18 @@ lm.ma.default <- function(y=NULL,
                      method=method,
                      ma.weights=ma.weights,
                      basis.vec=basis.vec,
+                     rank.vec=rank.vec,
                      weights=weights,
                      vc=vc,
                      verbose=verbose,
                      tol=tol,
                      ...)
-
+    
     ## Save rank vector and matrix of degrees and segments (not computed in next 
     ## call since ma.weights is passed, but needed for summary)
-    
+
     if(compute.deriv | !is.null(X.eval)) {
-        K.rank <- Est$rank.vec
+        rank.vec <- Est$rank.vec
         DS <- Est$DS
         basis.vec <- Est$basis.vec
 
@@ -81,13 +83,14 @@ lm.ma.default <- function(y=NULL,
                          method=method,
                          ma.weights=Est$ma.weights,
                          basis.vec=Est$basis.vec,
+                         rank.vec=Est$rank.vec,
                          weights=weights,
                          vc=vc,
                          verbose=verbose,
                          tol=tol,
                          ...)
         
-        Est$rank.vec <- K.rank
+        Est$rank.vec <- rank.vec
         Est$DS <- DS
         Est$DS <- basis.vec
 
@@ -124,6 +127,7 @@ lm.ma.default <- function(y=NULL,
                                   method=method,
                                   ma.weights=Est$ma.weights,
                                   basis.vec=Est$basis.vec,
+                                  rank.vec=Est$rank.vec,
                                   weights=weights,
                                   vc=vc,
                                   verbose=FALSE,
@@ -156,7 +160,7 @@ lm.ma.default <- function(y=NULL,
     if(compute.anova) {
         
         P.vec <- numeric(length=NCOL(X))
-
+        
         Est.ssu <- lm.ma.Est(y=y,
                              X=X,
                              X.eval=NULL,
@@ -172,6 +176,7 @@ lm.ma.default <- function(y=NULL,
                              method=method,
                              ma.weights=Est$ma.weights,
                              basis.vec=Est$basis.vec,
+                             rank.vec=Est$rank.vec,
                              weights=weights,
                              vc=vc,
                              verbose=FALSE,
@@ -179,14 +184,16 @@ lm.ma.default <- function(y=NULL,
                              ...)
 
         ssu <- sum((y-Est.ssu$fitted.values)^2) 
+        ssu.rank <- Est.ssu$ma.model.rank
 
         for(k in 1:NCOL(X)) {
             if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X),sep=""))            
-            ## Restricted model does not incorporate the kth predictor
+
+            ## With > 1 predictor, restricted model does not incorporate the kth predictor
+
             if(NCOL(X)>1) {
                 X.res <- X[,-k]
-#                X.res <- X
-#                X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
+                ## Restricted model has to be estimated from scratch so not strictly speaking nested
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
                                      X.eval=NULL,
@@ -204,23 +211,27 @@ lm.ma.default <- function(y=NULL,
                                      #basis.vec=Est$basis.vec,
                                      ma.weights=ma.weights,
                                      basis.vec=basis.vec,
+                                     rank.vec=rank.vec,
                                      weights=weights,
                                      vc=vc,
                                      verbose=FALSE,
                                      tol=tol,
                                      ...)
                 ssr <- sum((y-Est.ssr$fitted.values)^2) 
+                ssr.rank <- Est.ssr$ma.model.rank
             } else {
+                ## With only one predictor, restricted model is unconditional mean
                 ssr <- sum((y-mean(y))^2)
+                ssr.rank <- 1
             }
-            F.stat <- (ssr-ssu)/ssu
+            F.stat <- (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
             F.boot <- numeric(length=B)
 
             for(b in 1:B) {
                 if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X)," (bootstrap replication ",b," of ",B,")",sep=""))
                 ## Residual bootstrap from the null model, use original model configuration with bootstrap y
                 if(NCOL(X)>1) {
-                    y.boot <- Est.ssr$fitted + sample(y-Est.ssr$fitted,replace=TRUE)
+                    y.boot <- Est.ssr$fitted.values + sample(y-Est.ssr$fitted.values,replace=TRUE)
                 } else {
                     y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
                 }
@@ -238,15 +249,17 @@ lm.ma.default <- function(y=NULL,
                                           knots=knots,
                                           S=S,
                                           method=method,
-                                          ma.weights=Est$ma.weights,
-                                          basis.vec=Est$basis.vec,
+                                          ma.weights=Est.ssu$ma.weights,
+                                          basis.vec=Est.ssu$basis.vec,
+                                          rank.vec=Est.ssu$rank.vec,
                                           weights=weights,
                                           vc=vc,
                                           verbose=FALSE,
                                           tol=tol,
                                           ...)
                 
-                ssu.boot <- sum((y-Est.ssu.boot$fitted.values)^2)                 
+                ssu.boot <- sum((y-Est.ssu.boot$fitted.values)^2)  
+                ssu.boot.rank <- Est.ssu.boot$ma.model.rank
                 
                 if(NCOL(X)>1) {
    #                 X.res <- X
@@ -269,19 +282,26 @@ lm.ma.default <- function(y=NULL,
                                          method=method,
                                          ma.weights=Est.ssr$ma.weights,
                                          basis.vec=Est.ssr$basis.vec,
+                                         rank.vec=Est.ssr$rank.vec,
                                          weights=weights,
                                          vc=vc,
                                          verbose=FALSE,
                                          tol=tol,
                                          ...)
                     ssr.boot <- sum((y-Est.ssr.boot$fitted.values)^2)         
-
+                    ssr.boot.rank <- Est.ssr.boot$ma.model.rank
                 } else {
                     ssr.boot <- sum((y.boot-mean(y.boot))^2)
+                    ssr.boot.rank <- 1
                 }
                 
-                F.boot[b] <- (ssr.boot-ssu.boot)/ssu.boot
+               # F.boot[b] <- (ssr.boot-ssu.boot)/ssu.boot
+                F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
             }
+            
+            print(F.stat)
+            print(NULL)
+            print(F.boot)
 
             P.vec[k] <- mean(ifelse(F.boot>F.stat,1,0))
             
@@ -318,12 +338,13 @@ lm.ma.Est <- function(y=NULL,
                       method=c("jma","mma"),
                       ma.weights=NULL,
                       basis.vec=NULL,
+                      rank.vec=NULL,
                       weights=NULL,
                       vc=TRUE,
                       verbose=TRUE,
                       tol=1e-12,
                       ...) {
-    
+
     ## Divide into factors and numeric
     if(!vc) {
         xztmp <- splitFrame(as.data.frame(X))
@@ -408,7 +429,7 @@ lm.ma.Est <- function(y=NULL,
         colnames(deriv) <- xnames
     }
 
-    K.rank <- numeric(length=P.num)
+    if(is.null(rank.vec)) rank.vec <- numeric(length=P.num)
     sigsq <- numeric(length=P.num)
     ma.mat <- matrix(NA,NROW(X),P.num)
     fitted.mat <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P.num)
@@ -503,7 +524,7 @@ lm.ma.Est <- function(y=NULL,
                     ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                 }
 
-                K.rank[p] <- model.z.unique$rank
+                rank.vec[p] <- model.z.unique$rank
                 sigsq[p] <- sqrt(sum((y - fit.spline)^2)/(NROW(x)-model.z.unique$rank))
 
             } else {
@@ -558,7 +579,7 @@ lm.ma.Est <- function(y=NULL,
                     ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                 }
 
-                K.rank[p] <- model.ma$rank
+                rank.vec[p] <- model.ma$rank
 
                 sigsq[p] <- sqrt(sum(residuals(model.ma)^2)/(NROW(x)-model.ma$rank))
 
@@ -693,7 +714,7 @@ lm.ma.Est <- function(y=NULL,
         A <- cbind(rep(1,M),diag(1,M,M))
         b0 <- c(1,rep(0,M))
         if(method=="mma") {
-            d <- -sigsq[which.max(K.rank)]*K.rank
+            d <- -sigsq[which.max(rank.vec)]*rank.vec
         } else {
             d <- t(y)%*%ma.mat
         }        
@@ -713,9 +734,9 @@ lm.ma.Est <- function(y=NULL,
             }
             A <- cbind(rep(1,M),diag(1,M,M))
             b0 <- c(1,rep(0,M))
-            K.rank.reb <- K.rank[b>1e-05]
+            rank.vec.reb <- rank.vec[b>1e-05]
             if(method=="mma") {
-                d <- -sigsq[which.max(K.rank)]*K.rank.reb
+                d <- -sigsq[which.max(rank.vec)]*rank.vec.reb
             } else {
                 d <- t(y)%*%ma.mat.reb
             }        
@@ -767,7 +788,8 @@ lm.ma.Est <- function(y=NULL,
                 method=method,
                 num.x=num.x,
                 num.z=num.z,
-                rank.vec=K.rank,
+                rank.vec=rank.vec,
+                ma.model.rank=sum(rank.vec*if(is.null(ma.weights)){abs(b)}else{ma.weights.orig}),
                 nobs=NROW(y),
                 DS=K.mat,
                 vc=vc,
@@ -795,6 +817,7 @@ lm.ma.formula <- function(formula,
                           method=c("jma","mma"),
                           ma.weights=NULL,
                           basis.vec=NULL,
+                          rank.vec=NULL,
                           bootstrap.ci=FALSE,
                           B=199,
                           alpha=0.05,
@@ -826,6 +849,7 @@ lm.ma.formula <- function(formula,
                        method=method,
                        ma.weights=ma.weights,
                        basis.vec=basis.vec,
+                       rank.vec=rank.vec,
                        bootstrap.ci=bootstrap.ci,
                        B=B,
                        alpha=alpha,
@@ -877,7 +901,7 @@ summary.lm.ma <- function(object,
   cat(paste("\nMaximum degree: ", object$degree.max, sep=""))
   cat(paste("\nBasis: ", object$basis, sep=""))  
   cat(paste("\nNumber of observations: ", object$nobs, sep=""))
-  cat(paste("\nEquivalent number of parameters: ", formatC(sum(object$rank.vec*object$ma.weights),format="f",digits=2), sep=""))
+  cat(paste("\nEquivalent number of parameters: ", formatC(object$ma.model.rank,format="f",digits=2), sep=""))
   cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
                                                   " on ", formatC(object$nobs-sum(object$rank.vec*object$ma.weights),format="f",digits=2)," degrees of freedom",sep=""))
   cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
@@ -923,6 +947,7 @@ predict.lm.ma <- function(object,
                          method=object$method,
                          ma.weights=object$ma.weights,
                          basis.vec=object$basis.vec,
+                         rank.vec=object$rank.vec,
                          weights=object$weights,
                          vc=object$vc,
                          verbose=object$verbose,
