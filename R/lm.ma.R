@@ -151,6 +151,105 @@ lm.ma.default <- function(y=NULL,
         if(verbose) cat("\r                                     ")
         if(verbose) cat("\r")
     }
+    
+    compute.anova <- TRUE
+    Est$anova <- compute.anova
+
+    if(compute.anova) {
+        
+        P.vec <- numeric(length=NCOL(X))
+
+        Est.ssu <- lm.ma.Est(y=y,
+                             X=X,
+                             X.eval=NULL,
+                             basis=basis,
+                             compute.deriv=FALSE,
+                             deriv.order=deriv.order,
+                             degree.min=degree.min,
+                             degree.max=degree.max,
+                             lambda=lambda,
+                             segments.max=segments.max,
+                             knots=knots,
+                             S=S,
+                             method=method,
+                             ma.weights=Est$ma.weights,
+                             basis.vec=Est$basis.vec,
+                             weights=weights,
+                             vc=vc,
+                             verbose=FALSE,
+                             tol=tol,
+                             ...)
+
+        for(k in 1:NCOL(X)) {
+            
+            X.res <- X
+            X.res[,k] <- X[sample(1:NROW(X)),k]
+
+            Est.ssr <- lm.ma.Est(y=y,
+                                 X=X.res,
+                                 X.eval=NULL,
+                                 basis=basis,
+                                 compute.deriv=FALSE,
+                                 deriv.order=deriv.order,
+                                 degree.min=degree.min,
+                                 degree.max=degree.max,
+                                 lambda=lambda,
+                                 segments.max=segments.max,
+                                 knots=knots,
+                                 S=S,
+                                 method=method,
+                                 ma.weights=Est$ma.weights,
+                                 basis.vec=Est$basis.vec,
+                                 weights=weights,
+                                 vc=vc,
+                                 verbose=FALSE,
+                                 tol=tol,
+                                 ...)
+    
+            ssr <- sum(Est.ssr$residuals^2)
+            ssu <- sum(Est.ssu$residuals^2)        
+            F.stat <- (ssr-ssu)/ssu
+            
+            F.boot <- numeric(length=B)
+            
+            for(b in 1:B) {
+                if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X)," (bootstrap replication ",b," of ",B,")",sep=""))
+                X.res <- X
+                X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
+                Est.ssu <- lm.ma.Est(y=y,
+                                     X=X.res,
+                                     X.eval=NULL,
+                                     basis=basis,
+                                     compute.deriv=FALSE,
+                                     deriv.order=deriv.order,
+                                     degree.min=degree.min,
+                                     degree.max=degree.max,
+                                     lambda=lambda,
+                                     segments.max=segments.max,
+                                     knots=knots,
+                                     S=S,
+                                     method=method,
+                                     ma.weights=Est$ma.weights,
+                                     basis.vec=Est$basis.vec,
+                                     weights=weights,
+                                     vc=vc,
+                                     verbose=FALSE,
+                                     tol=tol,
+                                     ...)
+                
+                ssu <- sum(Est.ssu$residuals^2) 
+                
+                F.boot[b] <- (ssr-ssu)/ssu
+            }
+            
+            P.vec[k] <- mean(ifelse(F.boot>F.stat,1,0))
+        }
+        
+        Est$P.vec <- P.vec
+    }
+    
+    if(verbose) cat("\r                                                                               ")
+    if(verbose) cat("\r")
 
     class(Est) <- "lm.ma"
     return(Est)
@@ -239,7 +338,7 @@ lm.ma.Est <- function(y=NULL,
         K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1:segments.max,num.x=num.x)
     } else {
         K.mat <- matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
-        K.mat <- cbind(K.mat[,1:num.x],matrix(1,nrow(K.mat),num.x,byrow=TRUE))
+        K.mat <- cbind(K.mat[,1:num.x,drop=FALSE],matrix(1,NROW(K.mat),num.x,byrow=TRUE))
     }
     if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
         basis.vec <- character()
@@ -249,7 +348,7 @@ lm.ma.Est <- function(y=NULL,
         basis.vec <- rep(basis,nrow(K.mat))
     }
         if(!is.null(ma.weights)) {
-        K.mat <- K.mat[ma.weights>1e-05,]
+        K.mat <- K.mat[ma.weights>1e-05,,drop=FALSE]
         ma.weights <- ma.weights[ma.weights>1e-05]/sum(ma.weights[ma.weights>1e-05])
     }
 
@@ -268,8 +367,8 @@ lm.ma.Est <- function(y=NULL,
     fitted.mat <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P.num)
 
     for(p in P.num:1) {
-        
-        DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
+
+        DS <- cbind(K.mat[p,1:num.x,drop=FALSE],K.mat[p,(num.x+1):(2*num.x),drop=FALSE])   
 
         if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
 
@@ -581,10 +680,15 @@ lm.ma.Est <- function(y=NULL,
         b <- ma.weights
     }
 
+    if(verbose) cat("\r                                                    ")
+    if(verbose) cat("\r")
+    if(verbose) cat("\rComputing fitted values...")
+    fitted.values <- fitted.mat%*%b
+    
     if(compute.deriv) {
         if(verbose) cat("\r                                                    ")
         if(verbose) cat("\r")
-        if(verbose) cat("\rComputing derivatives...")
+        if(verbose) cat("\rComputing derivatives and fitted values...")
         for(k in 1:num.x) deriv[,k] <- deriv.mat[,,k]%*%b
     }
 
@@ -593,7 +697,8 @@ lm.ma.Est <- function(y=NULL,
         cat("\r")
     }
 
-    return(list(fitted.values=fitted.mat%*%b,
+    return(list(fitted.values=fitted.values,
+                residuals=y-fitted.values,
                 deriv=deriv,
                 ma.weights=if(is.null(ma.weights)){abs(b)}else{ma.weights.orig},
                 basis.vec=if(is.null(ma.weights)){basis.vec}else{basis.vec.orig},
@@ -731,6 +836,10 @@ summary.lm.ma <- function(object,
   if(object$basis=="auto") {
       cat("\nNon-zero weight model bases: ")
       cat(object$basis.vec[object$ma.weights>1e-05])    
+  }
+  if(object$anova) {
+      cat("\nP-value(s) for test of significance: ")
+      cat(formatC(object$P.vec,format="f",digits=3))
   }
   cat("\n\n")
 
