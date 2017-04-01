@@ -1,0 +1,25 @@
+Changes from Version 1.04 to 1.05 [31-Mar-2017]
+
+- various tweaks to plot, modified examples to use plot
+
+Changes from Version 1.03 to 1.04 [31-Mar-2017]
+
+- added plot, better handling of rank deficient bases, and `rebalancing'
+  when the initial run resulted in zero weights for some models but
+  the forcing matrix was rank deficient
+
+Changes from Version 1.02 to 1.03 [30-Mar-2017]
+
+- added auto basis selection for each candidate model
+
+Changes from Version 1.01 to 1.02 [29-Mar-2017]
+
+- enhancements
+
+Changes from Version 1.0 to 1.01 [28-Mar-2017]
+
+- inlining of basis functions, various enhancements
+
+Version 1.0 [20-Mar-2017]
+
+- initial release (beta until further notice)
