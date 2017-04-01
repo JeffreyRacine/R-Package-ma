@@ -810,10 +810,19 @@ plot.lm.ma <- function(x,
                      col="grey",
                      ...)
                 foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
-                lines(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],col=1)
+                if(is.numeric(x$X[,i])) {
+                    lines(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],col=1)
+                } else {
+                    points(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],bg=1,col=1,pch=21)
+                }
                 if(plot.ci) {
-                    lines(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],col=2,lty=2)
-                    lines(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],col=2,lty=2)
+                    if(is.numeric(x$X[,i])) {
+                        lines(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],col=2,lty=2)
+                        lines(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],col=2,lty=2)
+                    } else {
+                        points(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],bg=2,col=2,pch=21)
+                        points(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],bg=2,col=2,pch=21)
+                    }
                 }
             } else {
                 foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
@@ -821,18 +830,23 @@ plot.lm.ma <- function(x,
                     plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
                          ylab=yname,
                          xlab=xznames[i],
-                         type="l",
+                         type=if(is.numeric(x$X[,i])){"l"}else{"p"},
                          ...)
                 } else {
                     ylim <- range(c(foo$fit.low,foo$fit.up))
                     plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
                          ylab=yname,
                          xlab=xznames[i],
-                         type="l",
+                         type=if(is.numeric(x$X[,i])){"l"}else{"p"},
                          ylim=ylim,
                          ...)
-                    lines(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],col=2,lty=2)
-                    lines(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],col=2,lty=2)
+                    if(is.numeric(x$X[,i])) {
+                        lines(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],col=2,lty=2)
+                        lines(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],col=2,lty=2)
+                    } else {
+                        points(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],bg=2,col=2,pch=21)
+                        points(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],bg=2,col=2,pch=21)                       
+                    }
                 }
             }
         }
