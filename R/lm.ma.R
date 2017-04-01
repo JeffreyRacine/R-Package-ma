@@ -182,11 +182,10 @@ lm.ma.default <- function(y=NULL,
 
         for(k in 1:NCOL(X)) {
             
-            X.res <- X
-            X.res[,k] <- X[sample(1:NROW(X)),k]
-
+            ## Restricted model does not incorporate the kth predictor
+            
             Est.ssr <- lm.ma.Est(y=y,
-                                 X=X.res,
+                                 X=X[,-k],
                                  X.eval=NULL,
                                  basis=basis,
                                  compute.deriv=FALSE,
@@ -198,8 +197,8 @@ lm.ma.default <- function(y=NULL,
                                  knots=knots,
                                  S=S,
                                  method=method,
-                                 ma.weights=Est$ma.weights,
-                                 basis.vec=Est$basis.vec,
+                                 ma.weights=ma.weights,
+                                 basis.vec=basis.vec,
                                  weights=weights,
                                  vc=vc,
                                  verbose=FALSE,
@@ -214,10 +213,9 @@ lm.ma.default <- function(y=NULL,
             
             for(b in 1:B) {
                 if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X)," (bootstrap replication ",b," of ",B,")",sep=""))
-                X.res <- X
-                X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
-                Est.ssu <- lm.ma.Est(y=y,
-                                     X=X.res,
+                ## Residual bootstrap from the null model, use original model configuration with bootstrap y
+                Est.ssu <- lm.ma.Est(y=Est.ssr$fitted.values+sample(Est.ssr$residuals,replace=TRUE),
+                                     X=X[,-k],
                                      X.eval=NULL,
                                      basis=basis,
                                      compute.deriv=FALSE,
@@ -229,8 +227,8 @@ lm.ma.default <- function(y=NULL,
                                      knots=knots,
                                      S=S,
                                      method=method,
-                                     ma.weights=Est$ma.weights,
-                                     basis.vec=Est$basis.vec,
+                                     ma.weights=Est.ssr$ma.weights,
+                                     basis.vec=Est.ssr$basis.vec,
                                      weights=weights,
                                      vc=vc,
                                      verbose=FALSE,
@@ -241,7 +239,7 @@ lm.ma.default <- function(y=NULL,
                 
                 F.boot[b] <- (ssr-ssu)/ssu
             }
-            
+
             P.vec[k] <- mean(ifelse(F.boot>F.stat,1,0))
         }
         
@@ -338,7 +336,7 @@ lm.ma.Est <- function(y=NULL,
         K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1:segments.max,num.x=num.x)
     } else {
         K.mat <- matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
-        K.mat <- cbind(K.mat[,1:num.x,drop=FALSE],matrix(1,NROW(K.mat),num.x,byrow=TRUE))
+        K.mat <- cbind(K.mat[,1:num.x],matrix(1,nrow(K.mat),num.x,byrow=TRUE))
     }
     if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
         basis.vec <- character()
@@ -347,7 +345,7 @@ lm.ma.Est <- function(y=NULL,
     }  else if(basis!="auto") {
         basis.vec <- rep(basis,nrow(K.mat))
     }
-        if(!is.null(ma.weights)) {
+    if(!is.null(ma.weights)) {
         K.mat <- K.mat[ma.weights>1e-05,,drop=FALSE]
         ma.weights <- ma.weights[ma.weights>1e-05]/sum(ma.weights[ma.weights>1e-05])
     }
@@ -367,8 +365,13 @@ lm.ma.Est <- function(y=NULL,
     fitted.mat <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P.num)
 
     for(p in P.num:1) {
-
-        DS <- cbind(K.mat[p,1:num.x,drop=FALSE],K.mat[p,(num.x+1):(2*num.x),drop=FALSE])   
+        
+        #print(p)
+        #print(P.num)
+        #print(1:num.x)
+        #print(dim(K.mat))
+        
+        DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
 
         if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
 
