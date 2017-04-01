@@ -537,7 +537,7 @@ lm.ma.Est <- function(y=NULL,
         while(qr(D)$rank<M) {
             D <- D + diag(tol.ridge,M,M)
             tol.ridge <- tol.ridge*10
-            if(verbose) warning(paste("Ridge factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
+            if(verbose) warning(paste("ridge factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
         }
         A <- cbind(rep(1,M),diag(1,M,M))
         b0 <- c(1,rep(0,M))
@@ -558,7 +558,7 @@ lm.ma.Est <- function(y=NULL,
             while(qr(D)$rank<M) {
                 D <- D + diag(tol.ridge,M,M)
                 tol.ridge <- tol.ridge*10
-                if(verbose) warning(paste("Ridge factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
+                if(verbose) warning(paste("ridge factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
             }
             A <- cbind(rep(1,M),diag(1,M,M))
             b0 <- c(1,rep(0,M))

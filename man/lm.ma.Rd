@@ -332,16 +332,17 @@ suppressPackageStartupMessages(require(crs))
 data(cps71)
 attach(cps71)
 model.ma <- lm.ma(logwage~age)
-plot(model.ma,plot.data=TRUE,plot.ci=TRUE)
+plot(model.ma,plot.data=TRUE)
 model.kernel <- npreg(logwage~age,regtype="ll",bwmethod="cv.aic")
-lines(age,fitted(model.kernel),col=2,lty=2,lwd=2)
+lines(age,fitted(model.kernel),col=4,lty=4,lwd=2)
 model.spline <- crs(logwage~age,cv.threshold=0)
 lines(age,fitted(model.spline),col=3,lty=3,lwd=2)
-legend("topleft",c("Parametric Model Average",
+legend("topleft",c("Model Average",
                    "Nonparametric Kernel",
                    "Nonparametric B-Spline"),
-                   col=1:3,
-                   lty=1:3,
+                   col=c(1,4,3),
+                   lty=c(1,4,3),
+                   lwd=c(1,2,2),
                    bty="n")
                    
 summary(model.spline)
