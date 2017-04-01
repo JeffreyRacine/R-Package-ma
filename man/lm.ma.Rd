@@ -26,6 +26,7 @@ lm.ma(...)
       method = c("jma","mma"),
       ma.weights = NULL,
       basis.vec = NULL,
+      rank.vec = NULL,
       bootstrap.ci = FALSE,
       B = 199,
       alpha = 0.05,
@@ -53,6 +54,7 @@ lm.ma(...)
       method = c("jma","mma"),
       ma.weights = NULL,
       basis.vec = NULL,
+      rank.vec = NULL,
       bootstrap.ci = FALSE,
       B = 199,
       alpha = 0.05,
@@ -100,6 +102,8 @@ lm.ma(...)
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
   
   \item{basis.vec}{a vector (character) of bases for each candidate model selected by cross-validation}
+  
+  \item{rank.vec}{a vector of ranks for each candidate model}
   
   \item{bootstrap.ci}{a logical value indicating whether to bootstrap nonparametric confidence intervals or not}
   

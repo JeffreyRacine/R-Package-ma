@@ -160,6 +160,7 @@ lm.ma.default <- function(y=NULL,
     if(compute.anova) {
         
         P.vec <- numeric(length=NCOL(X))
+        F.stat[k] <- numeric(length=NCOL(X))
         
         Est.ssu <- lm.ma.Est(y=y,
                              X=X,
@@ -224,7 +225,7 @@ lm.ma.default <- function(y=NULL,
                 ssr <- sum((y-mean(y))^2)
                 ssr.rank <- 1
             }
-            F.stat <- (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
+            F.stat[k] <- (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
             F.boot <- numeric(length=B)
 
             for(b in 1:B) {
@@ -298,12 +299,8 @@ lm.ma.default <- function(y=NULL,
                # F.boot[b] <- (ssr.boot-ssu.boot)/ssu.boot
                 F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
             }
-            
-            print(F.stat)
-            print(NULL)
-            print(F.boot)
 
-            P.vec[k] <- mean(ifelse(F.boot>F.stat,1,0))
+            P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
             
             if(verbose) cat("\r                                                                               ")
             if(verbose) cat("\r")
@@ -311,6 +308,7 @@ lm.ma.default <- function(y=NULL,
             }
         
         Est$P.vec <- P.vec
+        Est$F.stat <- F.stat
     }
     
     Est$compute.anova <- compute.anova
@@ -435,12 +433,7 @@ lm.ma.Est <- function(y=NULL,
     fitted.mat <- matrix(NA,if(is.null(X.eval)){NROW(X)}else{NROW(X.eval)},P.num)
 
     for(p in P.num:1) {
-        
-        #print(p)
-        #print(P.num)
-        #print(1:num.x)
-        #print(dim(K.mat))
-        
+
         DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
 
         if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
@@ -915,6 +908,8 @@ summary.lm.ma <- function(object,
       cat(object$basis.vec[object$ma.weights>1e-05])    
   }
   if(object$compute.anova) {
+      cat("\nTest statistic for test of significance: ")
+      cat(formatC(object$F.stat,format="f",digits=3))
       cat("\nP-value(s) for test of significance: ")
       cat(formatC(object$P.vec,format="f",digits=3))
   }
