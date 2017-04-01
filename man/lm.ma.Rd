@@ -33,6 +33,7 @@ lm.ma(...)
       vc = TRUE,
       verbose = TRUE,
       tol = 1e-12,
+      compute.anova = FALSE,
       ...)
 
 \method{lm.ma}{formula}(formula,
@@ -59,6 +60,7 @@ lm.ma(...)
       vc = TRUE,
       verbose = TRUE,
       tol = 1e-12,
+      compute.anova = FALSE,
       ...)
 
 }
@@ -112,6 +114,8 @@ lm.ma(...)
   \item{verbose}{a logical value indicating whether to report detailed progress during computation}
   
   \item{tol}{a small constant used to ensure the forcing matrix for the quadratic program is not ill-conditioned}
+  
+  \item{compute.anova}{whether to conduct a quasi-snova bootstrap procedure to test for significance of each predictor}
   
   \item{...}{optional arguments to be passed}
 

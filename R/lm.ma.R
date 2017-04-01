@@ -22,6 +22,7 @@ lm.ma.default <- function(y=NULL,
                           vc=TRUE,
                           verbose=TRUE,
                           tol=1e-12,
+                          compute.anova=FALSE,
                           ...) {
 
     basis <- match.arg(basis)
@@ -126,7 +127,7 @@ lm.ma.default <- function(y=NULL,
                                   weights=weights,
                                   vc=vc,
                                   verbose=FALSE,
-                                  tol=1e-12,
+                                  tol=tol,
                                   ...)
             boot.mat[,b] <- out.boot$fitted
             if(compute.deriv) for(k in 1:Est$num.x) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
@@ -151,9 +152,6 @@ lm.ma.default <- function(y=NULL,
         if(verbose) cat("\r                                     ")
         if(verbose) cat("\r")
     }
-    
-    compute.anova <- TRUE
-    Est$anova <- compute.anova
 
     if(compute.anova) {
         
@@ -183,12 +181,12 @@ lm.ma.default <- function(y=NULL,
         ssu <- sum((y-Est.ssu$fitted.values)^2) 
 
         for(k in 1:NCOL(X)) {
-            
+            if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X),sep=""))            
             ## Restricted model does not incorporate the kth predictor
-            if(NCOL(X)>0) {
-#                X.res <- X[,-k]
-                X.res <- X
-                X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
+            if(NCOL(X)>1) {
+                X.res <- X[,-k]
+#                X.res <- X
+#                X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
                                      X.eval=NULL,
@@ -202,8 +200,10 @@ lm.ma.default <- function(y=NULL,
                                      knots=knots,
                                      S=S,
                                      method=method,
-                                     ma.weights=Est$ma.weights,
-                                     basis.vec=Est$basis.vec,
+                                     #ma.weights=Est$ma.weights,
+                                     #basis.vec=Est$basis.vec,
+                                     ma.weights=ma.weights,
+                                     basis.vec=basis.vec,
                                      weights=weights,
                                      vc=vc,
                                      verbose=FALSE,
@@ -219,7 +219,7 @@ lm.ma.default <- function(y=NULL,
             for(b in 1:B) {
                 if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X)," (bootstrap replication ",b," of ",B,")",sep=""))
                 ## Residual bootstrap from the null model, use original model configuration with bootstrap y
-                if(NCOL(X)>0) {
+                if(NCOL(X)>1) {
                     X.res <- X
                     X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
                     Est.ssu <- lm.ma.Est(y=y,
@@ -252,7 +252,11 @@ lm.ma.default <- function(y=NULL,
             }
 
             P.vec[k] <- mean(ifelse(F.boot>F.stat,1,0))
-        }
+            
+            if(verbose) cat("\r                                                                               ")
+            if(verbose) cat("\r")
+
+            }
         
         Est$P.vec <- P.vec
     }
@@ -764,6 +768,7 @@ lm.ma.formula <- function(formula,
                           vc=TRUE,
                           verbose=TRUE,
                           tol=1e-12,
+                          anova=FALSE,
                           ...) {
 
 
