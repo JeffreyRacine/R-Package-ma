@@ -180,41 +180,13 @@ lm.ma.default <- function(y=NULL,
                              tol=tol,
                              ...)
 
+        ssu <- sum((y-Est.ssu$fitted.values)^2) 
+
         for(k in 1:NCOL(X)) {
             
             ## Restricted model does not incorporate the kth predictor
-            
-            Est.ssr <- lm.ma.Est(y=y,
-                                 X=X[,-k],
-                                 X.eval=NULL,
-                                 basis=basis,
-                                 compute.deriv=FALSE,
-                                 deriv.order=deriv.order,
-                                 degree.min=degree.min,
-                                 degree.max=degree.max,
-                                 lambda=lambda,
-                                 segments.max=segments.max,
-                                 knots=knots,
-                                 S=S,
-                                 method=method,
-                                 ma.weights=ma.weights,
-                                 basis.vec=basis.vec,
-                                 weights=weights,
-                                 vc=vc,
-                                 verbose=FALSE,
-                                 tol=tol,
-                                 ...)
-    
-            ssr <- sum(Est.ssr$residuals^2)
-            ssu <- sum(Est.ssu$residuals^2)        
-            F.stat <- (ssr-ssu)/ssu
-            
-            F.boot <- numeric(length=B)
-            
-            for(b in 1:B) {
-                if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X)," (bootstrap replication ",b," of ",B,")",sep=""))
-                ## Residual bootstrap from the null model, use original model configuration with bootstrap y
-                Est.ssu <- lm.ma.Est(y=Est.ssr$fitted.values+sample(Est.ssr$residuals,replace=TRUE),
+            if(NCOL(X)>1) {
+                Est.ssr <- lm.ma.Est(y=y,
                                      X=X[,-k],
                                      X.eval=NULL,
                                      basis=basis,
@@ -227,15 +199,49 @@ lm.ma.default <- function(y=NULL,
                                      knots=knots,
                                      S=S,
                                      method=method,
-                                     ma.weights=Est.ssr$ma.weights,
-                                     basis.vec=Est.ssr$basis.vec,
+                                     ma.weights=ma.weights,
+                                     basis.vec=basis.vec,
                                      weights=weights,
                                      vc=vc,
                                      verbose=FALSE,
                                      tol=tol,
                                      ...)
-                
-                ssu <- sum(Est.ssu$residuals^2) 
+                ssr <- sum((y-Est.ssr$fitted.values)^2) 
+            } else {
+                ssr <- sum((y-mean(y))^2)
+            }
+            F.stat <- (ssr-ssu)/ssu
+            F.boot <- numeric(length=B)
+            
+            for(b in 1:B) {
+                if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X)," (bootstrap replication ",b," of ",B,")",sep=""))
+                ## Residual bootstrap from the null model, use original model configuration with bootstrap y
+                if(NCOL(X)>1) {
+                    Est.ssu <- lm.ma.Est(y=Est.ssr$fitted.values+sample(y-Est.ssr$fitted.values,replace=TRUE),
+                                         X=X[,-k],
+                                         X.eval=NULL,
+                                         basis=basis,
+                                         compute.deriv=FALSE,
+                                         deriv.order=deriv.order,
+                                         degree.min=degree.min,
+                                         degree.max=degree.max,
+                                         lambda=lambda,
+                                         segments.max=segments.max,
+                                         knots=knots,
+                                         S=S,
+                                         method=method,
+                                         ma.weights=Est.ssr$ma.weights,
+                                         basis.vec=Est.ssr$basis.vec,
+                                         weights=weights,
+                                         vc=vc,
+                                         verbose=FALSE,
+                                         tol=tol,
+                                         ...)
+                    
+                    ssu <- sum((y-Est.ssu$fitted.values)^2) 
+                } else {
+                    ssu <- sum(sample(y-mean(y),replace=TRUE)^2)
+                }
                 
                 F.boot[b] <- (ssr-ssu)/ssu
             }
@@ -701,7 +707,6 @@ lm.ma.Est <- function(y=NULL,
     }
 
     return(list(fitted.values=fitted.values,
-                residuals=y-fitted.values,
                 deriv=deriv,
                 ma.weights=if(is.null(ma.weights)){abs(b)}else{ma.weights.orig},
                 basis.vec=if(is.null(ma.weights)){basis.vec}else{basis.vec.orig},
