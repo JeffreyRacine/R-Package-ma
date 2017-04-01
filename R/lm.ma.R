@@ -233,13 +233,13 @@ lm.ma.default <- function(y=NULL,
                 ssr <- sum((y-mean(y))^2)
                 ssr.rank <- 1
             }
-            print("ssu")
-            print(ssu)
-            print("ssr")
-            print(ssr)
-            print(ssu.rank)
-            print(ssr.rank)
-            F.stat[k] <-  (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
+            #print("ssu")
+            #print(ssu)
+            #print("ssr")
+            #print(ssr)
+            #print(ssu.rank)
+            #print(ssr.rank)
+            F.stat[k] <- (ssr-ssu)/ssu #(NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
             F.boot <- numeric(length=B)
 
             for(b in 1:B) {
@@ -284,8 +284,8 @@ lm.ma.default <- function(y=NULL,
                     ## bootstrap resample from the null model
 
                     Est.ssr.boot <- lm.ma.Est(y=y.boot,
-                                         X=X.res,
-                                         X.eval=NULL,
+                                              X=X.res,
+                                              X.eval=NULL,
                                          basis=basis,
                                          compute.deriv=FALSE,
                                          deriv.order=deriv.order,
@@ -314,16 +314,19 @@ lm.ma.default <- function(y=NULL,
                 
                # F.boot[b] <- (ssr.boot-ssu.boot)/ssu.boot
                 #print("ssu")
+                #print(ssu)
+                #print("ssu.boot")
                 #print(ssu.boot)
                 #print("ssr")
                 #print(ssr)
                 #print(ssr.rank)
                 #print(ssu.boot.rank)
-                F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
+                #F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
                # F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr-ssu.boot)/((ssu.boot.rank-ssr.rank)*ssu.boot)
+                F.boot[b] <- (ssu.boot-ssu)/ssu #(ssr-ssu.boot)/ssu.boot
             }
             
-            #print(F.boot)
+            print(F.boot)
 
             P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
             
