@@ -27,13 +27,6 @@ lm.ma.default <- function(y=NULL,
     basis <- match.arg(basis)
     method <- match.arg(method)
 
-    if(getOption("crs.messages")) {
-        options(crs.messages=FALSE)
-        exists.crs.messages <- TRUE
-    } else {
-        exists.crs.messages <- FALSE
-    }
-    
     if(!is.null(degree.max)) if(degree.max < 2) stop("You must average over at least two models")
     if(is.null(y) | is.null(X)) stop("You must provide data for y and X")
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
@@ -103,8 +96,6 @@ lm.ma.default <- function(y=NULL,
     
     if(bootstrap.ci) {
 
-        options(crs.messages=FALSE)
-    
         if(is.null(X.eval)) {
             n <- NROW(X) 
         } else {
@@ -216,12 +207,12 @@ lm.ma.Est <- function(y=NULL,
     rm(xztmp)
 
     if(vc & !is.null(num.z)) {
-        z.unique <- crs:::uniquecombs(as.matrix(z))
+        z.unique <- uniquecombs(as.matrix(z))
         num.z <- ncol(z.unique)
         ind <-  attr(z.unique,"index")
         ind.vals <-  unique(ind)
         nrow.z.unique <- nrow(z.unique)
-        zeval.unique <- crs:::uniquecombs(as.matrix(zeval))
+        zeval.unique <- uniquecombs(as.matrix(zeval))
         num.zeval <- ncol(zeval.unique)
         ind.zeval <-  attr(zeval.unique,"index")
         ind.zeval.vals <-  unique(ind.zeval)
@@ -245,9 +236,9 @@ lm.ma.Est <- function(y=NULL,
     basis.vec.orig <- basis.vec
 
     if(knots) {
-        K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1:segments.max,num.x=num.x)
+        K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1:segments.max,num.x=num.x)
     } else {
-        K.mat <- crs:::matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
+        K.mat <- matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
         K.mat <- cbind(K.mat[,1:num.x],matrix(1,nrow(K.mat),num.x,byrow=TRUE))
     }
     if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
@@ -295,9 +286,9 @@ lm.ma.Est <- function(y=NULL,
                         basis.singular <- logical(length=nrow.z.unique)
                         for(i in 1:nrow.z.unique) {
                             zz <- ind == ind.vals[i]
-                            L <- crs:::prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
+                            L <- prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
                             if(!is.null(weights)) L <- weights*L
-                            P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
+                            P <- prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
                             if(!is.fullrank(P)) basis.singular[i] <- TRUE
                             if(b.basis=="additive" || b.basis=="glp") {
                                 model.z.unique <- lm(y~P,weights=L)
@@ -305,7 +296,7 @@ lm.ma.Est <- function(y=NULL,
                                 model.z.unique <- lm(y~P-1,weights=L)
                             }
                             htt[zz] <- hatvalues(model.z.unique)[zz]
-                            P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=b.basis))
+                            P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=b.basis))
                             fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                         }
                         
@@ -336,9 +327,9 @@ lm.ma.Est <- function(y=NULL,
                     basis.singular <- logical(length=nrow.z.unique)
                     for(i in 1:nrow.z.unique) {
                         zz <- ind == ind.vals[i]
-                        L <- crs:::prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
+                        L <- prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
                         if(!is.null(weights)) L <- weights*L
-                        P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
+                        P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                         if(!is.fullrank(P)) basis.singular[i] <- TRUE
                         if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
                             model.z.unique <- lm(y~P,weights=L)
@@ -346,7 +337,7 @@ lm.ma.Est <- function(y=NULL,
                             model.z.unique <- lm(y~P-1,weights=L)
                         }
                         htt[zz] <- hatvalues(model.z.unique)[zz]
-                        P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
+                        P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
                         fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                     }
                     if(any(basis.singular==TRUE) & verbose) warning("dimension basis is ill-conditioned - reduce degree.max")
@@ -370,7 +361,7 @@ lm.ma.Est <- function(y=NULL,
                     cv.min <- Inf
                     basis.singular <- logical(1)
                     for(b.basis in c("tensor","glp","additive")) {
-                        P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
+                        P <- prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
                         if(!is.fullrank(P)) basis.singular <- TRUE
                         if(b.basis=="additive" || b.basis=="glp") {
                             model.ma <- lm(y~P,weights=weights)
@@ -396,7 +387,7 @@ lm.ma.Est <- function(y=NULL,
 
                 } else {
 
-                    P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
+                    P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                     if(!is.fullrank(P) & verbose) warning("dimension basis is ill-conditioned - reduce degree.max")
                     if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
                         model.ma <- lm(y~P,weights=weights)
@@ -430,15 +421,15 @@ lm.ma.Est <- function(y=NULL,
                 fit.spline <- numeric(length=num.eval)
                 for(i in 1:nrow.zeval.unique) {
                     zz <- ind.zeval == ind.zeval.vals[i]
-                    L <- suppressWarnings(crs:::prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
+                    L <- suppressWarnings(prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
                     if(!is.null(weights)) L <- weights*L
-                    P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
+                    P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                     if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
                         model.z.unique <- lm(y~P,weights=L)
                     } else {
                         model.z.unique <- lm(y~P-1,weights=L)
                     }
-                    P <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
+                    P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
                     fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
 
                 }
@@ -447,14 +438,14 @@ lm.ma.Est <- function(y=NULL,
 
             } else {
 
-                P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
+                P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                 if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
                     model.ma <- lm(y~P,weights=weights)
                 } else {
                     model.ma <- lm(y~P-1,weights=weights)
                 }
                 
-                P <- suppressWarnings(crs:::prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p]))
+                P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p]))
 
                 fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                 
@@ -475,10 +466,10 @@ lm.ma.Est <- function(y=NULL,
                         deriv.spline <- numeric(length(num.eval))
                         for(i in 1:nrow.zeval.unique) {
                             zz <- ind.zeval == ind.zeval.vals[i]
-                            L <- suppressWarnings(crs:::prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
+                            L <- suppressWarnings(prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
                             if(!is.null(weights)) L <- weights*L
-                            P <- crs:::prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
-                            P.deriv <- suppressWarnings(crs:::prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p],deriv.index=k,deriv=deriv.order))
+                            P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
+                            P.deriv <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p],deriv.index=k,deriv=deriv.order))
                             if(basis.vec[p]=="additive") {
                                 model <- lm(y~P,weights=L)
                                 dim.P.deriv <- sum(K.additive[k,])
@@ -499,8 +490,8 @@ lm.ma.Est <- function(y=NULL,
 
                     } else {
 
-                        P <- crs:::prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
-                        P.deriv <- suppressWarnings(crs:::prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p],deriv.index=k,deriv=deriv.order))
+                        P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
+                        P.deriv <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p],deriv.index=k,deriv=deriv.order))
                         dim.P.tensor <- NCOL(P)
                         deriv.ind.vec <- logical(length=NCOL(P))
                         coef.vec.model <- numeric(length=NCOL(P))

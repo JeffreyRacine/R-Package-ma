@@ -1,10 +1,10 @@
 Package: ma
 Type: Package
 Title: Model Averaging
-Version: 1.05
+Version: 1.06
 Date: 2017-03-15
-Imports: crs, quadprog
-Suggests: rgl, np
+Imports: quadprog
+Suggests: crs, np, rgl
 Author: Jeffrey S. Racine
 Maintainer: <racinej@mcmaster.ca>
 Description: This package implements model averaging  using a variety of multivariate bases.

@@ -205,9 +205,9 @@ x <- sort(runif(n))
 dgp <- cos(2*pi*x)
 y <- dgp + rnorm(n,sd=0.5*sd(dgp))
 
-model <- lm.ma(y~x)
+model.ma <- lm.ma(y~x)
 
-summary(model)
+summary(model.ma)
 
 par(mfrow=c(1,2))
 plot(model.ma,plot.data=TRUE,plot.ci=TRUE)
@@ -232,14 +232,14 @@ x.seq <- seq(0,1,length=n.eval)
 newdata <- data.frame(expand.grid(x.seq,x.seq))
 names(newdata) <- c("x1","x2")
 
-model <- lm.ma(y~x1+x2)
+model.ma <- lm.ma(y~x1+x2)
 
-summary(model)
+summary(model.ma)
 
 ## Use the rgl package to render a 3D object (RGL is a 3D real-time rendering 
 ## system for R that supports OpenGL, among other formats).
 
-z <- matrix(predict(model,newdata=newdata)$fit,n.eval,n.eval)
+z <- matrix(predict(model.ma,newdata=newdata)$fit,n.eval,n.eval)
 num.colors <- 1000
 colorlut <- topo.colors(num.colors)
 col <- colorlut[ (num.colors-1)*(z-min(z))/(max(z)-min(z)) + 1 ]
@@ -258,7 +258,6 @@ grid3d(c("x", "y+", "z"))
 
 #### Example 3 - five predictor (two categorical) earnings function
 
-suppressPackageStartupMessages(require(crs))
 data(wage1)
 attach(wage1)
 
@@ -328,11 +327,12 @@ detach(wage1)
 
 #### Example 4 - Canadian Current Population Survey earnings data
 
+suppressPackageStartupMessages(require(np))
+suppressPackageStartupMessages(require(crs))
 data(cps71)
 attach(cps71)
 model.ma <- lm.ma(logwage~age)
 plot(model.ma,plot.data=TRUE,plot.ci=TRUE)
-suppressPackageStartupMessages(require(np))
 model.kernel <- npreg(logwage~age,regtype="ll",bwmethod="cv.aic")
 lines(age,fitted(model.kernel),col=2,lty=2,lwd=2)
 model.spline <- crs(logwage~age,cv.threshold=0)
