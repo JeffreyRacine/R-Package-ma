@@ -220,9 +220,41 @@ lm.ma.default <- function(y=NULL,
                 if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X)," (bootstrap replication ",b," of ",B,")",sep=""))
                 ## Residual bootstrap from the null model, use original model configuration with bootstrap y
                 if(NCOL(X)>1) {
-                    X.res <- X
-                    X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
-                    Est.ssu <- lm.ma.Est(y=y,
+                    y.boot <- Est.ssr$fitted + sample(y-Est.ssr$fitted,replace=TRUE)
+                } else {
+                    y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
+                }
+                
+                Est.ssu.boot <- lm.ma.Est(y=y.boot,
+                                          X=X,
+                                          X.eval=NULL,
+                                          basis=basis,
+                                          compute.deriv=FALSE,
+                                          deriv.order=deriv.order,
+                                          degree.min=degree.min,
+                                          degree.max=degree.max,
+                                          lambda=lambda,
+                                          segments.max=segments.max,
+                                          knots=knots,
+                                          S=S,
+                                          method=method,
+                                          ma.weights=Est$ma.weights,
+                                          basis.vec=Est$basis.vec,
+                                          weights=weights,
+                                          vc=vc,
+                                          verbose=FALSE,
+                                          tol=tol,
+                                          ...)
+                
+                ssu.boot <- sum((y-Est.ssu.boot$fitted.values)^2)                 
+                
+                if(NCOL(X)>1) {
+   #                 X.res <- X
+#                    X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
+                    
+                    ## bootstrap resample from the null model
+
+                    Est.ssr.boot <- lm.ma.Est(y=y.boot,
                                          X=X.res,
                                          X.eval=NULL,
                                          basis=basis,
@@ -235,20 +267,20 @@ lm.ma.default <- function(y=NULL,
                                          knots=knots,
                                          S=S,
                                          method=method,
-                                         ma.weights=Est$ma.weights,
-                                         basis.vec=Est$basis.vec,
+                                         ma.weights=Est.ssr$ma.weights,
+                                         basis.vec=Est.ssr$basis.vec,
                                          weights=weights,
                                          vc=vc,
                                          verbose=FALSE,
                                          tol=tol,
                                          ...)
-                    
-                    ssu <- sum((y-Est.ssu$fitted.values)^2) 
+                    ssr.boot <- sum((y-Est.ssr.boot$fitted.values)^2)         
+
                 } else {
-                    ssu <- sum(sample(y-mean(y),replace=TRUE)^2)
+                    ssr.boot <- sum((y.boot-mean(y.boot))^2)
                 }
                 
-                F.boot[b] <- (ssr-ssu)/ssu
+                F.boot[b] <- (ssr.boot-ssu.boot)/ssu.boot
             }
 
             P.vec[k] <- mean(ifelse(F.boot>F.stat,1,0))
@@ -260,6 +292,8 @@ lm.ma.default <- function(y=NULL,
         
         Est$P.vec <- P.vec
     }
+    
+    Est$compute.anova <- compute.anova
     
     if(verbose) cat("\r                                                                               ")
     if(verbose) cat("\r")
@@ -768,7 +802,7 @@ lm.ma.formula <- function(formula,
                           vc=TRUE,
                           verbose=TRUE,
                           tol=1e-12,
-                          anova=FALSE,
+                          compute.anova=FALSE,
                           ...) {
 
 
@@ -799,6 +833,7 @@ lm.ma.formula <- function(formula,
                        vc=vc,
                        verbose=verbose,
                        tol=tol,
+                       compute.anova=compute.anova,
                        ...)
 
   Est$r.squared <- RSQfunc(tydat,Est$fitted.values)
@@ -855,7 +890,7 @@ summary.lm.ma <- function(object,
       cat("\nNon-zero weight model bases: ")
       cat(object$basis.vec[object$ma.weights>1e-05])    
   }
-  if(object$anova) {
+  if(object$compute.anova) {
       cat("\nP-value(s) for test of significance: ")
       cat(formatC(object$P.vec,format="f",digits=3))
   }
