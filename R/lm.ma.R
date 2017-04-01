@@ -203,13 +203,6 @@ lm.ma.default <- function(y=NULL,
 
             if(NCOL(X)>1) {
                 X.res <- X[,-k,drop=FALSE]
-#print("here we are")
-#print(dim(X))
-#print(dim(X.res))
-#print(X[,k])
-#print(is.numeric(X[,k]))
-#stop()
-
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
                                      X.eval=NULL,
@@ -240,12 +233,12 @@ lm.ma.default <- function(y=NULL,
                 ssr <- sum((y-mean(y))^2)
                 ssr.rank <- 1
             }
-            #print("ssu")
-            #print(ssu)
-            #print("ssr")
-            #print(ssr)
-            #print(ssu.rank)
-            #print(ssr.rank)
+            print("ssu")
+            print(ssu)
+            print("ssr")
+            print(ssr)
+            print(ssu.rank)
+            print(ssr.rank)
             F.stat[k] <-  (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
             F.boot <- numeric(length=B)
 
@@ -326,8 +319,8 @@ lm.ma.default <- function(y=NULL,
                 #print(ssr)
                 #print(ssr.rank)
                 #print(ssu.boot.rank)
-               # F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
-                F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr-ssu.boot)/((ssu.boot.rank-ssr.rank)*ssu.boot)
+                F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
+               # F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr-ssu.boot)/((ssu.boot.rank-ssr.rank)*ssu.boot)
             }
             
             #print(F.boot)
@@ -375,7 +368,8 @@ lm.ma.Est <- function(y=NULL,
                       verbose=TRUE,
                       tol=1e-12,
                       ...) {
-
+    #print("rank vec in")
+    #print(rank.vec)
     ## Divide into factors and numeric
     if(!vc) {
         xztmp <- splitFrame(as.data.frame(X))
@@ -642,7 +636,8 @@ lm.ma.Est <- function(y=NULL,
                 }
 
                 fitted.mat[,p] <- fit.spline
-
+                rank.vec[p] <- model.z.unique$rank
+                
             } else {
 
                 P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
@@ -655,6 +650,7 @@ lm.ma.Est <- function(y=NULL,
                 P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p]))
 
                 fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
+                rank.vec[p] <- model.ma$rank
                 
             }
             
@@ -730,6 +726,9 @@ lm.ma.Est <- function(y=NULL,
         }
             
     }
+    
+    #print("rank vec out")
+    #print(rank.vec)
 
     if(is.null(ma.weights)) {
 
