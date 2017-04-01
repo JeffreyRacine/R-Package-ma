@@ -186,8 +186,10 @@ lm.ma.default <- function(y=NULL,
             
             ## Restricted model does not incorporate the kth predictor
             if(NCOL(X)>1) {
+                X.res <- X[,-k]
+#                X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
                 Est.ssr <- lm.ma.Est(y=y,
-                                     X=X[,-k],
+                                     X=X.res,
                                      X.eval=NULL,
                                      basis=basis,
                                      compute.deriv=FALSE,
@@ -217,8 +219,10 @@ lm.ma.default <- function(y=NULL,
                 if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X)," (bootstrap replication ",b," of ",B,")",sep=""))
                 ## Residual bootstrap from the null model, use original model configuration with bootstrap y
                 if(NCOL(X)>1) {
-                    Est.ssu <- lm.ma.Est(y=Est.ssr$fitted.values+sample(y-Est.ssr$fitted.values,replace=TRUE),
-                                         X=X[,-k],
+                    X.res <- X
+                    X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
+                    Est.ssu <- lm.ma.Est(y=y,
+                                         X=X.res,
                                          X.eval=NULL,
                                          basis=basis,
                                          compute.deriv=FALSE,
@@ -230,8 +234,8 @@ lm.ma.default <- function(y=NULL,
                                          knots=knots,
                                          S=S,
                                          method=method,
-                                         ma.weights=Est.ssr$ma.weights,
-                                         basis.vec=Est.ssr$basis.vec,
+                                         ma.weights=Est$ma.weights,
+                                         basis.vec=Est$basis.vec,
                                          weights=weights,
                                          vc=vc,
                                          verbose=FALSE,
