@@ -95,7 +95,7 @@ lm.ma.default <- function(y=NULL,
         
         Est$rank.vec <- rank.vec
         Est$DS <- DS
-        Est$DS <- basis.vec
+        Est$basis.vec <- basis.vec
 
     }
 
@@ -111,7 +111,11 @@ lm.ma.default <- function(y=NULL,
     
         boot.mat <- matrix(NA,n,B)
         if(compute.deriv) boot.deriv.array <- array(NA,c(n,B,Est$num.x))
-    
+        #print(Est$ma.weights)
+        #print(Est$basis.vec)
+        #print(Est$rank.vec)
+        #print(Est$DS)
+        #stop()
         for(b in 1:B) {
             if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
             ii <- sample(1:n,replace=TRUE)
@@ -199,7 +203,7 @@ lm.ma.default <- function(y=NULL,
 
             if(NCOL(X)>1) {
                 X.res <- X[,-k]
-
+print("here we are")
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
                                      X.eval=NULL,
@@ -222,6 +226,8 @@ lm.ma.default <- function(y=NULL,
                                      verbose=FALSE,
                                      tol=tol,
                                      ...)
+
+                print("exiting")
                 ssr <- sum((y-Est.ssr$fitted.values)^2) 
                 ssr.rank <- Est.ssr$ma.model.rank
             } else {
@@ -309,17 +315,17 @@ lm.ma.default <- function(y=NULL,
                 }
                 
                # F.boot[b] <- (ssr.boot-ssu.boot)/ssu.boot
-                print("ssu")
-                print(ssu.boot)
-                print("ssr")
-                print(ssr)
-                print(ssr.rank)
-                print(ssu.boot.rank)
+                #print("ssu")
+                #print(ssu.boot)
+                #print("ssr")
+                #print(ssr)
+                #print(ssr.rank)
+                #print(ssu.boot.rank)
                # F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
                 F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr-ssu.boot)/((ssu.boot.rank-ssr.rank)*ssu.boot)
             }
             
-            print(F.boot)
+            #print(F.boot)
 
             P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
             
@@ -441,6 +447,10 @@ lm.ma.Est <- function(y=NULL,
         basis.vec <- rep(basis,nrow(K.mat))
     }
     if(!is.null(ma.weights)) {
+        #print(K.mat)
+        #print(dim(K.mat))
+        #print(ma.weights)
+        #print(length(ma.weights))
         K.mat <- K.mat[ma.weights>1e-05,,drop=FALSE]
         ma.weights <- ma.weights[ma.weights>1e-05]/sum(ma.weights[ma.weights>1e-05])
     }
