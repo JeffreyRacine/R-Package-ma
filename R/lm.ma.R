@@ -111,11 +111,7 @@ lm.ma.default <- function(y=NULL,
     
         boot.mat <- matrix(NA,n,B)
         if(compute.deriv) boot.deriv.array <- array(NA,c(n,B,Est$num.x))
-        #print(Est$ma.weights)
-        #print(Est$basis.vec)
-        #print(Est$rank.vec)
-        #print(Est$DS)
-        #stop()
+
         for(b in 1:B) {
             if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
             ii <- sample(1:n,replace=TRUE)
@@ -226,12 +222,9 @@ lm.ma.default <- function(y=NULL,
                                      tol=tol,
                                      ...)
 
-                #print(cbind(Est$rank.vec,Est.ssu$rank.vec,Est.ssr$rank.vec))
-                #stop()
                 ssr <- sum((y-Est.ssr$fitted.values)^2) 
                 ssr.rank <- Est.ssr$ma.model.rank
                 if(!is.numeric(X[,k]) & vc) {
-                    #print("vc/categorical")
                     ssr.rank <- ssr.rank - 1
                 }
             } else {
@@ -240,18 +233,6 @@ lm.ma.default <- function(y=NULL,
                 ssr.rank <- 1
             }
             F.stat[k] <- (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
-            print("ssu")
-            print(ssu)
-            print("ssr")
-            print(ssr)
-            print("ssu.rank")
-            print(ssu.rank)
-            print("ssr.rank")            
-            print(ssr.rank)
-            print("F.stat")
-            print(F.stat[k])
-#            stop()
-            ## This F-stat is awlays positive
             
             F.boot <- numeric(length=B)
 
@@ -286,8 +267,6 @@ lm.ma.default <- function(y=NULL,
                                           verbose=FALSE,
                                           tol=tol,
                                           ...)
-                #print(cbind(Est.ssu$fitted,Est.ssu.boot$fitted))
-                #stop()
 
                 ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)  
                 ssu.boot.rank <- Est.ssu.boot$ma.model.rank
@@ -318,74 +297,22 @@ lm.ma.default <- function(y=NULL,
                                               verbose=FALSE,
                                               tol=tol,
                                               ...)
-                    #print(cbind(Est.ssu.boot$fitted,Est.ssr.boot$fitted))
-                                        #stop()
-#                    Est.ssr.boot <- lm.ma.Est(y=y.boot,
-#                                              X=X.res,
-#                                              X.eval=NULL,
-#                                              basis=basis,
-#                                              compute.deriv=FALSE,
-#                                              deriv.order=deriv.order,
-#                                              degree.min=degree.min,
-#                                              degree.max=degree.max,
-#                                              lambda=lambda,
-#                                              segments.max=segments.max,
-#                                              knots=knots,
-#                                              S=S,
-#                                              method=method,
-#                                              ma.weights=Est.ssr$ma.weights,
-#                                              basis.vec=Est.ssr$basis.vec,
-#                                              rank.vec=Est.ssr$rank.vec,
-#                                              K.mat=Est.ssr$DS, ## no mod needed here
-#                                              weights=weights,
-#                                              vc=vc,
-#                                              verbose=FALSE,
-#                                              tol=tol,
-#                                              ...)
+
                     ssr.boot <- sum((y.boot-Est.ssr.boot$fitted.values)^2)         
                     ssr.boot.rank <- Est.ssr.boot$ma.model.rank
 
                     if(!is.numeric(X[,k]) & vc) {
-                        #print("vc/categorical")
                         ssr.boot.rank <- ssr.boot.rank - 1
                     }
                 } else {
                     ssr.boot <- sum((y.boot-mean(y.boot))^2)
                     ssr.boot.rank <- 1
                 }
+
                 F.boot[b] <- (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
-
-                ##F.stat[k] <- (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
-                
-                #F.boot[b] <- (ssr.boot-ssu.boot)/ssu.boot
-                #F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
-                #F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
-                # ssu.boot is null imposed... it becomes the restricted model but we are mimicking the alternative
-                #F.boot[b] <- (NROW(X)-ssu.rank)*(ssu.boot-ssu)/((ssu.rank-ssr.rank)*ssu)
-                #F.boot[b] <- (NROW(X)-ssu.rank)*(ssr.boot-ssu)/((ssu.rank-ssr.boot.rank)*ssu)
-                #F.boot[b] <- (NROW(X)-ssu.rank)*(ssr-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot)
-
-                ## Kludge... use ranks for original models, take absolute value...
-                #F.boot[b] <-  (NROW(X)-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot)
-                print("ssu")
-                print(ssu)
-                print("ssu.boot")
-                print(ssu.boot)
-                print("ssr")
-                print(ssr)
-                print("ssr.boot")
-                print(ssr.boot)
-                print("ssr.boot.rank")
-                print(ssr.boot.rank)
-                print("ssu.boot.rank")
-                print(ssu.boot.rank)
-                print("F.boot")
-                print(F.boot[b])
 
             }
             
-            #print(F.boot)
-
             P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
             
             if(verbose) cat("\r                                                                               ")
@@ -399,7 +326,6 @@ lm.ma.default <- function(y=NULL,
     
     Est$compute.anova <- compute.anova
     Est$bootstrap.ci <- bootstrap.ci
-    ##print(Est$bootstrap.ci)
     
     if(verbose) cat("\r                                                                               ")
     if(verbose) cat("\r")
@@ -431,9 +357,7 @@ lm.ma.Est <- function(y=NULL,
                       verbose=TRUE,
                       weights=NULL,                      
                       ...) {
-    #print("rank vec in")
-    #print(rank.vec)
-    ## Divide into factors and numeric
+
     if(!vc) {
         xztmp <- splitFrame(as.data.frame(X))
     } else {
@@ -510,19 +434,7 @@ lm.ma.Est <- function(y=NULL,
         basis.vec <- rep(basis,nrow(K.mat))
     }
     if(!is.null(ma.weights)) {
-        #print("ma weights")
-        #print(formatC(ma.weights,format="f",digits=6))
-        #print("length rank.vec in")
-        #print(length(rank.vec))
-        #print(rank.vec)
         rank.vec <- rank.vec[ma.weights>1e-05]
-        #print("length rank.vec no zero weights")
-        #print(length(rank.vec))
-        #print(rank.vec)
-        #print(K.mat)
-        #print(dim(K.mat))
-        #print(ma.weights)
-        #print(length(ma.weights))
         K.mat <- K.mat[ma.weights>1e-05,,drop=FALSE]
         ma.weights <- ma.weights[ma.weights>1e-05]/sum(ma.weights[ma.weights>1e-05])
     }
@@ -709,12 +621,7 @@ lm.ma.Est <- function(y=NULL,
                 }
 
                 fitted.mat[,p] <- fit.spline
-                #print("here we are")
                 rank.vec[p] <- model.z.unique$rank
-                #print("num.x")
-                #print(num.x)
-                #print("rank.vec[p]")
-                #print(rank.vec[p])
                 
             } else {
 
@@ -729,11 +636,6 @@ lm.ma.Est <- function(y=NULL,
 
                 fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                 rank.vec[p] <- model.ma$rank
-                #print("here we are")
-                #print("num.x")
-                #print(num.x)
-                #print("rank.vec[p]")
-                #print(rank.vec[p])
                 
             }
             
@@ -810,9 +712,6 @@ lm.ma.Est <- function(y=NULL,
             
     }
     
-    #print("rank vec out")
-    #print(rank.vec)
-
     if(is.null(ma.weights)) {
 
         if(verbose) cat("\r                                                    ")
@@ -886,22 +785,6 @@ lm.ma.Est <- function(y=NULL,
         cat("\r                                                    ")
         cat("\r")
     }
-
-    #print("rank.vec.orig")
-    #print(rank.vec.orig)
-    #rank.vec.orig[ma.weights.orig>1e-05] <- rank.vec
-    
-    #print("rank.vec.orig updated")
-                                        #print(rank.vec.orig)
-
-    #print("length rank vec")
-    #print(length(rank.vec))
-    #print("length ma weights")
-    #print(length(ma.weights))
-    #print("length ma weights orig")
-    #print(length(ma.weights.orig))
-    #print("length(b)")
-    #print(length(b))
 
     return(list(fitted.values=fitted.values,
                 deriv=deriv,
@@ -1092,9 +975,6 @@ predict.lm.ma <- function(object,
                              ...)
         
         if(object$bootstrap.ci | object$compute.deriv) {
-            ##print("return list")
-            ##print(object$bootstrap.ci)
-            ##print(object$compute.deriv)        
             return(list(fit=Est$fitted.values,
                         deriv=Est$deriv,
                         fit.low=Est$fitted.ci.l,
@@ -1102,7 +982,6 @@ predict.lm.ma <- function(object,
                         deriv.low=Est$deriv.ci.l,
                         deriv.up=Est$deriv.ci.u))
         } else {
-            ##print("return vector")
             return(Est$fitted.values)    
         }
         
