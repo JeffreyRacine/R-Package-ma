@@ -1000,8 +1000,8 @@ predict.lm.ma <- function(object,
         
         if(object$bootstrap.ci | object$compute.deriv) {
             ##print("return list")
-            print(object$bootstrap.ci)
-            print(object$compute.deriv)        
+            ##print(object$bootstrap.ci)
+            ##print(object$compute.deriv)        
             return(list(fit=Est$fitted.values,
                         deriv=Est$deriv,
                         fit.low=Est$fitted.ci.l,
@@ -1051,12 +1051,13 @@ plot.lm.ma <- function(x,
                      col="grey",
                      ...)
                 foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)    
-                if(!is.list(foo)) {
-                    foo.tmp <- foo
-                    foo <- list()
-                    foo$fit <- foo.tmp
-                    rm(foo.tmp)
-                }
+#                if(!is.list(foo)) {
+#                    foo.tmp <- foo
+#                    foo <- list()
+#                    foo$fit <- foo.tmp
+#                    rm(foo.tmp)
+                                        #                }
+                if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(is.numeric(x$X[,i])) {
                     lines(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],col=1)
                 } else {

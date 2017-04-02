@@ -184,6 +184,8 @@ An object of class "lm.ma" is a list containing at least the following component
   \item{r.squared}{appropriate measure of goodness of fit (Doksum and Samarov (1995))}
   \item{residuals}{model residuals}
 
+Note that \code{predict.ma} produces a vector of predictions or a list of predictions, confidence bounds, derivative matrices and their confidence bounds.
+  
 }
 \references{
   Doksum, K. and A. Samarov (1995), \dQuote{Nonparametric estimation of global functionals and a measure of the explanatory power of covariates in regression,} The Annals of Statistics, 23 1443-1473.  
@@ -294,8 +296,8 @@ predict(model.lm.mwint,newdata=newdata.female.married)-
 predict(model.lm.mwint,newdata=newdata.female.notmarried)
 
 ## Model average
-predict(model.ma,newdata=newdata.female.married)-
-predict(model.ma,newdata=newdata.female.notmarried)
+predict(model.ma,newdata=newdata.female.married)$fit-
+predict(model.ma,newdata=newdata.female.notmarried)$fit
 
 detach(wage1)
 
