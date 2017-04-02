@@ -231,7 +231,7 @@ lm.ma.default <- function(y=NULL,
                 ssr <- sum((y-Est.ssr$fitted.values)^2) 
                 ssr.rank <- Est.ssr$ma.model.rank
                 if(!is.numeric(X[,k]) & vc) {
-                    print("vc/categorical")
+                    #print("vc/categorical")
                     ssr.rank <- ssr.rank - 1
                 }
             } else {
@@ -240,17 +240,18 @@ lm.ma.default <- function(y=NULL,
                 ssr.rank <- 1
             }
             F.stat[k] <- (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
-            #print("ssu")
-            #print(ssu)
-            #print("ssr")
-            #print(ssr)
-            #print("ssu.rank")
-            #print(ssu.rank)
-            #print("ssr.rank")            
-            #print(ssr.rank)
-            #print("F.stat")
-            #print(F.stat[k])
-            #stop()
+            print("ssu")
+            print(ssu)
+            print("ssr")
+            print(ssr)
+            print("ssu.rank")
+            print(ssu.rank)
+            print("ssr.rank")            
+            print(ssr.rank)
+            print("F.stat")
+            print(F.stat[k])
+#            stop()
+            ## This F-stat is awlays positive
             
             F.boot <- numeric(length=B)
 
@@ -288,7 +289,7 @@ lm.ma.default <- function(y=NULL,
                 #print(cbind(Est.ssu$fitted,Est.ssu.boot$fitted))
                 #stop()
 
-                ssu.boot <- sum((y-Est.ssu.boot$fitted.values)^2)  
+                ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)  
                 ssu.boot.rank <- Est.ssu.boot$ma.model.rank
                 
                 if(NCOL(X)>1) {
@@ -341,18 +342,18 @@ lm.ma.default <- function(y=NULL,
 #                                              verbose=FALSE,
 #                                              tol=tol,
 #                                              ...)
-                    ssr.boot <- sum((y-Est.ssr.boot$fitted.values)^2)         
+                    ssr.boot <- sum((y.boot-Est.ssr.boot$fitted.values)^2)         
                     ssr.boot.rank <- Est.ssr.boot$ma.model.rank
 
                     if(!is.numeric(X[,k]) & vc) {
-                        print("vc/categorical")
+                        #print("vc/categorical")
                         ssr.boot.rank <- ssr.boot.rank - 1
                     }
                 } else {
                     ssr.boot <- sum((y.boot-mean(y.boot))^2)
                     ssr.boot.rank <- 1
                 }
-                F.boot[b] <- abs((NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot))
+                F.boot[b] <- (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
 
                 ##F.stat[k] <- (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
                 
@@ -383,7 +384,7 @@ lm.ma.default <- function(y=NULL,
 
             }
             
-            print(F.boot)
+            #print(F.boot)
 
             P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
             
