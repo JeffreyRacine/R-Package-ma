@@ -938,29 +938,25 @@ summary.lm.ma <- function(object,
         reject[a <- (object$P.vec < 0.05)] <- '*'
         reject[a <- (object$P.vec < 0.01)] <- '**'
         reject[a <- (object$P.vec < 0.001)] <- '***'
-
-        cat("\nPredictor(s) tested for significance:\n",
-            paste(paste(names(object$X)," (",ncol(object$X),")", sep=""), collapse=", "),"\n\n",
-            sep="")
       
         maxNameLen <- max(nc <- nchar(nm <- names(object$X)))
         maxPvalLen <- max(ncp <- nchar(format.pval(object$P.vec)))
         maxrejLen <- max(ncr <- nchar(reject))
 
         cat("\nIndividual Significance Test(s)\n")
-        cat("P Value:", paste("\n", nm," ",
-                              blank(maxNameLen-nc),
-                              format.pval(object$P.vec),
-                              blank(maxPvalLen-ncp),
-                              " ", reject,
-                              blank(maxrejLen-ncr),
-                              " [F = ",
-                              format.pval(object$F.stat),
-                              "]",
-                              sep=''))
-
+        cat("P Value(s):", paste("\n", nm," ",
+                                 blank(maxNameLen-nc),
+                                 format.pval(object$P.vec),
+                                 blank(maxPvalLen-ncp),
+                                 " ", reject,
+                                 blank(maxrejLen-ncr),
+                                 " [F = ",
+                                 formatC(object$F.stat,format="f",digits=3),
+                                 "]",
+                                 sep=''))
+        
         cat("\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
-
+        
     }
     cat("\n\n")
     
