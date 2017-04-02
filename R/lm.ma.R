@@ -276,7 +276,7 @@ lm.ma.default <- function(y=NULL,
             
             ## With > 1 predictor, restricted model does not incorporate the kth predictor
 
-            if(NCOL(X)>1) {
+            if((NCOL(X)>1 & Est$num.x >= 1 & !is.numeric(X[,k]))) {
                 X.res <- X[,-k,drop=FALSE]
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
@@ -306,10 +306,29 @@ lm.ma.default <- function(y=NULL,
                 if(!is.numeric(X[,k]) & vc) {
                     ssr.rank <- ssr.rank - 1
                 }
-            } else {
+                print("case a")
+            } else if(NCOL(X) == 1) {
+                print("case b")
                 ## With only one predictor, restricted model is
                 ## unconditional mean
                 ssr <- sum((y-mean(y))^2)
+                ssr.rank <- 1
+            } else if(NCOL(X)>1 & Est$num.x == 1 & is.numeric(X[,k])) {
+                print("case c")
+                foo <- X[,-k,drop=FALSE]
+                for(i in 1:NCOL(foo)) foo[,i] <- as.numeric(foo[,i])
+                ## Only one numeric predictor, rest must be factors, compute multivariate mean
+                z.unique <- uniquecombs(as.matrix(foo))
+                rm(foo)
+                ind <-  attr(z.unique,"index")
+                ind.vals <-  unique(ind)
+                nrow.z.unique <- nrow(z.unique)
+                mv.mean <- numeric(length=NROW(X))
+                for(i in 1:nrow.z.unique) {
+                    zz <- ind == ind.vals[i]
+                    mv.mean[zz] <- mean(y[zz])
+                }     
+                ssr <- sum((y-mv.mean)^2)
                 ssr.rank <- 1
             }
             F.stat[k] <- (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
@@ -320,10 +339,12 @@ lm.ma.default <- function(y=NULL,
                 if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X)," (bootstrap replication ",b," of ",B,")",sep=""))
                 ## Residual bootstrap from the null model, use
                 ## original model configuration with bootstrap y
-                if(NCOL(X)>1) {
+                if((NCOL(X)>1 & Est$num.x >= 1 & !is.numeric(X[,k]))) {
                     y.boot <- Est.ssr$fitted.values + sample(y-Est.ssr$fitted.values,replace=TRUE)
-                } else {
+                }  else if(NCOL(X) == 1) {
                     y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
+                } else if(NCOL(X) > 1 & Est$num.x == 1 & is.numeric(X[,k])) {
+                    y.boot <- mv.mean + sample(y-mv.mean,replace=TRUE)                    
                 }
 
                 Est.ssu.boot <- lm.ma.Est(y=y.boot,
@@ -352,7 +373,7 @@ lm.ma.default <- function(y=NULL,
                 ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)  
                 ssu.boot.rank <- Est.ssu.boot$ma.model.rank
                 
-                if(NCOL(X)>1) {
+                if((NCOL(X)>1 & Est$num.x >= 1 & !is.numeric(X[,k]))) {
 
                     Est.ssr.boot <- lm.ma.Est(y=y.boot,
                                               X=X.res,
@@ -383,8 +404,15 @@ lm.ma.default <- function(y=NULL,
                     if(!is.numeric(X[,k]) & vc) {
                         ssr.boot.rank <- ssr.boot.rank - 1
                     }
-                } else {
+                } else if(NCOL(X) == 1) {
                     ssr.boot <- sum((y.boot-mean(y.boot))^2)
+                    ssr.boot.rank <- 1
+                }  else if(NCOL(X) > 1 & Est$num.x == 1 & is.numeric(X[,k,drop=FALSE])) {
+                    for(i in 1:nrow.z.unique) {
+                        zz <- ind == ind.vals[i]
+                        mv.mean[zz] <- mean(y.boot[zz])
+                    }     
+                    ssr.boot <- sum((y.boot-mv.mean)^2)
                     ssr.boot.rank <- 1
                 }
 
