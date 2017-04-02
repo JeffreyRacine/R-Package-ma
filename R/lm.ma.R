@@ -194,7 +194,7 @@ lm.ma.default <- function(y=NULL,
 
         for(k in 1:NCOL(X)) {
             if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X),sep=""))            
-
+            
             ## With > 1 predictor, restricted model does not incorporate the kth predictor
 
             if(NCOL(X)>1) {
@@ -466,7 +466,7 @@ lm.ma.Est <- function(y=NULL,
                 if(basis=="auto") {
                     cv.min <- Inf
                     for(b.basis in c("tensor","glp","additive")) {
-
+                        
                         fit.spline <- numeric(length=NROW(x))
                         htt <- numeric(length=NROW(x))
                         basis.singular <- logical(length=nrow.z.unique)
@@ -537,7 +537,7 @@ lm.ma.Est <- function(y=NULL,
                     htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
                     ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                 }
-
+                
                 rank.vec[p] <- model.z.unique$rank
                 sigsq[p] <- sqrt(sum((y - fit.spline)^2)/(NROW(x)-model.z.unique$rank))
 
@@ -876,7 +876,7 @@ lm.ma.formula <- function(formula,
                        tol=tol,
                        compute.anova=compute.anova,
                        ...)
-
+  
   Est$r.squared <- RSQfunc(tydat,Est$fitted.values)
   Est$residuals <- tydat - Est$fitted.values
 
@@ -909,7 +909,7 @@ coef.lm.ma <- function(object,
 summary.lm.ma <- function(object,
                           ...) {
 
-  cat("Call:\n")
+    cat("Call:\n")
   print(object$call)
   cat("\nModel Averaging Linear Regression",sep="")
   cat(paste(ifelse(object$vc, " (Varying Coefficient Specification)"," (Additive Dummy Specification)"),sep=""))
@@ -920,9 +920,9 @@ summary.lm.ma <- function(object,
   cat(paste("\nNumber of observations: ", object$nobs, sep=""))
   cat(paste("\nEquivalent number of parameters: ", formatC(object$ma.model.rank,format="f",digits=2), sep=""))
   cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
-                                                  " on ", formatC(object$nobs-sum(object$rank.vec*object$ma.weights),format="f",digits=2)," degrees of freedom",sep=""))
+            " on ", formatC(object$nobs-sum(object$rank.vec*object$ma.weights),format="f",digits=2)," degrees of freedom",sep=""))
   cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
-
+  
   cat("\n\nNon-zero model average weights: ")
   cat(formatC(object$ma.weights[object$ma.weights>1e-05]/sum(object$ma.weights[object$ma.weights>1e-05]),format="f",digits=5))
   cat("\nNon-zero weight model ranks: ")
@@ -1023,12 +1023,6 @@ plot.lm.ma <- function(x,
                      col="grey",
                      ...)
                 foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)    
-#                if(!is.list(foo)) {
-#                    foo.tmp <- foo
-#                    foo <- list()
-#                    foo$fit <- foo.tmp
-#                    rm(foo.tmp)
-                                        #                }
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(is.numeric(x$X[,i])) {
                     lines(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],col=1)
