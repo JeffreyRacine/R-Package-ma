@@ -14,27 +14,28 @@ lm.ma(...)
 \method{lm.ma}{default}(y = NULL,
       X = NULL,
       X.eval = NULL,
-      basis = c("auto","tensor","glp","additive"),
-      compute.deriv = FALSE,
-      deriv.order = 1,
-      degree.min = 1,
-      degree.max = NULL,
-      lambda = 1e-02,
-      segments.max = 3,
-      knots = FALSE,
-      S = 2,
-      method = c("jma","mma"),
-      ma.weights = NULL,
-      basis.vec = NULL,
-      rank.vec = NULL,
-      bootstrap.ci = FALSE,
-      B = 199,
       alpha = 0.05,
-      weights = NULL,
+      B = 199,
+      basis.vec = NULL,
+      basis = c("auto","tensor","glp","additive"),
+      bootstrap.ci = FALSE,
+      compute.anova = FALSE,
+      compute.deriv = FALSE,
+      degree.max = NULL,
+      degree.min = 1,
+      deriv.order = 1,
+      K.mat = NULL,
+      knots = FALSE,
+      lambda = 1e-02,
+      ma.weights = NULL,
+      method = c("jma","mma"),
+      rank.vec = NULL,
+      S = 2,
+      segments.max = 3,
+      tol = 1e-12,
       vc = TRUE,
       verbose = TRUE,
-      tol = 1e-12,
-      compute.anova = FALSE,
+      weights = NULL,
       ...)
 
 \method{lm.ma}{formula}(formula,
@@ -42,27 +43,28 @@ lm.ma(...)
       y = NULL,
       X = NULL,
       X.eval = NULL,
-      basis = c("auto","tensor","glp","additive"),
-      compute.deriv = FALSE,
-      deriv.order = 1,
-      degree.min = 1,
-      degree.max = NULL,
-      lambda = 1e-02,
-      segments.max = 3,
-      knots = FALSE,
-      S = 2,
-      method = c("jma","mma"),
-      ma.weights = NULL,
-      basis.vec = NULL,
-      rank.vec = NULL,
-      bootstrap.ci = FALSE,
-      B = 199,
       alpha = 0.05,
-      weights = NULL,
+      B = 199,
+      basis.vec = NULL,
+      basis = c("auto","tensor","glp","additive"),
+      bootstrap.ci = FALSE,
+      compute.anova = FALSE,
+      compute.deriv = FALSE,
+      degree.max = NULL,
+      degree.min = 1,
+      deriv.order = 1,
+      K.mat = NULL,
+      knots = FALSE,
+      lambda = 1e-02,
+      ma.weights = NULL,
+      method = c("jma","mma"),
+      rank.vec = NULL,
+      S = 2,
+      segments.max = 3,
+      tol = 1e-12,
       vc = TRUE,
       verbose = TRUE,
-      tol = 1e-12,
-      compute.anova = FALSE,
+      weights = NULL,
       ...)
 
 }
@@ -78,49 +80,50 @@ lm.ma(...)
 
   \item{X.eval}{a \eqn{p}-variate data frame of points on which the regression will be estimated (evaluation data)}
 
+  \item{alpha}{value in (0,1) used to compute \eqn{1-\alpha\%} confidence intervals}
+
+  \item{B}{the number of bootstrap replications desired}
+
+  \item{basis.vec}{a vector (character) of bases for each candidate model selected by cross-validation}
+
   \item{basis}{ a character string indicating whether the generalized polynomial, additive or tensor product basis should be used}
 
-  \item{compute.deriv}{a logical value indicating whether or not to compute derivatives}
-  
-  \item{deriv.order}{integer indicating order of derivative desired}
+  \item{bootstrap.ci}{a logical value indicating whether to bootstrap nonparametric confidence intervals or not}
 
-  \item{degree.min}{minimum value for the basis in each dimension}
+  \item{compute.anova}{whether to conduct a quasi-anova bootstrap procedure to test for significance of each predictor}
+
+  \item{compute.deriv}{a logical value indicating whether or not to compute derivatives}
 
   \item{degree.max}{maximum value for the basis in each dimension (defaults to \code{max(2,ceiling(S*log(NROW(X))/num.x))} where \code{num.x} is the number of numeric (i.e., non categorical) predictors and n the number of observations}
 
-  \item{lambda}{smoothing parameter for weight function for the
-  categorical predictors when \code{vc=TRUE}}
-  
-  \item{segments.max}{when \code{knots=TRUE} the maximum number of segments (i.e., interior knots plus 1) to use for the B-spline basis}
-  
+  \item{degree.min}{minimum value for the basis in each dimension}
+
+  \item{deriv.order}{integer indicating order of derivative desired}
+
+  \item{K.mat}{matrix with degree and knots that could be passed to the basis routines}
+
   \item{knots}{a logical value indicating whether to include interior knots or not (set equal to the degree)}
 
-  \item{S}{the constant in the data-driven rule for determining degree.max}
-  
-  \item{method}{whether to use jackknife model averaging (jma, Hansen and Racine (2013)) or Mallows model averaging (mma, Hansen (2007))}
+  \item{lambda}{smoothing parameter for weight function for the categorical predictors when \code{vc=TRUE}}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
-  
-  \item{basis.vec}{a vector (character) of bases for each candidate model selected by cross-validation}
-  
+
+  \item{method}{whether to use jackknife model averaging (jma, Hansen and Racine (2013)) or Mallows model averaging (mma, Hansen (2007))}
+
   \item{rank.vec}{a vector of ranks for each candidate model}
-  
-  \item{bootstrap.ci}{a logical value indicating whether to bootstrap nonparametric confidence intervals or not}
-  
-  \item{B}{the number of bootstrap replications desired}
-  
-  \item{alpha}{value in (0,1) used to compute \eqn{1-\alpha\%} confidence intervals}
-  
-  \item{weights}{an optional vector of weights to be used in the fitting process. Should be \code{NULL} or a numeric vector; if non-NULL, weighted least squares is used with weights \code{weights} (that is, minimizing \eqn{\sum_iw_ie_i^2}); otherwise ordinary least squares is used}
+
+  \item{S}{the constant in the data-driven rule for determining degree.max}
+
+  \item{segments.max}{when \code{knots=TRUE} the maximum number of segments (i.e., interior knots plus 1) to use for the B-spline basis}
+
+  \item{tol}{a small constant used to ensure the forcing matrix for the quadratic program is not ill-conditioned}
 
   \item{vc}{a logical value indicating whether to allow the categorical predictors to enter additively (only the intercept can shift) or to instead use a varying coefficient structure (all parameters can shift)}
-  
+
   \item{verbose}{a logical value indicating whether to report detailed progress during computation}
-  
-  \item{tol}{a small constant used to ensure the forcing matrix for the quadratic program is not ill-conditioned}
-  
-  \item{compute.anova}{whether to conduct a quasi-anova bootstrap procedure to test for significance of each predictor}
-  
+
+  \item{weights}{an optional vector of weights to be used in the fitting process. Should be \code{NULL} or a numeric vector; if non-NULL, weighted least squares is used with weights \code{weights} (that is, minimizing \eqn{\sum_iw_ie_i^2}); otherwise ordinary least squares is used}
+
   \item{...}{optional arguments to be passed}
 
 }
@@ -357,7 +360,7 @@ z <- matrix(predict(model.ma,newdata=newdata)$fit,n.eval,n.eval)
 num.colors <- 1000
 colorlut <- topo.colors(num.colors)
 col <- colorlut[ (num.colors-1)*(z-min(z))/(max(z)-min(z)) + 1 ]
-par(ask=T)
+par(ask=TRUE)
 readline(prompt = "Hit <Return> to see next plot:")
 open3d()
 par3d(windowRect=c(900,100,900+640,100+640))
