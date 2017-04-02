@@ -308,17 +308,42 @@ lm.ma.default <- function(y=NULL,
                                               knots=knots,
                                               S=S,
                                               method=method,
-                                              ma.weights=Est.ssr$ma.weights,
-                                              basis.vec=Est.ssr$basis.vec,
-                                              rank.vec=Est.ssr$rank.vec,
-                                              K.mat=Est.ssr$DS, ## no mod needed here
+                                              ma.weights=Est$ma.weights,
+                                              basis.vec=Est$basis.vec,
+                                              rank.vec=Est$rank.vec,
+                                              K.mat=if(is.numeric(X[,k])){Est$DS[,c(-k,-(k+Est$num.x)),drop=FALSE]}else{Est$DS},
                                               weights=weights,
                                               vc=vc,
                                               verbose=FALSE,
                                               tol=tol,
                                               ...)
+                    #print(cbind(Est.ssu.boot$fitted,Est.ssr.boot$fitted))
+                                        #stop()
+#                    Est.ssr.boot <- lm.ma.Est(y=y.boot,
+#                                              X=X.res,
+#                                              X.eval=NULL,
+#                                              basis=basis,
+#                                              compute.deriv=FALSE,
+#                                              deriv.order=deriv.order,
+#                                              degree.min=degree.min,
+#                                              degree.max=degree.max,
+#                                              lambda=lambda,
+#                                              segments.max=segments.max,
+#                                              knots=knots,
+#                                              S=S,
+#                                              method=method,
+#                                              ma.weights=Est.ssr$ma.weights,
+#                                              basis.vec=Est.ssr$basis.vec,
+#                                              rank.vec=Est.ssr$rank.vec,
+#                                              K.mat=Est.ssr$DS, ## no mod needed here
+#                                              weights=weights,
+#                                              vc=vc,
+#                                              verbose=FALSE,
+#                                              tol=tol,
+#                                              ...)
                     ssr.boot <- sum((y-Est.ssr.boot$fitted.values)^2)         
                     ssr.boot.rank <- Est.ssr.boot$ma.model.rank
+
                     if(!is.numeric(X[,k]) & vc) {
                         print("vc/categorical")
                         ssr.boot.rank <- ssr.boot.rank - 1
@@ -327,16 +352,20 @@ lm.ma.default <- function(y=NULL,
                     ssr.boot <- sum((y.boot-mean(y.boot))^2)
                     ssr.boot.rank <- 1
                 }
+                F.boot[b] <- abs((NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot))
+
                 ##F.stat[k] <- (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
                 
                 #F.boot[b] <- (ssr.boot-ssu.boot)/ssu.boot
                 #F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
                 #F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
+                # ssu.boot is null imposed... it becomes the restricted model but we are mimicking the alternative
                 #F.boot[b] <- (NROW(X)-ssu.rank)*(ssu.boot-ssu)/((ssu.rank-ssr.rank)*ssu)
                 #F.boot[b] <- (NROW(X)-ssu.rank)*(ssr.boot-ssu)/((ssu.rank-ssr.boot.rank)*ssu)
+                #F.boot[b] <- (NROW(X)-ssu.rank)*(ssr-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot)
 
                 ## Kludge... use ranks for original models, take absolute value...
-                F.boot[b] <-  (NROW(X)-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot)
+                #F.boot[b] <-  (NROW(X)-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot)
                 print("ssu")
                 print(ssu)
                 print("ssu.boot")
@@ -351,9 +380,10 @@ lm.ma.default <- function(y=NULL,
                 print(ssu.boot.rank)
                 print("F.boot")
                 print(F.boot[b])
+
             }
             
-           print(F.boot)
+            print(F.boot)
 
             P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
             
