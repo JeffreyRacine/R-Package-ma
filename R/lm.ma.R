@@ -338,6 +338,8 @@ lm.ma.default <- function(y=NULL,
     }
     
     Est$compute.anova <- compute.anova
+    Est$bootstrap.ci <- bootstrap.ci
+    ##print(Est$bootstrap.ci)
     
     if(verbose) cat("\r                                                                               ")
     if(verbose) cat("\r")
@@ -968,42 +970,51 @@ summary.lm.ma <- function(object,
 predict.lm.ma <- function(object,
                           newdata=NULL,
                           ...) {
-
-  if(is.null(newdata)) {
-      return(fitted(object))
-  } else{
-    tt <- terms(object)
-    exdat <- model.frame(delete.response(tt),newdata,xlev=object$xlevels)
-    Est <- lm.ma.default(y=object$y,
-                         X=object$X,
-                         X.eval=exdat,
-                         basis=object$basis,
-                         compute.deriv=object$compute.deriv,
-                         deriv.order=object$deriv.order,
-                         degree.max=object$degree.max,
-                         lambda=object$lambda,
-                         segments.max=object$segments.max,
-                         knots=object$knots,
-                         S=object$S,
-                         method=object$method,
-                         ma.weights=object$ma.weights,
-                         basis.vec=object$basis.vec,
-                         rank.vec=object$rank.vec,
-                         weights=object$weights,
-                         vc=object$vc,
-                         verbose=object$verbose,
-                         tol=object$tol,
-                         ...)
-
-    return(list(fit=Est$fitted.values,
-                deriv=Est$deriv,
-                fit.low=Est$fitted.ci.l,
-                fit.up=Est$fitted.ci.u,
-                deriv.low=Est$deriv.ci.l,
-                deriv.up=Est$deriv.ci.u))
-
-  }
-
+    
+    if(is.null(newdata)) {
+        return(fitted(object))
+    } else{
+        
+        tt <- terms(object)
+        exdat <- model.frame(delete.response(tt),newdata,xlev=object$xlevels)
+        Est <- lm.ma.default(y=object$y,
+                             X=object$X,
+                             X.eval=exdat,
+                             basis=object$basis,
+                             compute.deriv=object$compute.deriv,
+                             deriv.order=object$deriv.order,
+                             degree.max=object$degree.max,
+                             lambda=object$lambda,
+                             segments.max=object$segments.max,
+                             knots=object$knots,
+                             S=object$S,
+                             method=object$method,
+                             ma.weights=object$ma.weights,
+                             basis.vec=object$basis.vec,
+                             rank.vec=object$rank.vec,
+                             weights=object$weights,
+                             vc=object$vc,
+                             verbose=object$verbose,
+                             tol=object$tol,
+                             ...)
+        
+        if(object$bootstrap.ci | object$compute.deriv) {
+            ##print("return list")
+            print(object$bootstrap.ci)
+            print(object$compute.deriv)        
+            return(list(fit=Est$fitted.values,
+                        deriv=Est$deriv,
+                        fit.low=Est$fitted.ci.l,
+                        fit.up=Est$fitted.ci.u,
+                        deriv.low=Est$deriv.ci.l,
+                        deriv.up=Est$deriv.ci.u))
+        } else {
+            ##print("return vector")
+            return(Est$fitted.values)    
+        }
+        
+    }
+    
 }
 
 plot.lm.ma <- function(x,
@@ -1013,8 +1024,9 @@ plot.lm.ma <- function(x,
                        plot.data=FALSE,
                        ...) {
     
-    x$verbose <- FALSE    
-    
+    x$verbose <- FALSE
+    x$bootstrap.ci <- plot.ci
+
     yname <- all.vars(x$call)[1]
     xznames <- names(x$X)
     
@@ -1038,7 +1050,13 @@ plot.lm.ma <- function(x,
                      cex=0.1,
                      col="grey",
                      ...)
-                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
+                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)    
+                if(!is.list(foo)) {
+                    foo.tmp <- foo
+                    foo <- list()
+                    foo$fit <- foo.tmp
+                    rm(foo.tmp)
+                }
                 if(is.numeric(x$X[,i])) {
                     lines(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],col=1)
                 } else {
@@ -1081,49 +1099,49 @@ plot.lm.ma <- function(x,
         }
         
         if(NCOL(x$X) > 1) par(mfrow=c(1,1))
-
+        
     } else {
         
-      is.numeric.X <- logical(NCOL(x$X))
-      xeval.median <- x$X
-      for(i in 1:NCOL(x$X)) {
-          is.numeric.X[i] <- is.numeric(x$X[,i])
-          xeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
-      }
-
-      if(x$num.x > 1) par(mfrow=c(2,ifelse(x$num.x %%2 == 0, x$num.x/2, (x$num.x+1)/2)))        
-      j <- 1
-      for(i in 1:NCOL(x$X)) {
-          
-          cat(paste("\rGenerating object ",i," of ",x$num.x," to plot...",sep=""))
-          
-          if(is.numeric(x$X[,i])) {
-            xeval <- xeval.median
-            xeval[,i] <- x$X[,i]
-            x$compute.deriv <- TRUE
+        is.numeric.X <- logical(NCOL(x$X))
+        xeval.median <- x$X
+        for(i in 1:NCOL(x$X)) {
+            is.numeric.X[i] <- is.numeric(x$X[,i])
+            xeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
+        }
         
-            foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
-            if(!plot.ci) {
-                plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
-                     ylab=paste("d ",yname," / d ",xznames[i],sep=""),
-                     xlab=xznames[i],
-                     type="l",
-                    ...)
-            } else {
-                ylim <- range(c(foo$deriv.low[,j],foo$deriv.up[,j]))
-                plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
-                     ylab=paste("d ",yname," / d ",xznames[i],sep=""),
-                     xlab=xznames[i],
-                     type="l",
-                     ylim=ylim,
-                     ...)
-                lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),j],col=2,lty=2)
-                lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),j],col=2,lty=2)
-            }
+        if(x$num.x > 1) par(mfrow=c(2,ifelse(x$num.x %%2 == 0, x$num.x/2, (x$num.x+1)/2)))        
+        j <- 1
+        for(i in 1:NCOL(x$X)) {
             
-            j <- j+1
-        }  
-      }
+            cat(paste("\rGenerating object ",i," of ",x$num.x," to plot...",sep=""))
+            
+            if(is.numeric(x$X[,i])) {
+                xeval <- xeval.median
+                xeval[,i] <- x$X[,i]
+                x$compute.deriv <- TRUE
+                
+                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
+                if(!plot.ci) {
+                    plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
+                         ylab=paste("d ",yname," / d ",xznames[i],sep=""),
+                         xlab=xznames[i],
+                         type="l",
+                         ...)
+                } else {
+                    ylim <- range(c(foo$deriv.low[,j],foo$deriv.up[,j]))
+                    plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
+                         ylab=paste("d ",yname," / d ",xznames[i],sep=""),
+                         xlab=xznames[i],
+                         type="l",
+                         ylim=ylim,
+                         ...)
+                    lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),j],col=2,lty=2)
+                    lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),j],col=2,lty=2)
+                }
+                
+                j <- j+1
+            }  
+        }
     }
     
     if(NCOL(x$X) > 1) par(mfrow=c(1,1))
