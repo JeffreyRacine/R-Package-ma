@@ -1,4 +1,82 @@
+## Function call.
+
 lm.ma <- function(...) UseMethod("lm.ma")
+
+## Default formula interface.
+
+lm.ma.formula <- function(formula,
+                          data=list(),
+                          y=NULL,
+                          X=NULL,
+                          X.eval=NULL,
+                          alpha=0.05,
+                          B=199,
+                          basis.vec=NULL,
+                          basis=c("auto","tensor","glp","additive"),
+                          bootstrap.ci=FALSE,
+                          compute.anova=FALSE,
+                          compute.deriv=FALSE,
+                          degree.max=NULL,
+                          degree.min=1,
+                          deriv.order=1,
+                          K.mat=NULL,
+                          knots=FALSE,
+                          lambda=1e-02,
+                          ma.weights=NULL,
+                          method=c("jma","mma"),
+                          rank.vec=NULL,
+                          S=2,
+                          segments.max=3,
+                          tol=1e-12,
+                          vc=TRUE,
+                          verbose=TRUE,
+                          weights=NULL,
+                          ...) {
+
+
+  mf <- model.frame(formula=formula, data=data)
+  mt <- attr(mf, "terms")
+  tydat <- model.response(mf)
+  txdat <- mf[, attr(attr(mf, "terms"),"term.labels"), drop = FALSE]
+
+  Est <- lm.ma.default(y=tydat,
+                       X=txdat,
+                       X.eval=NULL,
+                       basis=basis,
+                       compute.deriv=compute.deriv,
+                       deriv.order=deriv.order,
+                       degree.min=degree.min,
+                       degree.max=degree.max,
+                       lambda=lambda,
+                       segments.max=segments.max,
+                       knots=knots,
+                       S=S,
+                       method=method,
+                       ma.weights=ma.weights,
+                       basis.vec=basis.vec,
+                       rank.vec=rank.vec,
+                       bootstrap.ci=bootstrap.ci,
+                       B=B,
+                       alpha=alpha,
+                       weights=weights,
+                       vc=vc,
+                       verbose=verbose,
+                       tol=tol,
+                       compute.anova=compute.anova,
+                       ...)
+  
+  Est$r.squared <- RSQfunc(tydat,Est$fitted.values)
+  Est$residuals <- tydat - Est$fitted.values
+
+  Est$call <- match.call()
+  Est$formula <- formula
+  Est$terms <- mt
+
+  return(Est)
+
+}
+
+## Default function.
 
 lm.ma.default <- function(y=NULL,
                           X=NULL,
@@ -36,7 +114,7 @@ lm.ma.default <- function(y=NULL,
     if(compute.deriv & (degree.min < deriv.order)) stop("Minimum degree (degree.min) must be at least as large the order of the derivative required (deriv.order)")
     if(degree.min < 1) stop("Minimum degree (degree.min) must be at least one")
 
-    ## First obtain weights, then in subsequent call computes fits and 
+    ## First obtain weights, then in subsequent call computes fits and
     ## derivatives
 
     Est <- lm.ma.Est(y=y,
@@ -62,8 +140,9 @@ lm.ma.default <- function(y=NULL,
                      tol=tol,
                      ...)
     
-    ## Save rank vector and matrix of degrees and segments (not computed in next 
-    ## call since ma.weights is passed, but needed for summary)
+    ## Save rank vector and matrix of degrees and segments (not
+    ## computed in next call since ma.weights is passed, but needed
+    ## for summary)
 
     if(compute.deriv | !is.null(X.eval)) {
         rank.vec <- Est$rank.vec
@@ -99,7 +178,7 @@ lm.ma.default <- function(y=NULL,
 
     }
 
-    ## Bootstrap is requested using pre-computed ma.weights
+    ## Bootstrap if requested uses pre-computed ma.weights
     
     if(bootstrap.ci) {
 
@@ -228,7 +307,8 @@ lm.ma.default <- function(y=NULL,
                     ssr.rank <- ssr.rank - 1
                 }
             } else {
-                ## With only one predictor, restricted model is unconditional mean
+                ## With only one predictor, restricted model is
+                ## unconditional mean
                 ssr <- sum((y-mean(y))^2)
                 ssr.rank <- 1
             }
@@ -238,7 +318,8 @@ lm.ma.default <- function(y=NULL,
 
             for(b in 1:B) {
                 if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X)," (bootstrap replication ",b," of ",B,")",sep=""))
-                ## Residual bootstrap from the null model, use original model configuration with bootstrap y
+                ## Residual bootstrap from the null model, use
+                ## original model configuration with bootstrap y
                 if(NCOL(X)>1) {
                     y.boot <- Est.ssr$fitted.values + sample(y-Est.ssr$fitted.values,replace=TRUE)
                 } else {
@@ -272,8 +353,6 @@ lm.ma.default <- function(y=NULL,
                 ssu.boot.rank <- Est.ssu.boot$ma.model.rank
                 
                 if(NCOL(X)>1) {
-
-                    ## bootstrap resample from the null model
 
                     Est.ssr.boot <- lm.ma.Est(y=y.boot,
                                               X=X.res,
@@ -334,6 +413,264 @@ lm.ma.default <- function(y=NULL,
     return(Est)
 
 }
+
+print.lm.ma <- function(x,
+                        ...) {
+    cat("Call:\n")
+    print(x$call)
+
+}
+
+## Method for extracting vector of derivatives.
+
+coef.lm.ma <- function(object,
+                       ...) {
+
+    if(!is.null(object$deriv)) {
+        object$deriv
+    } else {
+        cat("\nlm.ma(...) was called with option compute.deriv=FALSE\n")
+    }
+
+}
+
+## Method for summary.
+
+summary.lm.ma <- function(object,
+                          ...) {
+
+    cat("Call:\n")
+    print(object$call)
+    cat("\nModel Averaging Linear Regression",sep="")
+    cat(paste(ifelse(object$vc, " (Varying Coefficient Specification)"," (Additive Dummy Specification)"),sep=""))
+    cat(paste("\nModel average criterion: ", ifelse(object$method=="jma","Jackknife (Hansen and Racine (2013))","Mallows  (Hansen (2007))"), sep=""))
+    cat(paste("\nMinimum degree: ", object$degree.min, sep=""))  
+    cat(paste("\nMaximum degree: ", object$degree.max, sep=""))
+    cat(paste("\nBasis: ", object$basis, sep=""))  
+    cat(paste("\nNumber of observations: ", object$nobs, sep=""))
+    cat(paste("\nEquivalent number of parameters: ", formatC(object$ma.model.rank,format="f",digits=2), sep=""))
+    cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
+              " on ", formatC(object$nobs-sum(object$rank.vec*object$ma.weights),format="f",digits=2)," degrees of freedom",sep=""))
+    cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
+    
+    cat("\n\nNon-zero model average weights: ")
+    cat(formatC(object$ma.weights[object$ma.weights>1e-05]/sum(object$ma.weights[object$ma.weights>1e-05]),format="f",digits=5))
+    cat("\nNon-zero weight model ranks: ")
+    cat(object$rank.vec[object$ma.weights>1e-05])
+    if(object$basis=="auto") {
+        cat("\nNon-zero weight model bases: ")
+        cat(object$basis.vec[object$ma.weights>1e-05])    
+    }
+    if(object$compute.anova) {
+        
+        reject <- rep('', length(object$P.vec))
+        reject[a <- (object$P.vec < 0.1)] <- '.'
+        reject[a <- (object$P.vec < 0.05)] <- '*'
+        reject[a <- (object$P.vec < 0.01)] <- '**'
+        reject[a <- (object$P.vec < 0.001)] <- '***'
+      
+        maxNameLen <- max(nc <- nchar(nm <- names(object$X)))
+        maxPvalLen <- max(ncp <- nchar(format.pval(object$P.vec)))
+        maxrejLen <- max(ncr <- nchar(reject))
+
+        cat("\n\nIndividual Significance Test(s)\n")
+        cat("P Value(s):", paste("\n", nm," ",
+                                 blank(maxNameLen-nc),
+                                 format.pval(object$P.vec),
+                                 blank(maxPvalLen-ncp),
+                                 " ", reject,
+                                 blank(maxrejLen-ncr),
+                                 " [F = ",
+                                 formatC(object$F.stat,format="f",digits=3),
+                                 "]",
+                                 sep=''))
+        
+        cat("\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
+        
+    }
+    cat("\n\n")
+    
+}
+
+## Method for predicting given a new data frame.
+
+predict.lm.ma <- function(object,
+                          newdata=NULL,
+                          ...) {
+    
+    if(is.null(newdata)) {
+        return(fitted(object))
+    } else{
+        
+        tt <- terms(object)
+        exdat <- model.frame(delete.response(tt),newdata,xlev=object$xlevels)
+        Est <- lm.ma.default(y=object$y,
+                             X=object$X,
+                             X.eval=exdat,
+                             basis=object$basis,
+                             compute.deriv=object$compute.deriv,
+                             deriv.order=object$deriv.order,
+                             degree.max=object$degree.max,
+                             lambda=object$lambda,
+                             segments.max=object$segments.max,
+                             knots=object$knots,
+                             S=object$S,
+                             method=object$method,
+                             ma.weights=object$ma.weights,
+                             basis.vec=object$basis.vec,
+                             rank.vec=object$rank.vec,
+                             weights=object$weights,
+                             vc=object$vc,
+                             verbose=object$verbose,
+                             tol=object$tol,
+                             ...)
+        
+        if(object$bootstrap.ci | object$compute.deriv) {
+            return(list(fit=Est$fitted.values,
+                        deriv=Est$deriv,
+                        fit.low=Est$fitted.ci.l,
+                        fit.up=Est$fitted.ci.u,
+                        deriv.low=Est$deriv.ci.l,
+                        deriv.up=Est$deriv.ci.u))
+        } else {
+            return(Est$fitted.values)    
+        }
+        
+    }
+    
+}
+
+## Method for plotting.
+
+plot.lm.ma <- function(x,
+                       B=99,
+                       plot.deriv=FALSE,
+                       plot.ci=FALSE,
+                       plot.data=FALSE,
+                       ...) {
+    
+    x$verbose <- FALSE
+    x$bootstrap.ci <- plot.ci
+
+    yname <- all.vars(x$call)[1]
+    xznames <- names(x$X)
+    
+    if(!plot.deriv) {
+        xeval.median <- x$X
+        is.numeric.X <- logical(NCOL(x$X))
+        for(i in 1:NCOL(x$X)) {
+            is.numeric.X[i] <- is.numeric(x$X[,i])
+            xeval.median[,i] <- uocquantile(xeval.median[,i],prob=0.5)
+        }
+        if(NCOL(x$X) > 1) par(mfrow=c(2,ifelse(NCOL(x$X) %%2 == 0, NCOL(x$X)/2, (NCOL(x$X)+1)/2)))
+        for(i in 1:NCOL(x$X)) {
+            cat(paste("\rGenerating object ",i," of ",NCOL(x$X)," to plot...",sep=""))
+            xeval <- xeval.median
+            xeval[,i] <- x$X[,i]
+            x$compute.deriv <- FALSE
+            if(plot.data) {
+                plot(xeval[,i],x$y,
+                     ylab=yname,
+                     xlab=xznames[i],
+                     cex=0.1,
+                     col="grey",
+                     ...)
+                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)    
+                if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
+                if(is.numeric(x$X[,i])) {
+                    lines(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],col=1)
+                } else {
+                    points(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],bg=1,col=1,pch=21)
+                }
+                if(plot.ci) {
+                    if(is.numeric(x$X[,i])) {
+                        lines(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],col=2,lty=2)
+                        lines(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],col=2,lty=2)
+                    } else {
+                        points(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],bg=2,col=2,pch=21)
+                        points(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],bg=2,col=2,pch=21)
+                    }
+                }
+            } else {
+                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
+                if(!plot.ci) {
+                    plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
+                         ylab=yname,
+                         xlab=xznames[i],
+                         type=if(is.numeric(x$X[,i])){"l"}else{"p"},
+                         ...)
+                } else {
+                    ylim <- range(c(foo$fit.low,foo$fit.up))
+                    plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
+                         ylab=yname,
+                         xlab=xznames[i],
+                         type=if(is.numeric(x$X[,i])){"l"}else{"p"},
+                         ylim=ylim,
+                         ...)
+                    if(is.numeric(x$X[,i])) {
+                        lines(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],col=2,lty=2)
+                        lines(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],col=2,lty=2)
+                    } else {
+                        points(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],bg=2,col=2,pch=21)
+                        points(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],bg=2,col=2,pch=21)                       
+                    }
+                }
+            }
+        }
+        
+        if(NCOL(x$X) > 1) par(mfrow=c(1,1))
+        
+    } else {
+        
+        is.numeric.X <- logical(NCOL(x$X))
+        xeval.median <- x$X
+        for(i in 1:NCOL(x$X)) {
+            is.numeric.X[i] <- is.numeric(x$X[,i])
+            xeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
+        }
+        
+        if(x$num.x > 1) par(mfrow=c(2,ifelse(x$num.x %%2 == 0, x$num.x/2, (x$num.x+1)/2)))        
+        j <- 1
+        for(i in 1:NCOL(x$X)) {
+            
+            cat(paste("\rGenerating object ",i," of ",x$num.x," to plot...",sep=""))
+            
+            if(is.numeric(x$X[,i])) {
+                xeval <- xeval.median
+                xeval[,i] <- x$X[,i]
+                x$compute.deriv <- TRUE
+                
+                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
+                if(!plot.ci) {
+                    plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
+                         ylab=paste("d ",yname," / d ",xznames[i],sep=""),
+                         xlab=xznames[i],
+                         type="l",
+                         ...)
+                } else {
+                    ylim <- range(c(foo$deriv.low[,j],foo$deriv.up[,j]))
+                    plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
+                         ylab=paste("d ",yname," / d ",xznames[i],sep=""),
+                         xlab=xznames[i],
+                         type="l",
+                         ylim=ylim,
+                         ...)
+                    lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),j],col=2,lty=2)
+                    lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),j],col=2,lty=2)
+                }
+                
+                j <- j+1
+            }  
+        }
+    }
+    
+    if(NCOL(x$X) > 1) par(mfrow=c(1,1))
+    cat("\r                                                     ")
+    cat("\r")
+    
+}
+
+## The workhorse function.
 
 lm.ma.Est <- function(y=NULL,
                       X=NULL,
@@ -718,7 +1055,8 @@ lm.ma.Est <- function(y=NULL,
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing model average weights...")
 
-        ## Solve the quadratic program for the Mallows model average weights
+        ## Solve the quadratic program for the Mallows model average
+        ## weights
         M <- ncol(ma.mat)
         D <- t(ma.mat)%*%ma.mat
         tol.ridge <- tol
@@ -736,7 +1074,10 @@ lm.ma.Est <- function(y=NULL,
         }        
         b <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
 
-        ## Solve the quadratic program for the Mallows model average weights
+        ## Re-solve the quadratic program for the non-zero Mallows
+        ## model average weights (trivial overhead and can only
+        ## improve upon the existing weights when D is not
+        ## well-conditioned)
         ma.mat.reb <- ma.mat[,b>1e-05,drop=FALSE]
         M <- ncol(ma.mat.reb)
         D <- t(ma.mat.reb)%*%ma.mat.reb
@@ -816,324 +1157,3 @@ lm.ma.Est <- function(y=NULL,
 
 }
 
-lm.ma.formula <- function(formula,
-                          data=list(),
-                          y=NULL,
-                          X=NULL,
-                          X.eval=NULL,
-                          alpha=0.05,
-                          B=199,
-                          basis.vec=NULL,
-                          basis=c("auto","tensor","glp","additive"),
-                          bootstrap.ci=FALSE,
-                          compute.anova=FALSE,
-                          compute.deriv=FALSE,
-                          degree.max=NULL,
-                          degree.min=1,
-                          deriv.order=1,
-                          K.mat=NULL,
-                          knots=FALSE,
-                          lambda=1e-02,
-                          ma.weights=NULL,
-                          method=c("jma","mma"),
-                          rank.vec=NULL,
-                          S=2,
-                          segments.max=3,
-                          tol=1e-12,
-                          vc=TRUE,
-                          verbose=TRUE,
-                          weights=NULL,
-                          ...) {
-
-
-  mf <- model.frame(formula=formula, data=data)
-  mt <- attr(mf, "terms")
-  tydat <- model.response(mf)
-  txdat <- mf[, attr(attr(mf, "terms"),"term.labels"), drop = FALSE]
-
-  Est <- lm.ma.default(y=tydat,
-                       X=txdat,
-                       X.eval=NULL,
-                       basis=basis,
-                       compute.deriv=compute.deriv,
-                       deriv.order=deriv.order,
-                       degree.min=degree.min,
-                       degree.max=degree.max,
-                       lambda=lambda,
-                       segments.max=segments.max,
-                       knots=knots,
-                       S=S,
-                       method=method,
-                       ma.weights=ma.weights,
-                       basis.vec=basis.vec,
-                       rank.vec=rank.vec,
-                       bootstrap.ci=bootstrap.ci,
-                       B=B,
-                       alpha=alpha,
-                       weights=weights,
-                       vc=vc,
-                       verbose=verbose,
-                       tol=tol,
-                       compute.anova=compute.anova,
-                       ...)
-  
-  Est$r.squared <- RSQfunc(tydat,Est$fitted.values)
-  Est$residuals <- tydat - Est$fitted.values
-
-  Est$call <- match.call()
-  Est$formula <- formula
-  Est$terms <- mt
-
-  return(Est)
-
-}
-
-print.lm.ma <- function(x,
-                        ...) {
-    cat("Call:\n")
-    print(x$call)
-
-}
-
-coef.lm.ma <- function(object,
-                       ...) {
-
-    if(!is.null(object$deriv)) {
-        object$deriv
-    } else {
-        cat("\nlm.ma(...) was called with option compute.deriv=FALSE\n")
-    }
-
-    }
-
-summary.lm.ma <- function(object,
-                          ...) {
-
-    cat("Call:\n")
-    print(object$call)
-    cat("\nModel Averaging Linear Regression",sep="")
-    cat(paste(ifelse(object$vc, " (Varying Coefficient Specification)"," (Additive Dummy Specification)"),sep=""))
-    cat(paste("\nModel average criterion: ", ifelse(object$method=="jma","Jackknife (Hansen and Racine (2013))","Mallows  (Hansen (2007))"), sep=""))
-    cat(paste("\nMinimum degree: ", object$degree.min, sep=""))  
-    cat(paste("\nMaximum degree: ", object$degree.max, sep=""))
-    cat(paste("\nBasis: ", object$basis, sep=""))  
-    cat(paste("\nNumber of observations: ", object$nobs, sep=""))
-    cat(paste("\nEquivalent number of parameters: ", formatC(object$ma.model.rank,format="f",digits=2), sep=""))
-    cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
-              " on ", formatC(object$nobs-sum(object$rank.vec*object$ma.weights),format="f",digits=2)," degrees of freedom",sep=""))
-    cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
-    
-    cat("\n\nNon-zero model average weights: ")
-    cat(formatC(object$ma.weights[object$ma.weights>1e-05]/sum(object$ma.weights[object$ma.weights>1e-05]),format="f",digits=5))
-    cat("\nNon-zero weight model ranks: ")
-    cat(object$rank.vec[object$ma.weights>1e-05])
-    if(object$basis=="auto") {
-        cat("\nNon-zero weight model bases: ")
-        cat(object$basis.vec[object$ma.weights>1e-05])    
-    }
-    if(object$compute.anova) {
-        
-        reject <- rep('', length(object$P.vec))
-        reject[a <- (object$P.vec < 0.1)] <- '.'
-        reject[a <- (object$P.vec < 0.05)] <- '*'
-        reject[a <- (object$P.vec < 0.01)] <- '**'
-        reject[a <- (object$P.vec < 0.001)] <- '***'
-      
-        maxNameLen <- max(nc <- nchar(nm <- names(object$X)))
-        maxPvalLen <- max(ncp <- nchar(format.pval(object$P.vec)))
-        maxrejLen <- max(ncr <- nchar(reject))
-
-        cat("\n\nIndividual Significance Test(s)\n")
-        cat("P Value(s):", paste("\n", nm," ",
-                                 blank(maxNameLen-nc),
-                                 format.pval(object$P.vec),
-                                 blank(maxPvalLen-ncp),
-                                 " ", reject,
-                                 blank(maxrejLen-ncr),
-                                 " [F = ",
-                                 formatC(object$F.stat,format="f",digits=3),
-                                 "]",
-                                 sep=''))
-        
-        cat("\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
-        
-    }
-    cat("\n\n")
-    
-}
-
-## Method for predicting given a new data frame.
-
-predict.lm.ma <- function(object,
-                          newdata=NULL,
-                          ...) {
-    
-    if(is.null(newdata)) {
-        return(fitted(object))
-    } else{
-        
-        tt <- terms(object)
-        exdat <- model.frame(delete.response(tt),newdata,xlev=object$xlevels)
-        Est <- lm.ma.default(y=object$y,
-                             X=object$X,
-                             X.eval=exdat,
-                             basis=object$basis,
-                             compute.deriv=object$compute.deriv,
-                             deriv.order=object$deriv.order,
-                             degree.max=object$degree.max,
-                             lambda=object$lambda,
-                             segments.max=object$segments.max,
-                             knots=object$knots,
-                             S=object$S,
-                             method=object$method,
-                             ma.weights=object$ma.weights,
-                             basis.vec=object$basis.vec,
-                             rank.vec=object$rank.vec,
-                             weights=object$weights,
-                             vc=object$vc,
-                             verbose=object$verbose,
-                             tol=object$tol,
-                             ...)
-        
-        if(object$bootstrap.ci | object$compute.deriv) {
-            return(list(fit=Est$fitted.values,
-                        deriv=Est$deriv,
-                        fit.low=Est$fitted.ci.l,
-                        fit.up=Est$fitted.ci.u,
-                        deriv.low=Est$deriv.ci.l,
-                        deriv.up=Est$deriv.ci.u))
-        } else {
-            return(Est$fitted.values)    
-        }
-        
-    }
-    
-}
-
-plot.lm.ma <- function(x,
-                       B=99,
-                       plot.deriv=FALSE,
-                       plot.ci=FALSE,
-                       plot.data=FALSE,
-                       ...) {
-    
-    x$verbose <- FALSE
-    x$bootstrap.ci <- plot.ci
-
-    yname <- all.vars(x$call)[1]
-    xznames <- names(x$X)
-    
-    if(!plot.deriv) {
-        xeval.median <- x$X
-        is.numeric.X <- logical(NCOL(x$X))
-        for(i in 1:NCOL(x$X)) {
-            is.numeric.X[i] <- is.numeric(x$X[,i])
-            xeval.median[,i] <- uocquantile(xeval.median[,i],prob=0.5)
-        }
-        if(NCOL(x$X) > 1) par(mfrow=c(2,ifelse(NCOL(x$X) %%2 == 0, NCOL(x$X)/2, (NCOL(x$X)+1)/2)))
-        for(i in 1:NCOL(x$X)) {
-            cat(paste("\rGenerating object ",i," of ",NCOL(x$X)," to plot...",sep=""))
-            xeval <- xeval.median
-            xeval[,i] <- x$X[,i]
-            x$compute.deriv <- FALSE
-            if(plot.data) {
-                plot(xeval[,i],x$y,
-                     ylab=yname,
-                     xlab=xznames[i],
-                     cex=0.1,
-                     col="grey",
-                     ...)
-                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)    
-                if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
-                if(is.numeric(x$X[,i])) {
-                    lines(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],col=1)
-                } else {
-                    points(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],bg=1,col=1,pch=21)
-                }
-                if(plot.ci) {
-                    if(is.numeric(x$X[,i])) {
-                        lines(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],col=2,lty=2)
-                        lines(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],col=2,lty=2)
-                    } else {
-                        points(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],bg=2,col=2,pch=21)
-                        points(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],bg=2,col=2,pch=21)
-                    }
-                }
-            } else {
-                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
-                if(!plot.ci) {
-                    plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
-                         ylab=yname,
-                         xlab=xznames[i],
-                         type=if(is.numeric(x$X[,i])){"l"}else{"p"},
-                         ...)
-                } else {
-                    ylim <- range(c(foo$fit.low,foo$fit.up))
-                    plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
-                         ylab=yname,
-                         xlab=xznames[i],
-                         type=if(is.numeric(x$X[,i])){"l"}else{"p"},
-                         ylim=ylim,
-                         ...)
-                    if(is.numeric(x$X[,i])) {
-                        lines(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],col=2,lty=2)
-                        lines(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],col=2,lty=2)
-                    } else {
-                        points(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],bg=2,col=2,pch=21)
-                        points(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],bg=2,col=2,pch=21)                       
-                    }
-                }
-            }
-        }
-        
-        if(NCOL(x$X) > 1) par(mfrow=c(1,1))
-        
-    } else {
-        
-        is.numeric.X <- logical(NCOL(x$X))
-        xeval.median <- x$X
-        for(i in 1:NCOL(x$X)) {
-            is.numeric.X[i] <- is.numeric(x$X[,i])
-            xeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
-        }
-        
-        if(x$num.x > 1) par(mfrow=c(2,ifelse(x$num.x %%2 == 0, x$num.x/2, (x$num.x+1)/2)))        
-        j <- 1
-        for(i in 1:NCOL(x$X)) {
-            
-            cat(paste("\rGenerating object ",i," of ",x$num.x," to plot...",sep=""))
-            
-            if(is.numeric(x$X[,i])) {
-                xeval <- xeval.median
-                xeval[,i] <- x$X[,i]
-                x$compute.deriv <- TRUE
-                
-                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
-                if(!plot.ci) {
-                    plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
-                         ylab=paste("d ",yname," / d ",xznames[i],sep=""),
-                         xlab=xznames[i],
-                         type="l",
-                         ...)
-                } else {
-                    ylim <- range(c(foo$deriv.low[,j],foo$deriv.up[,j]))
-                    plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
-                         ylab=paste("d ",yname," / d ",xznames[i],sep=""),
-                         xlab=xznames[i],
-                         type="l",
-                         ylim=ylim,
-                         ...)
-                    lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),j],col=2,lty=2)
-                    lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),j],col=2,lty=2)
-                }
-                
-                j <- j+1
-            }  
-        }
-    }
-    
-    if(NCOL(x$X) > 1) par(mfrow=c(1,1))
-    cat("\r                                                     ")
-    cat("\r")
-    
-}
