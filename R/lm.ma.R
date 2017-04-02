@@ -306,15 +306,12 @@ lm.ma.default <- function(y=NULL,
                 if(!is.numeric(X[,k]) & vc) {
                     ssr.rank <- ssr.rank - 1
                 }
-                print("case a")
             } else if(NCOL(X) == 1) {
-                print("case b")
                 ## With only one predictor, restricted model is
                 ## unconditional mean
                 ssr <- sum((y-mean(y))^2)
                 ssr.rank <- 1
             } else if(NCOL(X)>1 & Est$num.x == 1 & is.numeric(X[,k])) {
-                print("case c")
                 foo <- X[,-k,drop=FALSE]
                 for(i in 1:NCOL(foo)) foo[,i] <- as.numeric(foo[,i])
                 ## Only one numeric predictor, rest must be factors, compute multivariate mean
@@ -334,7 +331,7 @@ lm.ma.default <- function(y=NULL,
             F.stat[k] <- (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
             
             F.boot <- numeric(length=B)
-
+            
             for(b in 1:B) {
                 if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X)," (bootstrap replication ",b," of ",B,")",sep=""))
                 ## Residual bootstrap from the null model, use
@@ -343,7 +340,7 @@ lm.ma.default <- function(y=NULL,
                     y.boot <- Est.ssr$fitted.values + sample(y-Est.ssr$fitted.values,replace=TRUE)
                 }  else if(NCOL(X) == 1) {
                     y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
-                } else if(NCOL(X) > 1 & Est$num.x == 1 & is.numeric(X[,k])) {
+                }  else if(NCOL(X)>1 & Est$num.x == 1 & is.numeric(X[,k])) {
                     y.boot <- mv.mean + sample(y-mv.mean,replace=TRUE)                    
                 }
 
@@ -407,7 +404,7 @@ lm.ma.default <- function(y=NULL,
                 } else if(NCOL(X) == 1) {
                     ssr.boot <- sum((y.boot-mean(y.boot))^2)
                     ssr.boot.rank <- 1
-                }  else if(NCOL(X) > 1 & Est$num.x == 1 & is.numeric(X[,k,drop=FALSE])) {
+                }   else if(NCOL(X)>1 & Est$num.x == 1 & is.numeric(X[,k])) {
                     for(i in 1:nrow.z.unique) {
                         zz <- ind == ind.vals[i]
                         mv.mean[zz] <- mean(y.boot[zz])
