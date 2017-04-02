@@ -226,20 +226,32 @@ lm.ma.default <- function(y=NULL,
                                      tol=tol,
                                      ...)
 
+                #print(cbind(Est$rank.vec,Est.ssu$rank.vec,Est.ssr$rank.vec))
+                #stop()
                 ssr <- sum((y-Est.ssr$fitted.values)^2) 
                 ssr.rank <- Est.ssr$ma.model.rank
+                if(!is.numeric(X[,k]) & vc) {
+                    print("vc/categorical")
+                    ssr.rank <- ssr.rank - 1
+                }
             } else {
                 ## With only one predictor, restricted model is unconditional mean
                 ssr <- sum((y-mean(y))^2)
                 ssr.rank <- 1
             }
+            F.stat[k] <- (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
             #print("ssu")
             #print(ssu)
             #print("ssr")
             #print(ssr)
+            #print("ssu.rank")
             #print(ssu.rank)
+            #print("ssr.rank")            
             #print(ssr.rank)
-            F.stat[k] <- (ssr-ssu)/ssu #(NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
+            #print("F.stat")
+            #print(F.stat[k])
+            #stop()
+            
             F.boot <- numeric(length=B)
 
             for(b in 1:B) {
@@ -264,15 +276,17 @@ lm.ma.default <- function(y=NULL,
                                           knots=knots,
                                           S=S,
                                           method=method,
-                                          ma.weights=Est.ssu$ma.weights,
-                                          basis.vec=Est.ssu$basis.vec,
-                                          rank.vec=Est.ssu$rank.vec,
-                                          K.mat=Est.ssu$DS,
+                                          ma.weights=Est$ma.weights,
+                                          basis.vec=Est$basis.vec,
+                                          rank.vec=Est$rank.vec,
+                                          K.mat=Est$DS,
                                           weights=weights,
                                           vc=vc,
                                           verbose=FALSE,
                                           tol=tol,
                                           ...)
+                #print(cbind(Est.ssu$fitted,Est.ssu.boot$fitted))
+                #stop()
 
                 ssu.boot <- sum((y-Est.ssu.boot$fitted.values)^2)  
                 ssu.boot.rank <- Est.ssu.boot$ma.model.rank
@@ -297,7 +311,7 @@ lm.ma.default <- function(y=NULL,
                                               ma.weights=Est.ssr$ma.weights,
                                               basis.vec=Est.ssr$basis.vec,
                                               rank.vec=Est.ssr$rank.vec,
-                                              K.mat=Est.ssr$DS,
+                                              K.mat=Est.ssr$DS, ## no mod needed here
                                               weights=weights,
                                               vc=vc,
                                               verbose=FALSE,
@@ -305,26 +319,41 @@ lm.ma.default <- function(y=NULL,
                                               ...)
                     ssr.boot <- sum((y-Est.ssr.boot$fitted.values)^2)         
                     ssr.boot.rank <- Est.ssr.boot$ma.model.rank
+                    if(!is.numeric(X[,k]) & vc) {
+                        print("vc/categorical")
+                        ssr.boot.rank <- ssr.boot.rank - 1
+                    }
                 } else {
                     ssr.boot <- sum((y.boot-mean(y.boot))^2)
                     ssr.boot.rank <- 1
                 }
+                ##F.stat[k] <- (NROW(X)-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
                 
-               # F.boot[b] <- (ssr.boot-ssu.boot)/ssu.boot
+                #F.boot[b] <- (ssr.boot-ssu.boot)/ssu.boot
+                #F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
+                #F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
+                #F.boot[b] <- (NROW(X)-ssu.rank)*(ssu.boot-ssu)/((ssu.rank-ssr.rank)*ssu)
+                #F.boot[b] <- (NROW(X)-ssu.rank)*(ssr.boot-ssu)/((ssu.rank-ssr.boot.rank)*ssu)
+
+                ## Kludge... use ranks for original models, take absolute value...
+                F.boot[b] <-  abs((NROW(X)-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot))
                 #print("ssu")
                 #print(ssu)
                 #print("ssu.boot")
                 #print(ssu.boot)
                 #print("ssr")
                 #print(ssr)
-                #print(ssr.rank)
+                #print("ssr.boot")
+                #print(ssr.boot)
+                #print("ssr.boot.rank")
+                #print(ssr.boot.rank)
+                #print("ssu.boot.rank")
                 #print(ssu.boot.rank)
-                #F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr.boot-ssu.boot)/((ssu.boot.rank-ssr.boot.rank)*ssu.boot)
-               # F.boot[b] <-  (NROW(X)-ssu.boot.rank)*(ssr-ssu.boot)/((ssu.boot.rank-ssr.rank)*ssu.boot)
-                F.boot[b] <- (ssu.boot-ssu)/ssu #(ssr-ssu.boot)/ssu.boot
+                #print("F.boot")
+                #print(F.boot[b])
             }
             
-           # print(F.boot)
+           #print(F.boot)
 
             P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
             
@@ -429,6 +458,7 @@ lm.ma.Est <- function(y=NULL,
     P <- degree.max
     ma.weights.orig <- ma.weights
     basis.vec.orig <- basis.vec
+    rank.vec.orig <- rank.vec
 
     if(is.null(K.mat)) {
         if(knots) {
@@ -449,6 +479,15 @@ lm.ma.Est <- function(y=NULL,
         basis.vec <- rep(basis,nrow(K.mat))
     }
     if(!is.null(ma.weights)) {
+        #print("ma weights")
+        #print(formatC(ma.weights,format="f",digits=6))
+        #print("length rank.vec in")
+        #print(length(rank.vec))
+        #print(rank.vec)
+        rank.vec <- rank.vec[ma.weights>1e-05]
+        #print("length rank.vec no zero weights")
+        #print(length(rank.vec))
+        #print(rank.vec)
         #print(K.mat)
         #print(dim(K.mat))
         #print(ma.weights)
@@ -639,7 +678,12 @@ lm.ma.Est <- function(y=NULL,
                 }
 
                 fitted.mat[,p] <- fit.spline
+                #print("here we are")
                 rank.vec[p] <- model.z.unique$rank
+                #print("num.x")
+                #print(num.x)
+                #print("rank.vec[p]")
+                #print(rank.vec[p])
                 
             } else {
 
@@ -654,6 +698,11 @@ lm.ma.Est <- function(y=NULL,
 
                 fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                 rank.vec[p] <- model.ma$rank
+                #print("here we are")
+                #print("num.x")
+                #print(num.x)
+                #print("rank.vec[p]")
+                #print(rank.vec[p])
                 
             }
             
@@ -757,35 +806,32 @@ lm.ma.Est <- function(y=NULL,
         }        
         b <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
 
-        rebalance <- TRUE
-        if(rebalance) {
-            ## Solve the quadratic program for the Mallows model average weights
-            ma.mat.reb <- ma.mat[,b>1e-05,drop=FALSE]
-            M <- ncol(ma.mat.reb)
-            D <- t(ma.mat.reb)%*%ma.mat.reb
-            tol.ridge <- tol
-            while(qr(D)$rank<M) {
-                D <- D + diag(tol.ridge,M,M)
-                tol.ridge <- tol.ridge*10
-                if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
+        ## Solve the quadratic program for the Mallows model average weights
+        ma.mat.reb <- ma.mat[,b>1e-05,drop=FALSE]
+        M <- ncol(ma.mat.reb)
+        D <- t(ma.mat.reb)%*%ma.mat.reb
+        tol.ridge <- tol
+        while(qr(D)$rank<M) {
+            D <- D + diag(tol.ridge,M,M)
+            tol.ridge <- tol.ridge*10
+            if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
+        }
+        A <- cbind(rep(1,M),diag(1,M,M))
+        b0 <- c(1,rep(0,M))
+        rank.vec.reb <- rank.vec[b>1e-05]
+        if(method=="mma") {
+            d <- -sigsq[which.max(rank.vec)]*rank.vec.reb
+        } else {
+            d <- t(y)%*%ma.mat.reb
+        }        
+        b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
+        
+        if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
+            if(verbose) {
+                warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>1e-05])," initial models, ",length(b.reb[b.reb>1e-05])," rebalanced ones)",sep=""))   
+                if(!isTRUE(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))) warning(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))
             }
-            A <- cbind(rep(1,M),diag(1,M,M))
-            b0 <- c(1,rep(0,M))
-            rank.vec.reb <- rank.vec[b>1e-05]
-            if(method=="mma") {
-                d <- -sigsq[which.max(rank.vec)]*rank.vec.reb
-            } else {
-                d <- t(y)%*%ma.mat.reb
-            }        
-            b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
-
-            if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
-                if(verbose) {
-                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>1e-05])," initial models, ",length(b.reb[b.reb>1e-05])," rebalanced ones)",sep=""))   
-                    if(!isTRUE(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))) warning(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))
-                }
-                b[b>1e-05] <- b.reb
-            }
+            b[b>1e-05] <- b.reb
         }
 
     } else {
@@ -810,6 +856,22 @@ lm.ma.Est <- function(y=NULL,
         cat("\r")
     }
 
+    #print("rank.vec.orig")
+    #print(rank.vec.orig)
+    #rank.vec.orig[ma.weights.orig>1e-05] <- rank.vec
+    
+    #print("rank.vec.orig updated")
+                                        #print(rank.vec.orig)
+
+    #print("length rank vec")
+    #print(length(rank.vec))
+    #print("length ma weights")
+    #print(length(ma.weights))
+    #print("length ma weights orig")
+    #print(length(ma.weights.orig))
+    #print("length(b)")
+    #print(length(b))
+
     return(list(fitted.values=fitted.values,
                 deriv=deriv,
                 ma.weights=if(is.null(ma.weights)){abs(b)}else{ma.weights.orig},
@@ -829,7 +891,7 @@ lm.ma.Est <- function(y=NULL,
                 num.x=num.x,
                 num.z=num.z,
                 rank.vec=rank.vec,
-                ma.model.rank=sum(rank.vec*if(is.null(ma.weights)){abs(b)}else{ma.weights.orig}),
+                ma.model.rank=sum(rank.vec*abs(b)),
                 nobs=NROW(y),
                 DS=K.mat.orig,
                 vc=vc,
