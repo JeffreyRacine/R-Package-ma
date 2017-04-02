@@ -119,7 +119,7 @@ lm.ma(...)
   
   \item{tol}{a small constant used to ensure the forcing matrix for the quadratic program is not ill-conditioned}
   
-  \item{compute.anova}{whether to conduct a quasi-snova bootstrap procedure to test for significance of each predictor}
+  \item{compute.anova}{whether to conduct a quasi-anova bootstrap procedure to test for significance of each predictor}
   
   \item{...}{optional arguments to be passed}
 
@@ -217,54 +217,18 @@ model.ma <- lm.ma(y~x)
 
 summary(model.ma)
 
+## Note that the following calls to plot() use the option
+## plot.ci=TRUE which then invokes a bootstrap procedure. The
+## plots may take a few seconds to appear due to this additional
+## computation (if you remove this option the plots will appear
+## instantly).
+
 par(mfrow=c(1,2))
 plot(model.ma,plot.data=TRUE,plot.ci=TRUE)
 plot(model.ma,plot.data=TRUE,plot.ci=TRUE,plot.deriv=TRUE)
 par(mfrow=c(1,1))
 
-#### Example 2 - simulated multiplicative nonlinear two-predictor function
-
-require(rgl)
-
-set.seed(42)
-n <- 1000
-x1 <- runif(n)
-x2 <- runif(n)
-
-dgp <- cos(2*pi*x1)*sin(2*pi*x2)
-
-y <- dgp + rnorm(n,sd=0.5*sd(dgp))
-
-n.eval <- 25
-x.seq <- seq(0,1,length=n.eval)
-newdata <- data.frame(expand.grid(x.seq,x.seq))
-names(newdata) <- c("x1","x2")
-
-model.ma <- lm.ma(y~x1+x2)
-
-summary(model.ma)
-
-## Use the rgl package to render a 3D object (RGL is a 3D real-time rendering 
-## system for R that supports OpenGL, among other formats).
-
-z <- matrix(predict(model.ma,newdata=newdata)$fit,n.eval,n.eval)
-num.colors <- 1000
-colorlut <- topo.colors(num.colors)
-col <- colorlut[ (num.colors-1)*(z-min(z))/(max(z)-min(z)) + 1 ]
-open3d()
-par3d(windowRect=c(900,100,900+640,100+640))
-rgl.viewpoint(theta = 0, phi = -70, fov = 80)
-persp3d(x.seq,x.seq,z=z,
-        xlab="X1",ylab="X2",zlab="Y",
-        ticktype="detailed",
-        border="red",
-        color=col,
-        alpha=.7,
-        back="lines",
-        main="Conditional Mean")
-grid3d(c("x", "y+", "z"))
-
-#### Example 3 - five predictor (two categorical) earnings function
+#### Example 2 - five predictor (two categorical) earnings function
 
 data(wage1)
 attach(wage1)
@@ -333,7 +297,12 @@ predict(model.ma,newdata=newdata.female.notmarried)$fit
 
 detach(wage1)
 
-#### Example 4 - Canadian Current Population Survey earnings data
+#### Example 3 - Canadian Current Population Survey earnings data
+
+## Note that we compute two numerically intensive nonparametric
+## estimators for comparison with the model averaging approach. 
+## These estimators will take a bit of time to compute, so be
+## patient.
 
 suppressPackageStartupMessages(require(np))
 suppressPackageStartupMessages(require(crs))
@@ -358,6 +327,53 @@ summary(model.kernel)
 summary(model.ma)
 
 detach(cps71)
+
+#### Example 2 - simulated multiplicative nonlinear two-predictor function
+
+require(rgl)
+
+set.seed(42)
+n <- 1000
+x1 <- runif(n)
+x2 <- runif(n)
+
+dgp <- cos(2*pi*x1)*sin(2*pi*x2)
+
+y <- dgp + rnorm(n,sd=0.5*sd(dgp))
+
+n.eval <- 25
+x.seq <- seq(0,1,length=n.eval)
+newdata <- data.frame(expand.grid(x.seq,x.seq))
+names(newdata) <- c("x1","x2")
+
+model.ma <- lm.ma(y~x1+x2)
+
+summary(model.ma)
+
+## Use the rgl package to render a 3D object (RGL is a 3D real-time rendering 
+## system for R that supports OpenGL, among other formats).
+
+z <- matrix(predict(model.ma,newdata=newdata)$fit,n.eval,n.eval)
+num.colors <- 1000
+colorlut <- topo.colors(num.colors)
+col <- colorlut[ (num.colors-1)*(z-min(z))/(max(z)-min(z)) + 1 ]
+par(ask=T)
+readline(prompt = "Hit <Return> to see next plot:")
+open3d()
+par3d(windowRect=c(900,100,900+640,100+640))
+rgl.viewpoint(theta = 0, phi = -70, fov = 80)
+persp3d(x.seq,x.seq,z=z,
+        xlab="X1",ylab="X2",zlab="Y",
+        ticktype="detailed",
+        border="red",
+        color=col,
+        alpha=.7,
+        back="lines",
+        main="Conditional Mean")
+grid3d(c("x", "y+", "z"))
+
+## Note - if you click on the rgl window you can rotate the estimate 
+## by dragging the object, can zoom in and out etc.
 }
 
 \keyword{Regression}

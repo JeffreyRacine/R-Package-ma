@@ -278,9 +278,7 @@ lm.ma.default <- function(y=NULL,
                 ssu.boot.rank <- Est.ssu.boot$ma.model.rank
                 
                 if(NCOL(X)>1) {
-   #                 X.res <- X
-#                    X.res[,k] <- X[sample(1:NROW(X),replace=TRUE),k]
-                    
+
                     ## bootstrap resample from the null model
 
                     Est.ssr.boot <- lm.ma.Est(y=y.boot,
@@ -326,7 +324,7 @@ lm.ma.default <- function(y=NULL,
                 F.boot[b] <- (ssu.boot-ssu)/ssu #(ssr-ssu.boot)/ssu.boot
             }
             
-            print(F.boot)
+           # print(F.boot)
 
             P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
             
@@ -518,7 +516,7 @@ lm.ma.Est <- function(y=NULL,
  
                     }
 
-                    if(basis.singular.min & verbose) warning("dimension basis is ill-conditioned - reduce degree.max")
+                    if(basis.singular.min & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
 
                     fit.spline <- fit.spline.min
                     htt.min <- htt
@@ -544,7 +542,7 @@ lm.ma.Est <- function(y=NULL,
                         P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
                         fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                     }
-                    if(any(basis.singular==TRUE) & verbose) warning("dimension basis is ill-conditioned - reduce degree.max")
+                    if(any(basis.singular==TRUE) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
                  }
 
                 fitted.mat[,p] <- fit.spline
@@ -584,7 +582,7 @@ lm.ma.Est <- function(y=NULL,
                         }
                     }
                     
-                    if(basis.singular.min & verbose) warning("dimension basis is ill-conditioned - reduce degree.max")
+                    if(basis.singular.min & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
                     
                     model.ma <- model.ma.min
                     fit.spline <- fitted(model.ma)
@@ -592,7 +590,7 @@ lm.ma.Est <- function(y=NULL,
                 } else {
 
                     P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
-                    if(!is.fullrank(P) & verbose) warning("dimension basis is ill-conditioned - reduce degree.max")
+                    if(!is.fullrank(P) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
                     if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
                         model.ma <- lm(y~P,weights=weights)
                     } else {
@@ -746,7 +744,7 @@ lm.ma.Est <- function(y=NULL,
         while(qr(D)$rank<M) {
             D <- D + diag(tol.ridge,M,M)
             tol.ridge <- tol.ridge*10
-            if(verbose) warning(paste("ridge factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
+            if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
         }
         A <- cbind(rep(1,M),diag(1,M,M))
         b0 <- c(1,rep(0,M))
@@ -767,7 +765,7 @@ lm.ma.Est <- function(y=NULL,
             while(qr(D)$rank<M) {
                 D <- D + diag(tol.ridge,M,M)
                 tol.ridge <- tol.ridge*10
-                if(verbose) warning(paste("ridge factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
+                if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
             }
             A <- cbind(rep(1,M),diag(1,M,M))
             b0 <- c(1,rep(0,M))
@@ -780,7 +778,10 @@ lm.ma.Est <- function(y=NULL,
             b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
 
             if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
-                if(verbose) warning("rebalancing occurred")
+                if(verbose) {
+                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>1e-05])," initial models, ",length(b.reb[b.reb>1e-05])," rebalanced ones)",sep=""))   
+                    if(!isTRUE(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))) warning(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))
+                }
                 b[b>1e-05] <- b.reb
             }
         }
