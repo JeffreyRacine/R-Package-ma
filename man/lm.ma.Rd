@@ -171,17 +171,16 @@ This approach frees the user from using either model assertion or selection meth
 The function summary is used to obtain and print a summary of the results. The generic accessor functions \code{coef}, \code{fitted}, \code{predict}, \code{plot} and \code{residuals} extract various useful features of the value returned by lm.ma.
 
 An object of class "lm.ma" is a list containing at least the following components:
-
-  \item{fitted.values}{vector of fitted values}
-  \item{deriv}{matrix of derivative vectors for each predictor}
-  \item{ma.weights}{model average weights}
   \item{degree.max}{value of degree.max for each dimension (set by the default rule given above unless manually overridden)}
-  \item{fitted.ci.l}{\eqn{\alpha/2} nonparametric confidence value vector for the vector of fitted/predicted values}
-  \item{fitted.ci.u}{\eqn{1-\alpha/2} nonparametric confidence value vector for the vector fitted/predicted values} 
-  \item{fitted.scale}{robust scale (mad) vector for the vector fitted/predicted values} 
   \item{deriv.ci.l}{\eqn{\alpha/2} nonparametric confidence value matrix for the matrix of derivatives}
   \item{deriv.ci.u}{\eqn{1-\alpha/2} nonparametric confidence value matrix for the matrix of derivatives}
   \item{deriv.scale}{robust scale matrix for the matrix of derivatives}
+  \item{deriv}{matrix of derivative vectors for each predictor}
+  \item{fitted.ci.l}{\eqn{\alpha/2} nonparametric confidence value vector for the vector of fitted/predicted values}
+  \item{fitted.ci.u}{\eqn{1-\alpha/2} nonparametric confidence value vector for the vector fitted/predicted values}
+  \item{fitted.scale}{robust scale (mad) vector for the vector fitted/predicted values}
+  \item{fitted.values}{vector of fitted values}
+  \item{ma.weights}{model average weights}
   \item{r.squared}{appropriate measure of goodness of fit (Doksum and Samarov (1995))}
   \item{residuals}{model residuals}
 
