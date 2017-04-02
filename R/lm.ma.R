@@ -943,7 +943,7 @@ summary.lm.ma <- function(object,
         maxPvalLen <- max(ncp <- nchar(format.pval(object$P.vec)))
         maxrejLen <- max(ncr <- nchar(reject))
 
-        cat("\nIndividual Significance Test(s)\n")
+        cat("\n\nIndividual Significance Test(s)\n")
         cat("P Value(s):", paste("\n", nm," ",
                                  blank(maxNameLen-nc),
                                  format.pval(object$P.vec),
@@ -955,7 +955,7 @@ summary.lm.ma <- function(object,
                                  "]",
                                  sep=''))
         
-        cat("\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
+        cat("\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
         
     }
     cat("\n\n")

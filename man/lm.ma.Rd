@@ -311,7 +311,7 @@ suppressPackageStartupMessages(require(np))
 suppressPackageStartupMessages(require(crs))
 data(cps71)
 attach(cps71)
-model.ma <- lm.ma(logwage~age)
+model.ma <- lm.ma(logwage~age,compute.anova=TRUE)
 plot(model.ma,plot.data=TRUE)
 model.kernel <- npreg(logwage~age,regtype="ll",bwmethod="cv.aic")
 lines(age,fitted(model.kernel),col=4,lty=4,lwd=2)
@@ -331,7 +331,7 @@ summary(model.ma)
 
 detach(cps71)
 
-#### Example 4 - simulated multiplicative nonlinear two-predictor function
+#### Example 5 - simulated multiplicative nonlinear two-predictor function
 
 require(rgl)
 
