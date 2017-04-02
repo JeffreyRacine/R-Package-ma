@@ -1,3 +1,9 @@
+blank <- function(len){
+  sapply(len, function(nb){
+    paste(rep(' ', times = nb), collapse='')
+  })
+}
+
 uocquantile = function(x, prob = 0.5) {
   if (is.ordered(x)){
     tq = unclass(table(x))
