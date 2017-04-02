@@ -1,3 +1,7 @@
+Changes from Version 1.06 to 1.07 [2-Apr-2017]
+
+- added bootstrap anova, fixed minor glitches
+
 Changes from Version 1.05 to 1.06 [1-Apr-2017]
 
 - no longer relies in routines from crs (I wrote crs and have migrated a subset of necessary functions to this package)

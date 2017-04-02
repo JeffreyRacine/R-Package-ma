@@ -944,12 +944,16 @@ summary.lm.ma <- function(object,
             sep="")
       
         maxNameLen <- max(nc <- nchar(nm <- names(object$X)))
+        maxPvalLen <- max(ncp <- nchar(format.pval(object$P.vec)))
+        maxrejLen <- max(ncr <- nchar(reject))
 
         cat("\nIndividual Significance Test(s)\n")
         cat("P Value:", paste("\n", nm," ",
                               blank(maxNameLen-nc),
                               format.pval(object$P.vec),
+                              blank(maxPvalLen-ncp),
                               " ", reject,
+                              blank(maxrejLen-ncr),
                               " [F = ",
                               format.pval(object$F.stat),
                               "]",

@@ -134,6 +134,7 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     model <- lm.ma(y~x1+x2)
     model <- lm.ma(y~x1+x2,compute.deriv=TRUE)
     model <- lm.ma(y~x1+x2,bootstrap.ci=TRUE)  
+    model <- lm.ma(y~x1+x2,compute.anova=TRUE)  
 
     plot(model)
     plot(model,plot.data=TRUE)
