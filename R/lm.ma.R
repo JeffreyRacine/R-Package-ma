@@ -1027,6 +1027,7 @@ plot.lm.ma <- function(x,
         }
         if(NCOL(x$X) > 1) par(mfrow=c(2,ifelse(NCOL(x$X) %%2 == 0, NCOL(x$X)/2, (NCOL(x$X)+1)/2)))
         for(i in 1:NCOL(x$X)) {
+            cat(paste("\rGenerating object ",i," of ",NCOL(x$X)," to plot...",sep=""))
             xeval <- xeval.median
             xeval[,i] <- x$X[,i]
             x$compute.deriv <- FALSE
@@ -1094,6 +1095,8 @@ plot.lm.ma <- function(x,
       j <- 1
       for(i in 1:NCOL(x$X)) {
           
+          cat(paste("\rGenerating object ",i," of ",x$num.x," to plot...",sep=""))
+          
           if(is.numeric(x$X[,i])) {
             xeval <- xeval.median
             xeval[,i] <- x$X[,i]
@@ -1124,5 +1127,7 @@ plot.lm.ma <- function(x,
     }
     
     if(NCOL(x$X) > 1) par(mfrow=c(1,1))
+    cat("\r                                                     ")
+    cat("\r")
     
 }

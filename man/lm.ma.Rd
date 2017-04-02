@@ -301,10 +301,8 @@ detach(wage1)
 
 #### Example 3 - Canadian Current Population Survey earnings data
 
-## Note that we compute two numerically intensive nonparametric
-## estimators for comparison with the model averaging approach. 
-## These estimators will take a bit of time to compute, so be
-## patient.
+## We compute two nonparametric estimators for comparison with the 
+## model averaging approach. 
 
 suppressPackageStartupMessages(require(np))
 suppressPackageStartupMessages(require(crs))
@@ -330,7 +328,7 @@ summary(model.ma)
 
 detach(cps71)
 
-#### Example 2 - simulated multiplicative nonlinear two-predictor function
+#### Example 4 - simulated multiplicative nonlinear two-predictor function
 
 require(rgl)
 
