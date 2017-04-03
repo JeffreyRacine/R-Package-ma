@@ -618,6 +618,7 @@ plot.lm.ma <- function(x,
                 }
             } else {
                 foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
+                if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(!plot.ci) {
                     plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
                          ylab=yname,
@@ -747,8 +748,8 @@ lm.ma.Est <- function(y=NULL,
 
     rm(xztmp)
     
-    ## If there is only one numeric predictor, use additive basis (waste to 
-    ## use auto in this case as all bases coincide)
+    ## If there is only one numeric predictor, use additive basis
+    ## (waste to use auto in this case as all bases coincide)
     
     if(num.x == 1 & (basis != "additive")) {
         basis <- "additive"
@@ -1093,10 +1094,12 @@ lm.ma.Est <- function(y=NULL,
         M <- ncol(ma.mat)
         D <- t(ma.mat)%*%ma.mat
         tol.ridge <- tol
+        singular.D <- FALSE
         while(qr(D)$rank<M) {
             D <- D + diag(tol.ridge,M,M)
             tol.ridge <- tol.ridge*10
             if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
+            singular.D <- TRUE
         }
         A <- cbind(rep(1,M),diag(1,M,M))
         b0 <- c(1,rep(0,M))
@@ -1107,37 +1110,41 @@ lm.ma.Est <- function(y=NULL,
         }        
         b <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
 
-        ## Re-solve the quadratic program for the non-zero Mallows
-        ## model average weights (trivial overhead and can only
-        ## improve upon the existing weights when D is not
-        ## well-conditioned)
-        ma.mat.reb <- ma.mat[,b>1e-05,drop=FALSE]
-        M <- ncol(ma.mat.reb)
-        D <- t(ma.mat.reb)%*%ma.mat.reb
-        tol.ridge <- tol
-        while(qr(D)$rank<M) {
-            D <- D + diag(tol.ridge,M,M)
-            tol.ridge <- tol.ridge*10
-            if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
-        }
-        A <- cbind(rep(1,M),diag(1,M,M))
-        b0 <- c(1,rep(0,M))
-        rank.vec.reb <- rank.vec[b>1e-05]
-        if(method=="mma") {
-            d <- -sigsq[which.max(rank.vec)]*rank.vec.reb
-        } else {
-            d <- t(y)%*%ma.mat.reb
-        }        
-        b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
-        
-        if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
-            if(verbose) {
-                warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>1e-05])," initial models, ",length(b.reb[b.reb>1e-05])," rebalanced ones)",sep=""))   
-                if(!isTRUE(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))) warning(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))
+        while(singular.D) {
+            ## Re-solve the quadratic program for the non-zero Mallows
+            ## model average weights (trivial overhead and can only
+            ## improve upon the existing weights when D is not
+            ## well-conditioned)
+            ma.mat.reb <- ma.mat[,b>1e-05,drop=FALSE]
+            M <- ncol(ma.mat.reb)
+            D <- t(ma.mat.reb)%*%ma.mat.reb
+            tol.ridge <- tol
+            singular.D <- FALSE
+            while(qr(D)$rank<M) {
+                D <- D + diag(tol.ridge,M,M)
+                tol.ridge <- tol.ridge*10
+                if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
+                singular.D <- TRUE
+            } 
+            A <- cbind(rep(1,M),diag(1,M,M))
+            b0 <- c(1,rep(0,M))
+            rank.vec.reb <- rank.vec[b>1e-05]
+            if(method=="mma") {
+                d <- -sigsq[which.max(rank.vec)]*rank.vec.reb
+            } else {
+                d <- t(y)%*%ma.mat.reb
+            }        
+            b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
+            
+            if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
+                if(verbose) {
+                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>1e-05])," initial models, ",length(b.reb[b.reb>1e-05])," rebalanced ones)",sep=""))   
+                    if(!isTRUE(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))) warning(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))
+                }
+                b[b>1e-05] <- b.reb
             }
-            b[b>1e-05] <- b.reb
         }
-
+            
     } else {
         ## For bootstrapping use weights from initial call
         b <- ma.weights
