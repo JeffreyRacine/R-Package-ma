@@ -16,7 +16,7 @@ prod.spline <- function(x,
                         xeval=NULL,
                         zeval=NULL,
                         knots=c("quantiles","uniform"),
-                        basis=c("additive","tensor","glp"),
+                        basis=c("additive","tensor","taylor"),
                         deriv.index=1,
                         deriv=0) {
 
@@ -26,10 +26,10 @@ prod.spline <- function(x,
   if(missing(x) || missing (K)) stop(" must provide x and K")
   if(!is.matrix(K)) stop(" K must be a two-column matrix")
 
-  ## Additive and glp models have intercept=FALSE in gsl.bs but
+  ## Additive and taylor models have intercept=FALSE in gsl.bs but
   ## intercept=TRUE in lm()
 
-  gsl.intercept <- ifelse(basis=="additive" || basis=="glp", FALSE, TRUE)
+  gsl.intercept <- ifelse(basis=="additive" || basis=="taylor", FALSE, TRUE)
 
   ## Care in passing (extra cast) and ensure K is a matrix of integers
   ## (K contains the spline degree [integer] for each dimension in
@@ -123,15 +123,15 @@ prod.spline <- function(x,
       dim.P.no.tensor <- NCOL(P)
       ## Solely tensor if basis==tensor
       if(basis=="tensor") P <- tensor.prod.model.matrix(tp)
-      if(basis=="glp") {
-        P <- glp.model.matrix(tp)
+      if(basis=="taylor") {
+        P <- taylor.model.matrix(tp)
         if(deriv!=0) {
           P.deriv <- list()
           for(i in 1:length(tp)) P.deriv[[i]] <- matrix(0,1,ncol(tp[[i]]))
           deriv.index <- deriv.index - length(which((K[,1]==0)))
           while(deriv.index<=0) deriv.index <- deriv.index + 1
           P.deriv[[deriv.index]] <- matrix(NA,1,ncol(tp[[deriv.index]]))
-          P[,!is.na(as.numeric(glp.model.matrix(P.deriv)))] <- 0
+          P[,!is.na(as.numeric(taylor.model.matrix(P.deriv)))] <- 0
         }
       }
     } else {

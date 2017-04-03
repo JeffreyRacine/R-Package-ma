@@ -1,6 +1,6 @@
 ## (C) Jeffrey S. Racine July 22 2011
 
-## glp.model.matrix is a modified version of the polym() function
+## taylor.model.matrix is a modified version of the polym() function
 ## (stats) combined with the tensor.prod.model.matrix function in
 ## mgcv. The function accepts a vector of degrees and provides a
 ## generalized polynomial with varying polynomial order. This can be
@@ -17,7 +17,7 @@
 ## whose derivative is required and pass matrices of zeros of
 ## identical dimension to the originals for all other variables.
 
-glp.model.matrix <- function(X) {
+taylor.model.matrix <- function(X) {
 
   k <-length(X)
   dimen.list <- list()
@@ -66,19 +66,19 @@ glp.model.matrix <- function(X) {
 ##>   dimen.list <- list()
 ##>   for(i in 1:k) dimen.list[[i]] <- 0:ncol(X[[i]])
 ##> 
-##> B.glp <- glp.model.matrix(X)
+##> B.taylor <- taylor.model.matrix(X)
 ##> B.tp <- tensor.prod.model.matrix(X)
 ##> 
-##> dim(B.glp)
+##> dim(B.taylor)
 ##[1] 1000  285
 ##> dim(B.tp)
 ##[1] 1000 1000
 ##> 
-##> all.equal(matrix(B.glp),matrix(B.tp))
+##> all.equal(matrix(B.taylor),matrix(B.tp))
 ##[1] "Attributes: < Component 1: Mean relative difference: 2.508772 >"
 ##[2] "Numeric: lengths (285000, 1000000) differ"                      
 ##> 
-##> rcond(t(B.glp)%*%B.glp)
+##> rcond(t(B.taylor)%*%B.taylor)
 ##[1] 8.338926e-13
 ##> rcond(t(B.tp)%*%B.tp)
 ##[1] 5.92409e-21

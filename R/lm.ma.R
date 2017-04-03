@@ -12,7 +12,7 @@ lm.ma.formula <- function(formula,
                           alpha=0.05,
                           B=199,
                           basis.vec=NULL,
-                          basis=c("auto","tensor","glp","additive"),
+                          basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
                           compute.anova=FALSE,
                           compute.deriv=FALSE,
@@ -84,7 +84,7 @@ lm.ma.default <- function(y=NULL,
                           alpha=0.05,
                           B=199,
                           basis.vec=NULL,
-                          basis=c("auto","tensor","glp","additive"),
+                          basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
                           compute.anova=FALSE,
                           compute.deriv=FALSE,
@@ -276,7 +276,7 @@ lm.ma.default <- function(y=NULL,
             
             ## With > 1 predictor, restricted model does not incorporate the kth predictor
 
-            if((NCOL(X)>1 & Est$num.x >= 1 & !is.numeric(X[,k]))) {
+            if(NCOL(X)>1 & (Est$num.x>1 | (Est$num.x==1 & !is.numeric(X[,k])))) {
                 X.res <- X[,-k,drop=FALSE]
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
@@ -336,7 +336,7 @@ lm.ma.default <- function(y=NULL,
                 if(verbose) cat(paste("\rAnova for predictor ",k," of ",NCOL(X)," (bootstrap replication ",b," of ",B,")",sep=""))
                 ## Residual bootstrap from the null model, use
                 ## original model configuration with bootstrap y
-                if((NCOL(X)>1 & Est$num.x >= 1 & !is.numeric(X[,k]))) {
+                if(NCOL(X)>1 & (Est$num.x>1 | (Est$num.x==1 & !is.numeric(X[,k])))) {
                     y.boot <- Est.ssr$fitted.values + sample(y-Est.ssr$fitted.values,replace=TRUE)
                 }  else if(NCOL(X) == 1) {
                     y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
@@ -370,7 +370,7 @@ lm.ma.default <- function(y=NULL,
                 ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)  
                 ssu.boot.rank <- Est.ssu.boot$ma.model.rank
                 
-                if((NCOL(X)>1 & Est$num.x >= 1 & !is.numeric(X[,k]))) {
+                if(NCOL(X)>1 & (Est$num.x>1 | (Est$num.x==1 & !is.numeric(X[,k])))) {
 
                     Est.ssr.boot <- lm.ma.Est(y=y.boot,
                                               X=X.res,
@@ -701,7 +701,7 @@ lm.ma.Est <- function(y=NULL,
                       X=NULL,
                       X.eval=NULL,
                       basis.vec=NULL,
-                      basis=c("tensor","glp","additive","auto"),
+                      basis=c("tensor","taylor","additive","auto"),
                       compute.deriv=FALSE,
                       degree.max=NULL,
                       degree.min=1,
@@ -746,6 +746,11 @@ lm.ma.Est <- function(y=NULL,
     }
 
     rm(xztmp)
+    
+    ## If there is only one numeric predictor, use additive basis (waste to 
+    ## use auto in this case as all bases coincide)
+    
+    if(num.x == 1) basis <- "additive"
 
     if(vc & !is.null(num.z)) {
         z.unique <- uniquecombs(as.matrix(z))
@@ -827,7 +832,7 @@ lm.ma.Est <- function(y=NULL,
 
                 if(basis=="auto") {
                     cv.min <- Inf
-                    for(b.basis in c("tensor","glp","additive")) {
+                    for(b.basis in c("tensor","taylor","additive")) {
                         
                         fit.spline <- numeric(length=NROW(x))
                         htt <- numeric(length=NROW(x))
@@ -838,7 +843,7 @@ lm.ma.Est <- function(y=NULL,
                             if(!is.null(weights)) L <- weights*L
                             P <- prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
                             if(!is.fullrank(P)) basis.singular[i] <- TRUE
-                            if(b.basis=="additive" || b.basis=="glp") {
+                            if(b.basis=="additive" || b.basis=="taylor") {
                                 model.z.unique <- lm(y~P,weights=L)
                             } else {
                                 model.z.unique <- lm(y~P-1,weights=L)
@@ -879,7 +884,7 @@ lm.ma.Est <- function(y=NULL,
                         if(!is.null(weights)) L <- weights*L
                         P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                         if(!is.fullrank(P)) basis.singular[i] <- TRUE
-                        if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
+                        if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
                             model.z.unique <- lm(y~P,weights=L)
                         } else {
                             model.z.unique <- lm(y~P-1,weights=L)
@@ -908,10 +913,10 @@ lm.ma.Est <- function(y=NULL,
                 if(basis=="auto") {
                     cv.min <- Inf
                     basis.singular <- logical(1)
-                    for(b.basis in c("tensor","glp","additive")) {
+                    for(b.basis in c("tensor","taylor","additive")) {
                         P <- prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
                         if(!is.fullrank(P)) basis.singular <- TRUE
-                        if(b.basis=="additive" || b.basis=="glp") {
+                        if(b.basis=="additive" || b.basis=="taylor") {
                             model.ma <- lm(y~P,weights=weights)
                         } else {
                             model.ma <- lm(y~P-1,weights=weights)
@@ -937,7 +942,7 @@ lm.ma.Est <- function(y=NULL,
 
                     P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                     if(!is.fullrank(P) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
-                    if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
+                    if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
                         model.ma <- lm(y~P,weights=weights)
                     } else {
                         model.ma <- lm(y~P-1,weights=weights)
@@ -972,7 +977,7 @@ lm.ma.Est <- function(y=NULL,
                     L <- suppressWarnings(prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
                     if(!is.null(weights)) L <- weights*L
                     P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
-                    if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
+                    if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
                         model.z.unique <- lm(y~P,weights=L)
                     } else {
                         model.z.unique <- lm(y~P-1,weights=L)
@@ -988,7 +993,7 @@ lm.ma.Est <- function(y=NULL,
             } else {
 
                 P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
-                if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
+                if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
                     model.ma <- lm(y~P,weights=weights)
                 } else {
                     model.ma <- lm(y~P-1,weights=weights)
@@ -1003,7 +1008,7 @@ lm.ma.Est <- function(y=NULL,
             
             if(compute.deriv) {
 
-                if(basis.vec[p]=="additive" || basis.vec[p]=="glp") {
+                if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
                     K.additive <- DS
                     K.additive[,2] <- ifelse(DS[,1]==0,0,DS[,2])
                     K.additive[,1] <- ifelse(DS[,1]>0,DS[,1]-1,DS[,1])
@@ -1030,7 +1035,7 @@ lm.ma.Est <- function(y=NULL,
                             } else if(basis.vec[p]=="tensor") {
                                 model <- lm(y~P-1,weights=L)
                                 deriv.spline[zz] <- P.deriv%*%coef(model)
-                            } else if(basis.vec[p]=="glp") {
+                            } else if(basis.vec[p]=="taylor") {
                                 model <- lm(y~P,weights=L)
                                 deriv.spline[zz] <- P.deriv%*%coef(model)[-1]
                             }
@@ -1056,7 +1061,7 @@ lm.ma.Est <- function(y=NULL,
                             model <- lm(y~P-1,weights=weights)
                             coef.vec.model <- coef(model)
                             deriv.ind.vec[1:dim.P.tensor] <- TRUE
-                        } else if(basis.vec[p]=="glp") {
+                        } else if(basis.vec[p]=="taylor") {
                             model <- lm(y~P,weights=weights)
                             coef.vec.model <- coef(model)[-1]
                             deriv.ind.vec[1:dim.P.tensor] <- TRUE
