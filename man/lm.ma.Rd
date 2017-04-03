@@ -376,7 +376,7 @@ persp3d(x.seq,x.seq,z=z,
 grid3d(c("x", "y+", "z"))
 
 ## Note - if you click on the rgl window you can rotate the estimate 
-## by dragging the object, can zoom in and out etc.
+## by dragging the object, zoom in and out etc.
 }
 
 \keyword{Regression}

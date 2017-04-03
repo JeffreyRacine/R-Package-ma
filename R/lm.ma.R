@@ -753,7 +753,6 @@ lm.ma.Est <- function(y=NULL,
     
     if(num.x == 1 & (basis != "additive")) {
         basis <- "additive"
-        warning("Only one numeric predictor detected, changing basis to additive")
     }
 
     if(vc & !is.null(num.z)) {
@@ -1110,7 +1109,9 @@ lm.ma.Est <- function(y=NULL,
         }        
         b <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
 
-        while(singular.D) {
+        num.attempts <- 0
+        while(singular.D & num.attempts < 10) {
+            num.attempts <- num.attempts + 1
             ## Re-solve the quadratic program for the non-zero Mallows
             ## model average weights (trivial overhead and can only
             ## improve upon the existing weights when D is not
