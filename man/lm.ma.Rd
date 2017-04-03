@@ -218,7 +218,7 @@ x <- sort(runif(n))
 dgp <- cos(2*pi*x)
 y <- dgp + rnorm(n,sd=0.5*sd(dgp))
 
-model.ma <- lm.ma(y~x)
+model.ma <- lm.ma(y~x, compute.anova=TRUE)
 
 summary(model.ma)
 

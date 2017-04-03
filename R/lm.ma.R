@@ -498,7 +498,7 @@ summary.lm.ma <- function(object,
         maxPvalLen <- max(ncp <- nchar(format.pval(object$P.vec)))
         maxrejLen <- max(ncr <- nchar(reject))
 
-        cat("\n\nIndividual Significance Test(s)\n")
+        cat("\n\nNonparametric significance test(s)\n")
         cat("P Value(s):", paste("\n", nm," ",
                                  blank(maxNameLen-nc),
                                  format.pval(object$P.vec),
