@@ -750,7 +750,10 @@ lm.ma.Est <- function(y=NULL,
     ## If there is only one numeric predictor, use additive basis (waste to 
     ## use auto in this case as all bases coincide)
     
-    if(num.x == 1) basis <- "additive"
+    if(num.x == 1 & (basis != "additive")) {
+        basis <- "additive"
+        warning("Only one numeric predictor detected, changing basis to additive")
+    }
 
     if(vc & !is.null(num.z)) {
         z.unique <- uniquecombs(as.matrix(z))
