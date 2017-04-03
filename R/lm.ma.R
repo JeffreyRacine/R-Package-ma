@@ -247,6 +247,7 @@ lm.ma.default <- function(y=NULL,
         
         P.vec <- numeric(length=ncol.X)
         F.stat <- numeric(length=ncol.X)
+        F.boot <- numeric(length=B)
         
         if(!is.null(X.eval)) {
             Est.ssu <- lm.ma.Est(y=y,
@@ -286,7 +287,7 @@ lm.ma.default <- function(y=NULL,
             
             ## With > 1 predictor, restricted model does not incorporate the kth predictor
 
-            if(ncol.X>1 & (Est$num.x>1 | (Est$num.x==1 & !is.numeric.X.k))) {
+            if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
                 X.res <- X[,-k,drop=FALSE]
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
@@ -301,10 +302,10 @@ lm.ma.default <- function(y=NULL,
                                      knots=knots,
                                      S=S,
                                      method=method,
-                                     ma.weights=Est$ma.weights,
-                                     basis.vec=Est$basis.vec,
-                                     rank.vec=Est$rank.vec,
-                                     K.mat=if(is.numeric.X.k){Est$DS[,c(-k,-(k+Est$num.x)),drop=FALSE]}else{Est$DS},
+                                     ma.weights=Est.ssu$ma.weights,
+                                     basis.vec=Est.ssu$basis.vec,
+                                     rank.vec=Est.ssu$rank.vec,
+                                     K.mat=if(is.numeric.X.k){Est.ssu$DS[,c(-k,-(k+Est.ssu$num.x)),drop=FALSE]}else{Est.ssu$DS},
                                      weights=weights,
                                      vc=vc,
                                      verbose=FALSE,
@@ -321,7 +322,7 @@ lm.ma.default <- function(y=NULL,
                 ## unconditional mean
                 ssr <- sum((y-mean(y))^2)
                 ssr.rank <- 1
-            } else if(ncol.X>1 & Est$num.x == 1 & is.numeric.X.k) {
+            } else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
                 foo <- X.res
                 for(i in 1:NCOL(foo)) foo[,i] <- as.numeric(foo[,i])
                 ## Only one numeric predictor, rest must be factors, compute multivariate mean
@@ -341,18 +342,16 @@ lm.ma.default <- function(y=NULL,
 
             F.stat[k] <- (nrow.X-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
 
-            F.boot <- numeric(length=B)
-            
             for(b in 1:B) {
                 if(verbose) cat(paste("\rAnova for predictor ",k," of ",ncol.X," (bootstrap replication ",b," of ",B,")",sep=""))
                 ## Residual bootstrap from the null model, use
                 ## original model configuration with bootstrap y
 
-                if(ncol.X>1 & (Est$num.x>1 | (Est$num.x==1 & !is.numeric.X.k))) {
-                    y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values),size=nrow.X,replace=TRUE)
+                if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
+                    y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(nrow.X/(nrow.X-ssr.rank)),size=nrow.X,replace=TRUE)
                 }  else if(ncol.X == 1) {
                     y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
-                }  else if(ncol.X>1 & Est$num.x == 1 & is.numeric.X.k) {
+                }  else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
                     y.boot <- mv.mean + sample(y-mv.mean,replace=TRUE)                    
                 }
 
@@ -369,10 +368,10 @@ lm.ma.default <- function(y=NULL,
                                           knots=knots,
                                           S=S,
                                           method=method,
-                                          ma.weights=Est$ma.weights,
-                                          basis.vec=Est$basis.vec,
-                                          rank.vec=Est$rank.vec,
-                                          K.mat=Est$DS,
+                                          ma.weights=Est.ssu$ma.weights,
+                                          basis.vec=Est.ssu$basis.vec,
+                                          rank.vec=Est.ssu$rank.vec,
+                                          K.mat=Est.ssu$DS,
                                           weights=weights,
                                           vc=vc,
                                           verbose=FALSE,
@@ -381,7 +380,7 @@ lm.ma.default <- function(y=NULL,
 
                 ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)  
                 
-                if(ncol.X>1 & (Est$num.x>1 | (Est$num.x==1 & !is.numeric.X.k))) {
+                if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
 
                     Est.ssr.boot <- lm.ma.Est(y=y.boot,
                                               X=X.res,
@@ -396,10 +395,10 @@ lm.ma.default <- function(y=NULL,
                                               knots=knots,
                                               S=S,
                                               method=method,
-                                              ma.weights=Est$ma.weights,
-                                              basis.vec=Est$basis.vec,
-                                              rank.vec=Est$rank.vec,
-                                              K.mat=if(is.numeric.X.k){Est$DS[,c(-k,-(k+Est$num.x)),drop=FALSE]}else{Est$DS},
+                                              ma.weights=Est.ssu$ma.weights,
+                                              basis.vec=Est.ssu$basis.vec,
+                                              rank.vec=Est.ssu$rank.vec,
+                                              K.mat=if(is.numeric.X.k){Est.ssu$DS[,c(-k,-(k+Est.ssu$num.x)),drop=FALSE]}else{Est.ssu$DS},
                                               weights=weights,
                                               vc=vc,
                                               verbose=FALSE,
@@ -410,7 +409,7 @@ lm.ma.default <- function(y=NULL,
 
                 } else if(ncol.X == 1) {
                     ssr.boot <- sum((y.boot-mean(y.boot))^2)
-                }   else if(ncol.X>1 & Est$num.x == 1 & is.numeric.X.k) {
+                }   else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
                     for(i in 1:nrow.z.unique) {
                         zz <- ind == ind.vals[i]
                         mv.mean[zz] <- mean(y.boot[zz])
