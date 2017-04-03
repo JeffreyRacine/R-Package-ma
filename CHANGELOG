@@ -1,3 +1,11 @@
+Changes from Version 1.08 to 1.09 [3-Apr-2017]
+
+- different bootstrap procedure
+
+Changes from Version 1.07 to 1.08 [2-Apr-2017]
+
+- fixed bootstrap anova for corner cases, various bugs squashed
+
 Changes from Version 1.06 to 1.07 [2-Apr-2017]
 
 - added bootstrap anova, fixed minor glitches
