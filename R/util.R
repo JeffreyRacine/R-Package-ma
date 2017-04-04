@@ -83,6 +83,7 @@ splitFrame <- function(xz, factor.to.numeric=FALSE) {
               xnames=xnames,
               z=z,
               num.z=num.z,
+              numeric.logical=!IND,
               is.ordered.z=is.ordered.z,
               znames=znames))
   

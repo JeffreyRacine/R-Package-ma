@@ -348,9 +348,7 @@ lm.ma.default <- function(y=NULL,
                 ## original model configuration with bootstrap y
 
                 if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
-                    epsilon.boot <- sample((y-Est.ssr$fitted.values)*sqrt(nrow.X/(nrow.X-ssr.rank)),replace=TRUE) ## iid
-                    #epsilon.boot <- ifelse(rbinom(nrow.X,1,.5)==1,-1,1)*(y-Est.ssr$fitted.values)*sqrt(nrow.X/(nrow.X-ssr.rank)) ## wild
-                    y.boot <- Est.ssr$fitted.values + sample(epsilon.boot,size=nrow.X,replace=TRUE)
+                    y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(nrow.X/(nrow.X-ssr.rank)),size=nrow.X,replace=TRUE)
                 }  else if(ncol.X == 1) {
                     y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
                 }  else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
@@ -741,6 +739,11 @@ lm.ma.Est <- function(y=NULL,
     z <- xztmp$z
     num.x <- xztmp$num.x
     num.z <- xztmp$num.z
+    ncol.X <- NCOL(X)
+    numeric.logical <- xztmp$numeric.logical
+    xzindex <- 1:ncol.X
+    xzindex[numeric.logical] <- 1:num.x
+    if(!is.null(num.z)) xzindex[!numeric.logical] <- 1:num.z
     is.ordered.z <- xztmp$is.ordered.z
     if(!is.null(X.eval)) {
         if(!vc) {
@@ -753,6 +756,18 @@ lm.ma.Est <- function(y=NULL,
     } else {
         xeval <- x
         zeval <- z
+    }
+
+    ## Construct base levels for computing differences for factors,
+    ## only one row but keep as a data frame
+
+    if(!is.null(num.z)) {
+        zeval.base <- zeval[1,,drop=FALSE]
+        if(vc) {
+            for(i in 1:num.z) zeval.base[1,i] <- min(z[,i])
+        } else {
+            for(i in 1:num.z) zeval.base[1,i] <- levels(z[,i])[1]
+        }
     }
 
     rm(xztmp)
@@ -825,9 +840,9 @@ lm.ma.Est <- function(y=NULL,
 
     deriv <- NULL
     if(compute.deriv) {
-        deriv.mat <- array(NA,c(if(is.null(X.eval)){nrow.X}else{nrow.Xeval},P.num,num.x))
-        deriv <- matrix(NA,if(is.null(X.eval)){nrow.X}else{nrow.Xeval},num.x)
-        colnames(deriv) <- xnames
+        deriv.mat <- array(NA,c(if(is.null(X.eval)){nrow.X}else{nrow.Xeval},P.num,ncol.X))
+        deriv <- matrix(NA,if(is.null(X.eval)){nrow.X}else{nrow.Xeval},ncol.X)
+        colnames(deriv) <- names(X)
     }
 
     if(is.null(rank.vec)) rank.vec <- numeric(length=P.num)
@@ -929,7 +944,7 @@ lm.ma.Est <- function(y=NULL,
                     cv.min <- Inf
                     basis.singular <- logical(1)
                     for(b.basis in c("tensor","taylor","additive")) {
-                        P <- prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
+                        P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=b.basis)
                         if(!is.fullrank(P)) basis.singular <- TRUE
                         if(b.basis=="additive" || b.basis=="taylor") {
                             model.ma <- lm(y~P,weights=weights)
@@ -955,7 +970,7 @@ lm.ma.Est <- function(y=NULL,
 
                 } else {
 
-                    P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
+                    P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
                     if(!is.fullrank(P) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
                     if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
                         model.ma <- lm(y~P,weights=weights)
@@ -983,6 +998,8 @@ lm.ma.Est <- function(y=NULL,
             
         }
 
+        ## Evaluation matters - xeval and zeval set to x and z if no evaluation so use throughout
+
         if(!is.null(ma.weights))  {
             if(vc & !is.null(num.z)) {
 
@@ -1007,7 +1024,7 @@ lm.ma.Est <- function(y=NULL,
                 
             } else {
 
-                P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
+                P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
                 if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
                     model.ma <- lm(y~P,weights=weights)
                 } else {
@@ -1021,6 +1038,8 @@ lm.ma.Est <- function(y=NULL,
                 
             }
             
+            ## XXX
+            
             if(compute.deriv) {
 
                 if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
@@ -1029,60 +1048,122 @@ lm.ma.Est <- function(y=NULL,
                     K.additive[,1] <- ifelse(DS[,1]>0,DS[,1]-1,DS[,1])
                 }
                 
-                for(k in 1:num.x) {
-                   
+                for(k in 1:ncol.X) {
+
                     if(vc & !is.null(num.z)) {
+                        
+                        if(numeric.logical[k]) {
+                            print("k")
+                            print(k)
+                            print("xzindex[k]")
+                            print(xzindex[k])
 
-                        deriv.spline <- numeric(length(num.eval))
-                        for(i in 1:nrow.zeval.unique) {
-                            zz <- ind.zeval == ind.zeval.vals[i]
-                            L <- suppressWarnings(prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
-                            if(!is.null(weights)) L <- weights*L
-                            P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
-                            P.deriv <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p],deriv.index=k,deriv=deriv.order))
-                            if(basis.vec[p]=="additive") {
-                                model <- lm(y~P,weights=L)
-                                dim.P.deriv <- sum(K.additive[k,])
-                                deriv.start <- ifelse(k!=1,sum(K.additive[1:(k-1),])+1,1)
-                                deriv.end <- deriv.start+sum(K.additive[k,])-1
-                                deriv.ind.vec <- deriv.start:deriv.end
-                                deriv.spline[zz] <- P.deriv[,deriv.ind.vec,drop=FALSE]%*%(coef(model)[-1])[deriv.ind.vec]
-                            } else if(basis.vec[p]=="tensor") {
-                                model <- lm(y~P-1,weights=L)
-                                deriv.spline[zz] <- P.deriv%*%coef(model)
-                            } else if(basis.vec[p]=="taylor") {
-                                model <- lm(y~P,weights=L)
-                                deriv.spline[zz] <- P.deriv%*%coef(model)[-1]
+                            ## numeric
+
+                            deriv.spline <- numeric(length(num.eval))
+                            for(i in 1:nrow.zeval.unique) {
+                                zz <- ind.zeval == ind.zeval.vals[i]
+                                L <- suppressWarnings(prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
+                                if(!is.null(weights)) L <- weights*L
+                                P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
+                                P.deriv <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p],deriv.index=xzindex[k],deriv=deriv.order))
+                                if(basis.vec[p]=="additive") {
+                                    model <- lm(y~P,weights=L)
+                                    dim.P.deriv <- sum(K.additive[xzindex[k],])
+                                    deriv.start <- ifelse(k!=1,sum(K.additive[1:(xzindex[k]-1),])+1,1)
+                                    deriv.end <- deriv.start+sum(K.additive[xzindex[k],])-1
+                                    deriv.ind.vec <- deriv.start:deriv.end
+                                    deriv.spline[zz] <- P.deriv[,deriv.ind.vec,drop=FALSE]%*%(coef(model)[-1])[deriv.ind.vec]
+                                } else if(basis.vec[p]=="tensor") {
+                                    model <- lm(y~P-1,weights=L)
+                                    deriv.spline[zz] <- P.deriv%*%coef(model)
+                                } else if(basis.vec[p]=="taylor") {
+                                    model <- lm(y~P,weights=L)
+                                    deriv.spline[zz] <- P.deriv%*%coef(model)[-1]
+                                }
                             }
-                        }
+                            
+                            model.deriv <- deriv.spline
+                            
+                            print("model.deriv[1:2]")
+                            print(model.deriv[1:2])
 
-                        model.deriv <- deriv.spline
+                        } else {
+
+                            ## factor, need base levels
+
+                            zeval.unique.tmp <- zeval.unique
+                            zeval.unique.cmp <- zeval.base[,xzindex[k]]
+
+                            fit.spline <- numeric(length=num.eval)
+                            for(i in 1:nrow.zeval.unique) {
+                                zz <- ind.zeval == ind.zeval.vals[i]
+                                L <- suppressWarnings(prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
+                                if(!is.null(weights)) L <- weights*L
+                                P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
+                                if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+                                    model.z.unique <- lm(y~P,weights=L)
+                                } else {
+                                    model.z.unique <- lm(y~P-1,weights=L)
+                                }
+                                P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
+                                fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
+                                
+                            }
+                            model.deriv <- fit.spline - fitted.mat[,p] 
+                        }
 
                     } else {
 
-                        P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
-                        P.deriv <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p],deriv.index=k,deriv=deriv.order))
-                        dim.P.tensor <- NCOL(P)
-                        deriv.ind.vec <- logical(length=NCOL(P))
-                        coef.vec.model <- numeric(length=NCOL(P))
-                        if(basis.vec[p]=="additive") {
-                            model <- lm(y~P,weights=weights)
-                            coef.vec.model <- coef(model)[-1]
-                            dim.P.deriv <- sum(K.additive[k,])
-                            deriv.start <- ifelse(k!=1,sum(K.additive[1:(k-1),])+1,1)
-                            deriv.end <- deriv.start+sum(K.additive[k,])-1
-                            deriv.ind.vec[deriv.start:deriv.end] <- TRUE
-                        } else if(basis.vec[p]=="tensor") {
-                            model <- lm(y~P-1,weights=weights)
-                            coef.vec.model <- coef(model)
-                            deriv.ind.vec[1:dim.P.tensor] <- TRUE
-                        } else if(basis.vec[p]=="taylor") {
-                            model <- lm(y~P,weights=weights)
-                            coef.vec.model <- coef(model)[-1]
-                            deriv.ind.vec[1:dim.P.tensor] <- TRUE
+                        if(numeric.logical[k]) {
+
+                            ## numeric
+
+                            P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
+                            P.deriv <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p],deriv.index=xzindex[k],deriv=deriv.order))
+                            dim.P.tensor <- NCOL(P)
+                            deriv.ind.vec <- logical(length=NCOL(P))
+                            coef.vec.model <- numeric(length=NCOL(P))
+                            if(basis.vec[p]=="additive") {
+                                model <- lm(y~P,weights=weights)
+                                coef.vec.model <- coef(model)[-1]
+                                dim.P.deriv <- sum(K.additive[xzindex[k],])
+                                deriv.start <- ifelse(k!=1,sum(K.additive[1:(xzindex[k]-1),])+1,1)
+                                deriv.end <- deriv.start+sum(K.additive[xzindex[k],])-1
+                                deriv.ind.vec[deriv.start:deriv.end] <- TRUE
+                            } else if(basis.vec[p]=="tensor") {
+                                model <- lm(y~P-1,weights=weights)
+                                coef.vec.model <- coef(model)
+                                deriv.ind.vec[1:dim.P.tensor] <- TRUE
+                            } else if(basis.vec[p]=="taylor") {
+                                model <- lm(y~P,weights=weights)
+                                coef.vec.model <- coef(model)[-1]
+                                deriv.ind.vec[1:dim.P.tensor] <- TRUE
+                            }
+                            
+                            model.deriv <- P.deriv[,deriv.ind.vec,drop=FALSE]%*%coef.vec.model[deriv.ind.vec]
+
+                        } else {
+
+                            ### need base levels
+
+                            P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
+                            if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+                                model.ma <- lm(y~P,weights=weights)
+                            } else {
+                                model.ma <- lm(y~P-1,weights=weights)
+                            }
+
+                            zeval.base.tmp <- zeval
+                            zeval.base.tmp[,xzindex[k]] <- zeval.base[1,xzindex[k]]
+                            
+                            P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval.base.tmp,knots="quantiles",basis=basis.vec[p]))
+
+                            fit.spline <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
+                            ## factor
+
+                            model.deriv <- fit.spline - fitted.mat[,p] 
                         }
-                        
-                        model.deriv <- P.deriv[,deriv.ind.vec,drop=FALSE]%*%coef.vec.model[deriv.ind.vec]
 
                     }
                     
@@ -1172,7 +1253,7 @@ lm.ma.Est <- function(y=NULL,
         if(verbose) cat("\r                                                    ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing derivatives and fitted values...")
-        for(k in 1:num.x) deriv[,k] <- deriv.mat[,,k]%*%b
+        for(k in 1:ncol.X) deriv[,k] <- deriv.mat[,,k]%*%b
     }
 
     if(verbose) {
@@ -1198,6 +1279,7 @@ lm.ma.Est <- function(y=NULL,
                 method=method,
                 num.x=num.x,
                 num.z=num.z,
+                numeric.logical=numeric.logical,
                 rank.vec=rank.vec,
                 ma.model.rank=sum(rank.vec*abs(b)),
                 nobs=nrow.X,
