@@ -198,7 +198,7 @@ lm.ma.default <- function(y=NULL,
             ii <- sample(1:n,replace=TRUE)
             out.boot <- lm.ma.Est(y=y[ii],
                                   X=X[ii,],
-                                  X.eval=if(is.null(X.eval)) { X } else {X.eval},
+                                  X.eval=if(is.null(X.eval)){X}else{X.eval},
                                   basis=basis,
                                   compute.deriv=compute.deriv,
                                   deriv.order=deriv.order,
@@ -1067,7 +1067,7 @@ lm.ma.Est <- function(y=NULL,
                                 if(basis.vec[p]=="additive") {
                                     model <- lm(y~P,weights=L)
                                     dim.P.deriv <- sum(K.additive[xzindex[k],])
-                                    deriv.start <- ifelse(k!=1,sum(K.additive[1:(xzindex[k]-1),])+1,1)
+                                    deriv.start <- ifelse(xzindex[k]!=1,sum(K.additive[1:(xzindex[k]-1),])+1,1)
                                     deriv.end <- deriv.start+sum(K.additive[xzindex[k],])-1
                                     deriv.ind.vec <- deriv.start:deriv.end
                                     deriv.spline[zz] <- P.deriv[,deriv.ind.vec,drop=FALSE]%*%(coef(model)[-1])[deriv.ind.vec]
@@ -1122,7 +1122,7 @@ lm.ma.Est <- function(y=NULL,
                                 model <- lm(y~P,weights=weights)
                                 coef.vec.model <- coef(model)[-1]
                                 dim.P.deriv <- sum(K.additive[xzindex[k],])
-                                deriv.start <- ifelse(k!=1,sum(K.additive[1:(xzindex[k]-1),])+1,1)
+                                deriv.start <- ifelse(xzindex[k]!=1,sum(K.additive[1:(xzindex[k]-1),])+1,1)
                                 deriv.end <- deriv.start+sum(K.additive[xzindex[k],])-1
                                 deriv.ind.vec[deriv.start:deriv.end] <- TRUE
                             } else if(basis.vec[p]=="tensor") {
@@ -1247,7 +1247,7 @@ lm.ma.Est <- function(y=NULL,
         if(verbose) cat("\r                                                    ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing derivatives...")
-        for(k in 1:ncol.X) deriv[,k] <- as.matrix(deriv.mat[,,k])%*%b
+        for(k in 1:ncol.X) deriv[,k] <- deriv.mat[,,k]%*%b
     }
 
     if(verbose) {
