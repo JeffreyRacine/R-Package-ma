@@ -187,9 +187,11 @@ lm.ma.default <- function(y=NULL,
         } else {
             n <- NROW(X.eval)
         }
+        
+        ncol.X <- NCOL(X)
     
         boot.mat <- matrix(NA,n,B)
-        if(compute.deriv) boot.deriv.array <- array(NA,c(n,B,Est$num.x))
+        if(compute.deriv) boot.deriv.array <- array(NA,c(n,B,ncol.X))
 
         for(b in 1:B) {
             if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
@@ -217,7 +219,7 @@ lm.ma.default <- function(y=NULL,
                                   tol=tol,
                                   ...)
             boot.mat[,b] <- out.boot$fitted
-            if(compute.deriv) for(k in 1:Est$num.x) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
+            if(compute.deriv) for(k in 1:ncol.X) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
         }
 
         if(verbose) cat("\r                                     ")
@@ -229,8 +231,8 @@ lm.ma.default <- function(y=NULL,
         Est$fitted.scale <- apply(boot.mat,1,mad,na.rm=TRUE)
         
         if(compute.deriv) {
-            Est$deriv.ci.l <- Est$deriv.ci.u <- Est$deriv.scale <- matrix(NA,n,Est$num.x)
-            for(k in 1:Est$num.x) {
+            Est$deriv.ci.l <- Est$deriv.ci.u <- Est$deriv.scale <- matrix(NA,n,ncol.X)
+            for(k in 1:ncol.X) {
                 Est$deriv.ci.l[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=alpha/2,type=1,na.rm=TRUE)
                 Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE)     
                 Est$deriv.scale[,k] <- apply(boot.deriv.array[,,k],1,mad,na.rm=TRUE)  
