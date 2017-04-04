@@ -1087,12 +1087,12 @@ lm.ma.Est <- function(y=NULL,
                             ## factor, need base levels
 
                             zeval.unique.tmp <- zeval.unique
-                            zeval.unique.cmp <- zeval.base[,xzindex[k]]
+                            zeval.unique.tmp[,xzindex[k]] <- zeval.base[,xzindex[k]]
 
                             fit.spline <- numeric(length=num.eval)
                             for(i in 1:nrow.zeval.unique) {
                                 zz <- ind.zeval == ind.zeval.vals[i]
-                                L <- suppressWarnings(prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
+                                L <- suppressWarnings(prod.kernel(Z=z,z=zeval.unique.tmp[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
                                 if(!is.null(weights)) L <- weights*L
                                 P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                                 if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
@@ -1104,7 +1104,7 @@ lm.ma.Est <- function(y=NULL,
                                 fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                                 
                             }
-                            model.deriv <- fit.spline - fitted.mat[,p] 
+                            model.deriv <- fitted.mat[,p] - fit.spline
                         }
 
                     } else {
@@ -1156,7 +1156,7 @@ lm.ma.Est <- function(y=NULL,
                             fit.spline <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                             ## factor
 
-                            model.deriv <- fit.spline - fitted.mat[,p] 
+                            model.deriv <- fitted.mat[,p] - fit.spline
                         }
 
                     }
