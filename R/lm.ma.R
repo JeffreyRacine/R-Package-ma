@@ -842,8 +842,6 @@ lm.ma.Est <- function(y=NULL,
     if(compute.deriv) {
         deriv.mat <- array(NA,c(if(is.null(X.eval)){nrow.X}else{nrow.Xeval},P.num,ncol.X))
         deriv <- matrix(NA,if(is.null(X.eval)){nrow.X}else{nrow.Xeval},ncol.X)
-        print(class(deriv.mat))
-        print(class(deriv))
         colnames(deriv) <- names(X)
     } else {
         deriv <- NULL
@@ -1252,7 +1250,14 @@ lm.ma.Est <- function(y=NULL,
         if(verbose) cat("\r                                                    ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing derivatives...")
-        for(k in 1:ncol.X) deriv[,k] <- deriv.mat[,,k]%*%b
+        for(k in 1:ncol.X) {
+            if(length(b)>1) {
+                deriv[,k] <- deriv.mat[,,k]%*%b
+            } else {
+                ## b must be the scalar 1
+                deriv[,k] <- deriv.mat[,,k]
+            }
+        }
     }
 
     if(verbose) {
