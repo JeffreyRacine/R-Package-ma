@@ -116,6 +116,7 @@ lm.ma.default <- function(y=NULL,
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
     if(compute.deriv & (degree.min < deriv.order)) stop("Minimum degree (degree.min) must be at least as large the order of the derivative required (deriv.order)")
     if(degree.min < 1) stop("Minimum degree (degree.min) must be at least one")
+    #if(!is.null(deriv.index) &(deriv.index < 1 | deriv.index > NCOL(X))) stop("derivative indices must correspond to columns of X")
 
     ## First obtain weights, then in subsequent call computes fits and
     ## derivatives
@@ -595,7 +596,7 @@ plot.lm.ma <- function(x,
                        plot.data=FALSE,
                        ...) {
     
-    x$verbose <- FALSE
+    x$verbose <- TRUE
     x$bootstrap.ci <- plot.ci
 
     yname <- all.vars(x$call)[1]
@@ -683,28 +684,29 @@ plot.lm.ma <- function(x,
             xeval <- xeval.median
             xeval[,i] <- x$X[,i]
             x$compute.deriv <- TRUE
+            x$deriv.index <- i
  
             foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
             if(!plot.ci) {
-                plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
+                plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),1],
                      ylab=if(is.numeric(x$X[,i])){paste("d ",yname," / d ",xznames[i],sep="")}else{paste("Delta ",yname,sep="")},
                      xlab=xznames[i],
                      type=if(is.numeric(x$X[,i])){"l"}else{"p"},
                      ...)
             } else {
-                ylim <- range(c(foo$deriv.low[,i],foo$deriv.up[,i]))
-                plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
+                ylim <- range(c(foo$deriv.low[,1],foo$deriv.up[,1]))
+                plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),1],
                      ylab=if(is.numeric(x$X[,i])){paste("d ",yname," / d ",xznames[i],sep="")}else{paste("Delta ",yname,sep="")},
                      xlab=xznames[i],
                      type=if(is.numeric(x$X[,i])){"l"}else{"p"},
                      ylim=ylim,
                      ...)
                 if(is.numeric(x$X[,i])) {
-                    lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),i],col=2,lty=2)
-                    lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),i],col=2,lty=2)
+                    lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),1],col=2,lty=2)
+                    lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),1],col=2,lty=2)
                 } else {
-                    points(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),i],bg=2,col=2,pch=21)
-                    points(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),i],bg=2,col=2,pch=21)                       
+                    points(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),1],bg=2,col=2,pch=21)
+                    points(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),1],bg=2,col=2,pch=21)                       
                 }
             }
         }
