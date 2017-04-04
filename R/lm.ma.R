@@ -1246,8 +1246,8 @@ lm.ma.Est <- function(y=NULL,
     if(compute.deriv) {
         if(verbose) cat("\r                                                    ")
         if(verbose) cat("\r")
-        if(verbose) cat("\rComputing derivatives and fitted values...")
-        for(k in 1:ncol.X) deriv[,k] <- deriv.mat[,,k]%*%b
+        if(verbose) cat("\rComputing derivatives...")
+        for(k in 1:ncol.X) deriv[,k] <- as.matrix(deriv.mat[,,k])%*%b
     }
 
     if(verbose) {
