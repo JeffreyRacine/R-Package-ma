@@ -690,7 +690,7 @@ plot.lm.ma <- function(x,
                     lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),i],col=2,lty=2)
                 } else {
                     points(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),i],bg=2,col=2,pch=21)
-                    points(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],bg=2,col=2,pch=21)                       
+                    points(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i]),i],bg=2,col=2,pch=21)                       
                 }
             }
         }
