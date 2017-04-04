@@ -348,7 +348,9 @@ lm.ma.default <- function(y=NULL,
                 ## original model configuration with bootstrap y
 
                 if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
-                    y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(nrow.X/(nrow.X-ssr.rank)),size=nrow.X,replace=TRUE)
+                    epsilon.boot <- sample((y-Est.ssr$fitted.values)*sqrt(nrow.X/(nrow.X-ssr.rank)),replace=TRUE) ## iid
+                    #epsilon.boot <- ifelse(rbinom(nrow.X,1,.5)==1,-1,1)*(y-Est.ssr$fitted.values)*sqrt(nrow.X/(nrow.X-ssr.rank)) ## wild
+                    y.boot <- Est.ssr$fitted.values + sample(epsilon.boot,size=nrow.X,replace=TRUE)
                 }  else if(ncol.X == 1) {
                     y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
                 }  else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {

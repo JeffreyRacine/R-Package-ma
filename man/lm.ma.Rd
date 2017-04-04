@@ -94,7 +94,7 @@ lm.ma(...)
 
   \item{compute.deriv}{a logical value indicating whether or not to compute derivatives}
 
-  \item{degree.max}{maximum value for the basis in each dimension (defaults to \code{max(2,ceiling(S*log(NROW(X))/num.x))} where \code{num.x} is the number of numeric (i.e., non categorical) predictors and n the number of observations}
+  \item{degree.max}{maximum value for the basis in each dimension (defaults to \code{max(2,S*log(n)/k} where \code{k} is the number of numeric (i.e., non categorical) predictors and \code{n} the number of observations}
 
   \item{degree.min}{minimum value for the basis in each dimension}
 
@@ -147,14 +147,17 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     fitted(model)
     coef(model)
 
-    ## For generating predictions, create foo, a dataframe with named elements (important)
-    ## for all predictors in the object model, then call predict, e.g.,
+    ## For generating predictions, create foo, a dataframe with named
+    ## elements (important) for all predictors in the object model,
+    ## then call predict, e.g.,
+
     foo <- data.frame(x1=c(1,2),x2=c(3,4))
     predict(model,newdata=foo)
 
     ## If you want to see the degrees and knots selected by the procedure
     ## for the models that receive positive model average weights, try the
     ## following:
+
     model$DS[model$ma.weights>1e-05,]
 }
 

@@ -7,5 +7,5 @@ Imports: quadprog
 Suggests: crs, np, rgl
 Author: Jeffrey S. Racine
 Maintainer: <racinej@mcmaster.ca>
-Description: This package implements model averaging  using a variety of multivariate bases.
+Description: This package implements model averaging using a variety of multivariate bases.
 License: GPL-2
