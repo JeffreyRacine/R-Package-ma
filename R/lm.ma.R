@@ -116,7 +116,7 @@ lm.ma.default <- function(y=NULL,
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
     if(compute.deriv & (degree.min < deriv.order)) stop("Minimum degree (degree.min) must be at least as large the order of the derivative required (deriv.order)")
     if(degree.min < 1) stop("Minimum degree (degree.min) must be at least one")
-    #if(!is.null(deriv.index) &(deriv.index < 1 | deriv.index > NCOL(X))) stop("derivative indices must correspond to columns of X")
+    if(!is.null(deriv.index)) if(deriv.index < 1 | deriv.index > NCOL(X)) stop("Derivative indices must correspond to columns of X")
 
     ## First obtain weights, then in subsequent call computes fits and
     ## derivatives
