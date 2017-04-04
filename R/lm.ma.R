@@ -655,49 +655,49 @@ plot.lm.ma <- function(x,
         
     } else {
         
-        is.numeric.X <- logical(ncol.X)
         xeval.median <- x$X
+        is.numeric.X <- logical(ncol.X)
         for(i in 1:ncol.X) {
             is.numeric.X[i] <- is.numeric(x$X[,i])
-            xeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
+            xeval.median[,i] <- uocquantile(xeval.median[,i],prob=0.5)
+        }
+        if(ncol.X > 1) par(mfrow=c(2,ifelse(ncol.X %%2 == 0, ncol.X/2, (ncol.X+1)/2)))
+        for(i in 1:ncol.X) {
+            cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))
+            xeval <- xeval.median
+            xeval[,i] <- x$X[,i]
+            x$compute.deriv <- TRUE
+ 
+            foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
+            if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
+            if(!plot.ci) {
+                plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
+                     ylab=paste("d ",yname," / d ",xznames[i],sep=""),
+                     xlab=xznames[i],
+                     type=if(is.numeric(x$X[,i])){"l"}else{"p"},
+                     ...)
+            } else {
+                ylim <- range(c(foo$deriv.low,foo$deriv.up))
+                plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
+                     ylab=paste("d ",yname," / d ",xznames[i],sep=""),
+                     xlab=xznames[i],
+                     type=if(is.numeric(x$X[,i])){"l"}else{"p"},
+                     ylim=ylim,
+                     ...)
+                if(is.numeric(x$X[,i])) {
+                    lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),i],col=2,lty=2)
+                    lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),i],col=2,lty=2)
+                } else {
+                    points(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),i],bg=2,col=2,pch=21)
+                    points(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],bg=2,col=2,pch=21)                       
+                }
+            }
         }
         
-        if(x$num.x > 1) par(mfrow=c(2,ifelse(x$num.x %%2 == 0, x$num.x/2, (x$num.x+1)/2)))        
-        j <- 1
-        for(i in 1:ncol.X) {
-            
-            cat(paste("\rGenerating object ",i," of ",x$num.x," to plot...",sep=""))
-            
-            if(is.numeric(x$X[,i])) {
-                xeval <- xeval.median
-                xeval[,i] <- x$X[,i]
-                x$compute.deriv <- TRUE
-                
-                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
-                if(!plot.ci) {
-                    plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
-                         ylab=paste("d ",yname," / d ",xznames[i],sep=""),
-                         xlab=xznames[i],
-                         type="l",
-                         ...)
-                } else {
-                    ylim <- range(c(foo$deriv.low[,j],foo$deriv.up[,j]))
-                    plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),j],
-                         ylab=paste("d ",yname," / d ",xznames[i],sep=""),
-                         xlab=xznames[i],
-                         type="l",
-                         ylim=ylim,
-                         ...)
-                    lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),j],col=2,lty=2)
-                    lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),j],col=2,lty=2)
-                }
-                
-                j <- j+1
-            }  
-        }
+        if(ncol.X > 1) par(mfrow=c(1,1))        
+
     }
-    
-    if(ncol.X > 1) par(mfrow=c(1,1))
+        
     cat("\r                                                     ")
     cat("\r")
     
@@ -1053,10 +1053,6 @@ lm.ma.Est <- function(y=NULL,
                     if(vc & !is.null(num.z)) {
                         
                         if(numeric.logical[k]) {
-                            print("k")
-                            print(k)
-                            print("xzindex[k]")
-                            print(xzindex[k])
 
                             ## numeric
 
@@ -1084,9 +1080,6 @@ lm.ma.Est <- function(y=NULL,
                             }
                             
                             model.deriv <- deriv.spline
-                            
-                            print("model.deriv[1:2]")
-                            print(model.deriv[1:2])
 
                         } else {
 
