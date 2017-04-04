@@ -178,7 +178,7 @@ This approach frees the user from using either model assertion or selection meth
 The function summary is used to obtain and print a summary of the results. The generic accessor functions \code{coef}, \code{fitted}, \code{predict}, \code{plot} and \code{residuals} extract various useful features of the value returned by lm.ma.
 
 An object of class "lm.ma" is a list containing at least the following components:
-  \item{degree.max}{value of degree.max for each dimension (set by the default rule given above unless manually overridden)}
+  \item{degree.max}{value of degree.max for each dimension (set by an ad-hoc rule unless manually overridden)}
   \item{deriv.ci.l}{\eqn{\alpha/2} nonparametric confidence value matrix for the matrix of derivatives}
   \item{deriv.ci.u}{\eqn{1-\alpha/2} nonparametric confidence value matrix for the matrix of derivatives}
   \item{deriv.scale}{robust scale matrix for the matrix of derivatives}
@@ -246,8 +246,7 @@ attach(wage1)
 
 ## Classical linear regression model (linear, additive, no interactions)
 
-model.lm <- lm(lwage ~ female + married + educ + exper + tenure, 
-               data = wage1)
+model.lm <- lm(lwage ~ female + married + educ + exper + tenure)
 
 ## Murphy-Welch's favourite specification               
 model.lm.mw <- lm(lwage ~ female + married + educ + exper + I(exper^2) 
@@ -310,7 +309,7 @@ detach(wage1)
 
 #### Example 3 - Canadian Current Population Survey earnings data
 
-## We compute two nonparametric estimators for comparison with the 
+## We compute two nonparametric estimators to compare with the 
 ## model averaging approach. 
 
 suppressPackageStartupMessages(require(np))
