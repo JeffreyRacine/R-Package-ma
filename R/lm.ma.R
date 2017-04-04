@@ -671,7 +671,6 @@ plot.lm.ma <- function(x,
             x$compute.deriv <- TRUE
  
             foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
-            if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
             if(!plot.ci) {
                 plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
                      ylab=paste("d ",yname," / d ",xznames[i],sep=""),
@@ -679,7 +678,7 @@ plot.lm.ma <- function(x,
                      type=if(is.numeric(x$X[,i])){"l"}else{"p"},
                      ...)
             } else {
-                ylim <- range(c(foo$deriv.low,foo$deriv.up))
+                ylim <- range(c(foo$deriv.low[,i],foo$deriv.up[,i]))
                 plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
                      ylab=paste("d ",yname," / d ",xznames[i],sep=""),
                      xlab=xznames[i],
