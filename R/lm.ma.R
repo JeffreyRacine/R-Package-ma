@@ -839,11 +839,14 @@ lm.ma.Est <- function(y=NULL,
 
     P.num <- NROW(K.mat)
 
-    deriv <- NULL
     if(compute.deriv) {
         deriv.mat <- array(NA,c(if(is.null(X.eval)){nrow.X}else{nrow.Xeval},P.num,ncol.X))
         deriv <- matrix(NA,if(is.null(X.eval)){nrow.X}else{nrow.Xeval},ncol.X)
+        print(class(deriv.mat))
+        print(class(deriv))
         colnames(deriv) <- names(X)
+    } else {
+        deriv <- NULL
     }
 
     if(is.null(rank.vec)) rank.vec <- numeric(length=P.num)
@@ -1162,12 +1165,14 @@ lm.ma.Est <- function(y=NULL,
                     }
                     
                     deriv.mat[,p,k] <- model.deriv
+
                 }
             }
 
         }
             
     }
+    
     
     if(is.null(ma.weights)) {
 
