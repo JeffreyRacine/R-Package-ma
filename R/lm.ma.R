@@ -596,7 +596,7 @@ plot.lm.ma <- function(x,
                        plot.data=FALSE,
                        ...) {
     
-    x$verbose <- TRUE
+    x$verbose <- FALSE
     x$bootstrap.ci <- plot.ci
 
     yname <- all.vars(x$call)[1]
