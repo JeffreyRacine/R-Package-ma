@@ -23,6 +23,7 @@ lm.ma(...)
       compute.deriv = FALSE,
       degree.max = NULL,
       degree.min = 1,
+      deriv.index = NULL,
       deriv.order = 1,
       K.mat = NULL,
       knots = FALSE,
@@ -52,6 +53,7 @@ lm.ma(...)
       compute.deriv = FALSE,
       degree.max = NULL,
       degree.min = 1,
+      deriv.index = NULL,
       deriv.order = 1,
       K.mat = NULL,
       knots = FALSE,
@@ -98,6 +100,9 @@ lm.ma(...)
 
   \item{degree.min}{minimum value for the basis in each dimension}
 
+
+  \item{deriv.index}{optional vector of indices indicating as to which predictor(s) the derivative computation is to be performed}
+  
   \item{deriv.order}{integer indicating order of derivative desired}
 
   \item{K.mat}{matrix with degree and knots that could be passed to the basis routines}

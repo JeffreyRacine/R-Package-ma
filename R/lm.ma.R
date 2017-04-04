@@ -18,6 +18,7 @@ lm.ma.formula <- function(formula,
                           compute.deriv=FALSE,
                           degree.max=NULL,
                           degree.min=1,
+                          deriv.index=NULL,
                           deriv.order=1,
                           K.mat=NULL,
                           knots=FALSE,
@@ -46,6 +47,7 @@ lm.ma.formula <- function(formula,
                        compute.deriv=compute.deriv,
                        deriv.order=deriv.order,
                        degree.min=degree.min,
+                       deriv.index=deriv.index,
                        degree.max=degree.max,
                        lambda=lambda,
                        segments.max=segments.max,
@@ -90,6 +92,7 @@ lm.ma.default <- function(y=NULL,
                           compute.deriv=FALSE,
                           degree.max=NULL,
                           degree.min=1,
+                          deriv.index=NULL,
                           deriv.order=1,
                           K.mat=NULL,
                           knots=FALSE,
@@ -124,6 +127,7 @@ lm.ma.default <- function(y=NULL,
                      compute.deriv=FALSE,
                      deriv.order=deriv.order,
                      degree.min=degree.min,
+                     deriv.index=deriv.index,
                      degree.max=degree.max,
                      lambda=lambda,
                      segments.max=segments.max,
@@ -156,6 +160,7 @@ lm.ma.default <- function(y=NULL,
                          compute.deriv=compute.deriv,
                          deriv.order=deriv.order,
                          degree.min=degree.min,
+                         deriv.index=deriv.index,
                          degree.max=degree.max,
                          lambda=lambda,
                          segments.max=segments.max,
@@ -203,6 +208,7 @@ lm.ma.default <- function(y=NULL,
                                   compute.deriv=compute.deriv,
                                   deriv.order=deriv.order,
                                   degree.min=degree.min,
+                                  deriv.index=deriv.index,
                                   degree.max=degree.max,
                                   lambda=lambda,
                                   segments.max=segments.max,
@@ -259,6 +265,7 @@ lm.ma.default <- function(y=NULL,
                                  compute.deriv=FALSE,
                                  deriv.order=deriv.order,
                                  degree.min=degree.min,
+                                 deriv.index=deriv.index,
                                  degree.max=degree.max,
                                  lambda=lambda,
                                  segments.max=segments.max,
@@ -298,6 +305,7 @@ lm.ma.default <- function(y=NULL,
                                      compute.deriv=FALSE,
                                      deriv.order=deriv.order,
                                      degree.min=degree.min,
+                                     deriv.index=deriv.index,
                                      degree.max=degree.max,
                                      lambda=lambda,
                                      segments.max=segments.max,
@@ -364,6 +372,7 @@ lm.ma.default <- function(y=NULL,
                                           compute.deriv=FALSE,
                                           deriv.order=deriv.order,
                                           degree.min=degree.min,
+                                          deriv.index=deriv.index,
                                           degree.max=degree.max,
                                           lambda=lambda,
                                           segments.max=segments.max,
@@ -391,6 +400,7 @@ lm.ma.default <- function(y=NULL,
                                               compute.deriv=FALSE,
                                               deriv.order=deriv.order,
                                               degree.min=degree.min,
+                                              deriv.index=deriv.index,
                                               degree.max=degree.max,
                                               lambda=lambda,
                                               segments.max=segments.max,
@@ -714,6 +724,7 @@ lm.ma.Est <- function(y=NULL,
                       compute.deriv=FALSE,
                       degree.max=NULL,
                       degree.min=1,
+                      deriv.index=NULL,
                       deriv.order=1,
                       K.mat=NULL,
                       knots=FALSE,
@@ -839,10 +850,13 @@ lm.ma.Est <- function(y=NULL,
 
     P.num <- NROW(K.mat)
 
+    if(is.null(deriv.index)) deriv.index <- 1:ncol.X
+    num.deriv <- length(deriv.index)
+    
     if(compute.deriv) {
-        deriv.mat <- array(NA,c(if(is.null(X.eval)){nrow.X}else{nrow.Xeval},P.num,ncol.X))
-        deriv <- matrix(NA,if(is.null(X.eval)){nrow.X}else{nrow.Xeval},ncol.X)
-        colnames(deriv) <- names(X)
+        deriv.mat <- array(NA,c(if(is.null(X.eval)){nrow.X}else{nrow.Xeval},P.num,num.deriv))
+        deriv <- matrix(NA,if(is.null(X.eval)){nrow.X}else{nrow.Xeval},num.deriv)
+        colnames(deriv) <- names(X)[deriv.index]
     } else {
         deriv <- NULL
     }
@@ -1040,8 +1054,6 @@ lm.ma.Est <- function(y=NULL,
                 
             }
             
-            ## XXX
-            
             if(compute.deriv) {
 
                 if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
@@ -1050,7 +1062,7 @@ lm.ma.Est <- function(y=NULL,
                     K.additive[,1] <- ifelse(DS[,1]>0,DS[,1]-1,DS[,1])
                 }
                 
-                for(k in 1:ncol.X) {
+                for(k in deriv.index) {
 
                     if(vc & !is.null(num.z)) {
                         
@@ -1250,7 +1262,7 @@ lm.ma.Est <- function(y=NULL,
         if(verbose) cat("\r                                                    ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing derivatives...")
-        for(k in 1:ncol.X) {
+        for(k in deriv.index) {
             if(length(b)>1) {
                 deriv[,k] <- deriv.mat[,,k]%*%b
             } else {
@@ -1275,6 +1287,7 @@ lm.ma.Est <- function(y=NULL,
                 compute.deriv=compute.deriv,
                 deriv.order=deriv.order,
                 degree.min=degree.min,
+                deriv.index=deriv.index,
                 degree.max=degree.max,
                 lambda=lambda,
                 segments.max=segments.max,
