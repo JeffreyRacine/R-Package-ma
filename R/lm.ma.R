@@ -673,14 +673,14 @@ plot.lm.ma <- function(x,
             foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
             if(!plot.ci) {
                 plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
-                     ylab=paste("d ",yname," / d ",xznames[i],sep=""),
+                     ylab=if(is.numeric(x$X[,i])){paste("d ",yname," / d ",xznames[i],sep="")}else{paste("Delta ",yname,sep="")},
                      xlab=xznames[i],
                      type=if(is.numeric(x$X[,i])){"l"}else{"p"},
                      ...)
             } else {
                 ylim <- range(c(foo$deriv.low[,i],foo$deriv.up[,i]))
                 plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),i],
-                     ylab=paste("d ",yname," / d ",xznames[i],sep=""),
+                     ylab=if(is.numeric(x$X[,i])){paste("d ",yname," / d ",xznames[i],sep="")}else{paste("Delta ",yname,sep="")},
                      xlab=xznames[i],
                      type=if(is.numeric(x$X[,i])){"l"}else{"p"},
                      ylim=ylim,
