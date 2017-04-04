@@ -556,6 +556,7 @@ predict.lm.ma <- function(object,
                              X.eval=exdat,
                              basis=object$basis,
                              compute.deriv=object$compute.deriv,
+                             deriv.index=object$deriv.index,
                              deriv.order=object$deriv.order,
                              degree.max=object$degree.max,
                              lambda=object$lambda,
@@ -858,7 +859,7 @@ lm.ma.Est <- function(y=NULL,
 
     if(is.null(deriv.index)) deriv.index <- 1:ncol.X
     num.deriv <- length(deriv.index)
-    
+
     if(compute.deriv) {
         deriv.mat <- array(NA,c(if(is.null(X.eval)){nrow.X}else{nrow.Xeval},P.num,num.deriv))
         deriv <- matrix(NA,if(is.null(X.eval)){nrow.X}else{nrow.Xeval},num.deriv)
