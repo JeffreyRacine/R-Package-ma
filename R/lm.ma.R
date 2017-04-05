@@ -595,6 +595,8 @@ plot.lm.ma <- function(x,
                        plot.deriv=FALSE,
                        plot.ci=FALSE,
                        plot.data=FALSE,
+                       plot.num.eval=100,
+                       plot.xtrim=0.005,
                        ...) {
     
     x$verbose <- FALSE
@@ -606,17 +608,20 @@ plot.lm.ma <- function(x,
     ncol.X <- NCOL(x$X)
     
     if(!plot.deriv) {
-        xeval.median <- x$X
+        xeval.median <- data.frame(matrix(NA,plot.num.eval,ncol.X))
+        names(xeval.median) <- xznames
         is.numeric.X <- logical(ncol.X)
         for(i in 1:ncol.X) {
             is.numeric.X[i] <- is.numeric(x$X[,i])
-            xeval.median[,i] <- uocquantile(xeval.median[,i],prob=0.5)
+            xeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
         }
         if(ncol.X > 1) par(mfrow=c(2,ifelse(ncol.X %%2 == 0, ncol.X/2, (ncol.X+1)/2)))
         for(i in 1:ncol.X) {
             cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))
             xeval <- xeval.median
-            xeval[,i] <- x$X[,i]
+            xeval[,i] <- seq(uocquantile(x$X[,i],plot.xtrim),
+                             uocquantile(x$X[,i],1-plot.xtrim),
+                             length=plot.num.eval)
             x$compute.deriv <- FALSE
             if(plot.data) {
                 plot(xeval[,i],x$y,
@@ -628,42 +633,42 @@ plot.lm.ma <- function(x,
                 foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)    
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(is.numeric(x$X[,i])) {
-                    lines(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],col=1)
+                    lines(xeval[,i],foo$fit,col=1)
                 } else {
-                    points(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],bg=1,col=1,pch=21)
+                    points(xeval[,i],foo$fit,bg=1,col=1,pch=21)
                 }
                 if(plot.ci) {
                     if(is.numeric(x$X[,i])) {
-                        lines(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],col=2,lty=2)
-                        lines(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],col=2,lty=2)
+                        lines(xeval[,i],foo$fit.low,col=2,lty=2)
+                        lines(xeval[,i],foo$fit.up,col=2,lty=2)
                     } else {
-                        points(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],bg=2,col=2,pch=21)
-                        points(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],bg=2,col=2,pch=21)
+                        points(xeval[,i],foo$fit.low,bg=2,col=2,pch=21)
+                        points(xeval[,i],foo$fit.up,bg=2,col=2,pch=21)
                     }
                 }
             } else {
                 foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(!plot.ci) {
-                    plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
+                    plot(xeval[,i],foo$fit,
                          ylab=yname,
                          xlab=xznames[i],
                          type=if(is.numeric(x$X[,i])){"l"}else{"p"},
                          ...)
                 } else {
                     ylim <- range(c(foo$fit.low,foo$fit.up))
-                    plot(xeval[order(xeval[,i]),i],foo$fit[order(xeval[,i])],
+                    plot(xeval[,i],foo$fit,
                          ylab=yname,
                          xlab=xznames[i],
                          type=if(is.numeric(x$X[,i])){"l"}else{"p"},
                          ylim=ylim,
                          ...)
                     if(is.numeric(x$X[,i])) {
-                        lines(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],col=2,lty=2)
-                        lines(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],col=2,lty=2)
+                        lines(xeval[,i],foo$fit.low,col=2,lty=2)
+                        lines(xeval[,i],foo$fit.up,col=2,lty=2)
                     } else {
-                        points(xeval[order(xeval[,i]),i],foo$fit.low[order(xeval[,i])],bg=2,col=2,pch=21)
-                        points(xeval[order(xeval[,i]),i],foo$fit.up[order(xeval[,i])],bg=2,col=2,pch=21)                       
+                        points(xeval[,i],foo$fit.low,bg=2,col=2,pch=21)
+                        points(xeval[,i],foo$fit.up,bg=2,col=2,pch=21)                       
                     }
                 }
             }
@@ -673,41 +678,44 @@ plot.lm.ma <- function(x,
         
     } else {
         
-        xeval.median <- x$X
+        xeval.median <- data.frame(matrix(NA,plot.num.eval,ncol.X))
+        names(xeval.median) <- xznames
         is.numeric.X <- logical(ncol.X)
         for(i in 1:ncol.X) {
             is.numeric.X[i] <- is.numeric(x$X[,i])
-            xeval.median[,i] <- uocquantile(xeval.median[,i],prob=0.5)
+            xeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
         }
         if(ncol.X > 1) par(mfrow=c(2,ifelse(ncol.X %%2 == 0, ncol.X/2, (ncol.X+1)/2)))
         for(i in 1:ncol.X) {
             cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))
             xeval <- xeval.median
-            xeval[,i] <- x$X[,i]
+            xeval[,i] <- seq(uocquantile(x$X[,i],plot.xtrim),
+                             uocquantile(x$X[,i],1-plot.xtrim),
+                             length=plot.num.eval)
             x$compute.deriv <- TRUE
             x$deriv.index <- i
  
             foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
             if(!plot.ci) {
-                plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),1],
+                plot(xeval[,i],foo$deriv[,1],
                      ylab=if(is.numeric(x$X[,i])){paste("d ",yname," / d ",xznames[i],sep="")}else{paste("Delta ",yname,sep="")},
                      xlab=xznames[i],
                      type=if(is.numeric(x$X[,i])){"l"}else{"p"},
                      ...)
             } else {
                 ylim <- range(c(foo$deriv.low[,1],foo$deriv.up[,1]))
-                plot(xeval[order(xeval[,i]),i],foo$deriv[order(xeval[,i]),1],
+                plot(xeval[,i],foo$deriv[,1],
                      ylab=if(is.numeric(x$X[,i])){paste("d ",yname," / d ",xznames[i],sep="")}else{paste("Delta ",yname,sep="")},
                      xlab=xznames[i],
                      type=if(is.numeric(x$X[,i])){"l"}else{"p"},
                      ylim=ylim,
                      ...)
                 if(is.numeric(x$X[,i])) {
-                    lines(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),1],col=2,lty=2)
-                    lines(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),1],col=2,lty=2)
+                    lines(xeval[,i],foo$deriv.low[,1],col=2,lty=2)
+                    lines(xeval[,i],foo$deriv.up[,1],col=2,lty=2)
                 } else {
-                    points(xeval[order(xeval[,i]),i],foo$deriv.low[order(xeval[,i]),1],bg=2,col=2,pch=21)
-                    points(xeval[order(xeval[,i]),i],foo$deriv.up[order(xeval[,i]),1],bg=2,col=2,pch=21)                       
+                    points(xeval[,i],foo$deriv.low[,1],bg=2,col=2,pch=21)
+                    points(xeval[,i],foo$deriv.up[,1],bg=2,col=2,pch=21)                       
                 }
             }
         }
