@@ -301,7 +301,7 @@ lm.ma.default <- function(y=NULL,
                 boot.mat <- matrix(NA,nrow.X,B.scale)
                 
                 for(b in 1:B.scale) {
-                    if(verbose) cat(paste("\rBootstrap replication ",b," of ",B.scale,sep=""))
+
                     ii <- sample(1:nrow.X,replace=TRUE)
                     out.boot <- lm.ma.Est(y=y[ii],
                                           X=X[ii,],
@@ -374,7 +374,7 @@ lm.ma.default <- function(y=NULL,
                 if(B.scale > 0) {
 
                     for(bb in 1:B.scale) {
-                        if(verbose) cat(paste("\rBootstrap replication ",b," of ",B.scale,sep=""))
+
                         ii <- sample(1:nrow.X,replace=TRUE)
                         out.boot <- lm.ma.Est(y=y[ii],
                                               X=X.boot[ii,],
