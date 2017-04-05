@@ -597,6 +597,12 @@ plot.lm.ma <- function(x,
                        plot.num.eval=250,
                        plot.xtrim=0.001,
                        ...) {
+
+    if(!is.logical(plot.deriv)) stop("plot.deriv must be either TRUE or FALSE") 
+    if(!is.logical(plot.ci)) stop("plot.ci must be either TRUE or FALSE")   
+    if(!is.logical(plot.data)) stop("plot.data must be either TRUE or FALSE")   
+    if(plot.num.eval<1) stop("plot.num.eval must be positive")
+    if(plot.xtrim<0 | plot.xtrim>=0.5) stop("plot.xtrim must lie in [0,0.5)")
     
     x$verbose <- FALSE
     x$bootstrap.ci <- plot.ci

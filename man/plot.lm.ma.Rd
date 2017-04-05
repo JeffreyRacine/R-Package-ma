@@ -32,8 +32,6 @@ None.
 \references{
 Racine, J.S. and D. Zhang and Q. Li (2017), \dQuote{Model Averaged Categorical Regression Splines.}
 }
-None.
-}
 \author{
 Jeffrey S. Racine
 }
