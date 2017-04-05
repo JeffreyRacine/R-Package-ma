@@ -177,7 +177,7 @@ This approach frees the user from using either model assertion or selection meth
 
 \code{lm.ma} returns an object of class "lm.ma".
 
-The function summary is used to obtain and print a summary of the results. The generic accessor functions \code{coef}, \code{fitted}, \code{predict}, \code{plot} and \code{residuals} extract various useful features of the value returned by lm.ma.
+The function summary is used to obtain and print a summary of the results. The generic accessor functions \code{coef}, \code{fitted}, \code{predict}, \code{plot} (see \code{plot.lm} for details) and \code{residuals} extract various useful features of the value returned by lm.ma.
 
 An object of class "lm.ma" is a list containing at least the following components:
   \item{degree.max}{value of degree.max for each dimension (set by an ad-hoc rule unless manually overridden)}

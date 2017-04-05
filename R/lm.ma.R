@@ -190,18 +190,19 @@ lm.ma.default <- function(y=NULL,
 
         if(is.null(X.eval)) {
             n <- NROW(X) 
+            n.eval <- n
         } else {
-            n <- NROW(X.eval)
+            n.eval <- NROW(X.eval)
         }
         
         ncol.X <- NCOL(X)
     
-        boot.mat <- matrix(NA,n,B)
+        boot.mat <- matrix(NA,n.eval,B)
 
         if(is.null(deriv.index)) deriv.index <- 1:ncol.X
         num.deriv <- length(deriv.index)
 
-        if(compute.deriv) boot.deriv.array <- array(NA,c(n,B,num.deriv))
+        if(compute.deriv) boot.deriv.array <- array(NA,c(n.eval,B,num.deriv))
 
         for(b in 1:B) {
             if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
@@ -232,7 +233,7 @@ lm.ma.default <- function(y=NULL,
             boot.mat[,b] <- out.boot$fitted
             if(compute.deriv) for(k in 1:num.deriv) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
         }
-
+        
         if(verbose) cat("\r                                     ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing quantiles...")
@@ -242,7 +243,7 @@ lm.ma.default <- function(y=NULL,
         Est$fitted.scale <- apply(boot.mat,1,mad,na.rm=TRUE)
         
         if(compute.deriv) {
-            Est$deriv.ci.l <- Est$deriv.ci.u <- Est$deriv.scale <- matrix(NA,n,num.deriv)
+            Est$deriv.ci.l <- Est$deriv.ci.u <- Est$deriv.scale <- matrix(NA,n.eval,num.deriv)
             for(k in 1:num.deriv) {
                 Est$deriv.ci.l[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=alpha/2,type=1,na.rm=TRUE)
                 Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE)     
@@ -606,7 +607,6 @@ plot.lm.ma <- function(x,
     xznames <- names(x$X)
 
     ncol.X <- NCOL(x$X)
-    
     if(!plot.deriv) {
         xeval.median <- data.frame(matrix(NA,plot.num.eval,ncol.X))
         names(xeval.median) <- xznames
