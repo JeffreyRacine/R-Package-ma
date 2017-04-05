@@ -595,8 +595,8 @@ plot.lm.ma <- function(x,
                        plot.deriv=FALSE,
                        plot.ci=FALSE,
                        plot.data=FALSE,
-                       plot.num.eval=100,
-                       plot.xtrim=0.005,
+                       plot.num.eval=250,
+                       plot.xtrim=0.001,
                        ...) {
     
     x$verbose <- FALSE
@@ -617,19 +617,20 @@ plot.lm.ma <- function(x,
         }
         if(ncol.X > 1) par(mfrow=c(2,ifelse(ncol.X %%2 == 0, ncol.X/2, (ncol.X+1)/2)))
         for(i in 1:ncol.X) {
-            cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))
             xeval <- xeval.median
             xeval[,i] <- seq(uocquantile(x$X[,i],plot.xtrim),
                              uocquantile(x$X[,i],1-plot.xtrim),
                              length=plot.num.eval)
             x$compute.deriv <- FALSE
             if(plot.data) {
-                plot(xeval[,i],x$y,
+                cat(paste("\rPlotting data for object ",i," of ",ncol.X,"...",sep=""))
+                plot(x$X[,i],x$y,
                      ylab=yname,
                      xlab=xznames[i],
                      cex=0.1,
                      col="grey",
                      ...)
+                cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))                
                 foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)    
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(is.numeric(x$X[,i])) {
@@ -647,6 +648,7 @@ plot.lm.ma <- function(x,
                     }
                 }
             } else {
+                cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))    
                 foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(!plot.ci) {
