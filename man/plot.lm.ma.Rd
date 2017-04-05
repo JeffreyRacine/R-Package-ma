@@ -15,7 +15,7 @@
 
 \arguments{
   \item{x}{an object of type \code{lm.ma}}
-  \item{B}{number of bootstrap replication used to construct nonparametric confidence intervals}
+  \item{B}{number of bootstrap replications used to construct nonparametric confidence intervals}
   \item{plot.deriv}{a logical value indicating whether to compute derivatives or not}
   \item{plot.ci}{a logical value indicating whether to plot nonparametric confidence intervals or not}
   \item{plot.data}{a logical value indicating whether to plot the data or not}
@@ -30,6 +30,8 @@ This function plots an object returned by \code{lm.ma}.
 None.
 }
 \references{
+Racine, J.S. and D. Zhang and Q. Li (2017), \dQuote{Model Averaged Categorical Regression Splines.}
+}
 None.
 }
 \author{
