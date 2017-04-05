@@ -16,6 +16,7 @@ lm.ma(...)
       X.eval = NULL,
       alpha = 0.05,
       B = 199,
+      B.scale = 25,
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
@@ -46,6 +47,7 @@ lm.ma(...)
       X.eval = NULL,
       alpha = 0.05,
       B = 199,
+      B.scale = 25,
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
@@ -85,6 +87,8 @@ lm.ma(...)
   \item{alpha}{value in (0,1) used to compute \eqn{1-\alpha\%} confidence intervals}
 
   \item{B}{the number of bootstrap replications desired}
+
+  \item{B.scale}{the number of nested bootstrap replications desired to obtain a robust estimate of derivative scale when conducting hypothesis tests (if set to zero nested bootstrapping is not performed)}
 
   \item{basis.vec}{a vector (character) of bases for each candidate model selected by cross-validation}
 
@@ -226,7 +230,7 @@ x <- sort(runif(n))
 dgp <- cos(2*pi*x)
 y <- dgp + rnorm(n,sd=0.5*sd(dgp))
 
-model.ma <- lm.ma(y~x, compute.anova=TRUE)
+model.ma <- lm.ma(y~x)
 
 summary(model.ma)
 
@@ -318,7 +322,7 @@ suppressPackageStartupMessages(require(np))
 suppressPackageStartupMessages(require(crs))
 data(cps71)
 attach(cps71)
-model.ma <- lm.ma(logwage~age,compute.anova=TRUE)
+model.ma <- lm.ma(logwage~age)
 plot(model.ma,plot.data=TRUE)
 model.kernel <- npreg(logwage~age,regtype="ll",bwmethod="cv.aic")
 lines(age,fitted(model.kernel),col=4,lty=4,lwd=2)

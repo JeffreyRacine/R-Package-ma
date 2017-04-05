@@ -11,6 +11,7 @@ lm.ma.formula <- function(formula,
                           X.eval=NULL,
                           alpha=0.05,
                           B=199,
+                          B.scale=25,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
@@ -43,28 +44,30 @@ lm.ma.formula <- function(formula,
   Est <- lm.ma.default(y=tydat,
                        X=txdat,
                        X.eval=NULL,
+                       alpha=alpha,
+                       B=B,
+                       B.scale=B.scale,
+                       basis.vec=basis.vec,
                        basis=basis,
+                       bootstrap.ci=bootstrap.ci,
+                       compute.anova=compute.anova,
                        compute.deriv=compute.deriv,
-                       deriv.order=deriv.order,
+                       degree.max=degree.max,
                        degree.min=degree.min,
                        deriv.index=deriv.index,
-                       degree.max=degree.max,
-                       lambda=lambda,
-                       segments.max=segments.max,
+                       deriv.order=deriv.order,
+                       K.mat=K.mat,
                        knots=knots,
-                       S=S,
-                       method=method,
+                       lambda=lambda,
                        ma.weights=ma.weights,
-                       basis.vec=basis.vec,
+                       method=method,
                        rank.vec=rank.vec,
-                       bootstrap.ci=bootstrap.ci,
-                       B=B,
-                       alpha=alpha,
-                       weights=weights,
+                       S=S,
+                       segments.max=segments.max,
+                       tol=tol,
                        vc=vc,
                        verbose=verbose,
-                       tol=tol,
-                       compute.anova=compute.anova,
+                       weights=weights,
                        ...)
   
   Est$r.squared <- RSQfunc(tydat,Est$fitted.values)
@@ -85,6 +88,7 @@ lm.ma.default <- function(y=NULL,
                           X.eval=NULL,
                           alpha=0.05,
                           B=199,
+                          B.scale=25,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
@@ -231,7 +235,7 @@ lm.ma.default <- function(y=NULL,
             boot.mat[,b] <- out.boot$fitted
             if(compute.deriv) for(k in 1:num.deriv) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
         }
-        
+
         if(verbose) cat("\r                                     ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing quantiles...")
@@ -250,6 +254,7 @@ lm.ma.default <- function(y=NULL,
         }
         if(verbose) cat("\r                                     ")
         if(verbose) cat("\r")
+
     }
 
     if(compute.anova) {
@@ -260,16 +265,16 @@ lm.ma.default <- function(y=NULL,
         P.vec <- numeric(length=ncol.X)
         F.stat <- numeric(length=ncol.X)
         F.boot <- numeric(length=B)
-        
+
         for(k in 1:ncol.X) {
 
-            if(verbose) cat(paste("\rAnova for predictor ",k," of ",ncol.X,sep=""))
+            if(verbose) cat(paste("\rSignificance Test for predictor ",k," of ",ncol.X,sep=""))
 
             Est.k <- lm.ma.Est(y=y,
                                X=X,
                                X.eval=NULL,
                                basis=basis,
-                               compute.deriv=FALSE,
+                               compute.deriv=TRUE,
                                deriv.order=deriv.order,
                                degree.min=degree.min,
                                deriv.index=k,
@@ -289,21 +294,64 @@ lm.ma.default <- function(y=NULL,
                                tol=tol,
                                ...)
 
-            F.stat[k] <- mean(Est.k$deriv[,1]^2)
+            ## Scale
+
+            if(B.scale > 0) {
+
+                boot.mat <- matrix(NA,nrow.X,B.scale)
+                
+                for(b in 1:B.scale) {
+                    if(verbose) cat(paste("\rBootstrap replication ",b," of ",B.scale,sep=""))
+                    ii <- sample(1:nrow.X,replace=TRUE)
+                    out.boot <- lm.ma.Est(y=y[ii],
+                                          X=X[ii,],
+                                          X.eval=NULL,
+                                          basis=basis,
+                                          compute.deriv=TRUE,
+                                          deriv.order=deriv.order,
+                                          degree.min=degree.min,
+                                          deriv.index=k,
+                                          degree.max=degree.max,
+                                          lambda=lambda,
+                                          segments.max=segments.max,
+                                          knots=knots,
+                                          S=S,
+                                          method=method,
+                                          ma.weights=Est$ma.weights,
+                                          basis.vec=Est$basis.vec,
+                                          rank.vec=Est$rank.vec,
+                                          K.mat=Est$DS,
+                                          weights=weights,
+                                          vc=vc,
+                                          verbose=FALSE,
+                                          tol=tol,
+                                          ...)
+                    boot.mat[,b] <- out.boot$deriv[,1]
+                }
+                
+                deriv.scale <- apply(boot.mat,1,mad,na.rm=TRUE)
+                
+                F.stat[k] <- mean((Est.k$deriv[,1]/deriv.scale)^2)
+                
+            } else {
+                
+                F.stat[k] <- mean(Est.k$deriv[,1]^2)
+                
+            }
 
             for(b in 1:B) {
-                if(verbose) cat(paste("\rAnova for predictor ",k," of ",ncol.X," (bootstrap replication ",b," of ",B,")",sep=""))
+                if(verbose) cat(paste("\rSignificance Test for predictor ",k," of ",ncol.X," (bootstrap replication ",b," of ",B,")",sep=""))
                 ## Residual bootstrap from the null model, use
                 ## original model configuration with bootstrap y
 
                 X.boot <- X
-                X.boot[,k] <- X.boot[sample(1:nrow.X),k]
+                X.boot[,k] <- X.boot[sample(1:nrow.X,replace=TRUE),k]
 
                 Est.k.boot <- lm.ma.Est(y=y,
                                         X=X.boot,
                                         X.eval=NULL,
                                         basis=basis,
-                                        compute.deriv=FALSE,
+                                        compute.deriv=TRUE,
                                         deriv.order=deriv.order,
                                         degree.min=degree.min,
                                         deriv.index=k,
@@ -322,14 +370,52 @@ lm.ma.default <- function(y=NULL,
                                         verbose=FALSE,
                                         tol=tol,
                                         ...)
-                
-                F.boot[b] <- mean(Est.k.boot$deriv[,1]^2)
-                
 
+                if(B.scale > 0) {
+
+                    for(bb in 1:B.scale) {
+                        if(verbose) cat(paste("\rBootstrap replication ",b," of ",B.scale,sep=""))
+                        ii <- sample(1:nrow.X,replace=TRUE)
+                        out.boot <- lm.ma.Est(y=y[ii],
+                                              X=X.boot[ii,],
+                                              X.eval=NULL,
+                                              basis=basis,
+                                              compute.deriv=TRUE,
+                                              deriv.order=deriv.order,
+                                              degree.min=degree.min,
+                                              deriv.index=k,
+                                              degree.max=degree.max,
+                                              lambda=lambda,
+                                              segments.max=segments.max,
+                                              knots=knots,
+                                              S=S,
+                                              method=method,
+                                              ma.weights=Est$ma.weights,
+                                              basis.vec=Est$basis.vec,
+                                              rank.vec=Est$rank.vec,
+                                              K.mat=Est$DS,
+                                              weights=weights,
+                                              vc=vc,
+                                              verbose=FALSE,
+                                              tol=tol,
+                                              ...)
+                        boot.mat[,bb] <- out.boot$deriv[,1]
+                    }
+                    
+                    deriv.scale.boot <- apply(boot.mat,1,mad,na.rm=TRUE)
+                    
+                    F.boot[b] <- mean((Est.k.boot$deriv[,1]/deriv.scale.boot)^2)
+                    
+                } else {
+                    
+                    F.boot[b] <- mean(Est.k.boot$deriv[,1]^2)
+                    
+                }
+                
             }
 
             P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
-            
+
             if(verbose) cat("\r                                                                               ")
             if(verbose) cat("\r")
 
