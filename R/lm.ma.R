@@ -595,7 +595,7 @@ plot.lm.ma <- function(x,
                        plot.ci=FALSE,
                        plot.data=FALSE,
                        plot.num.eval=250,
-                       plot.xtrim=0.001,
+                       plot.xtrim=0.005,
                        ...) {
 
     if(!is.logical(plot.deriv)) stop("plot.deriv must be either TRUE or FALSE") 
@@ -635,11 +635,13 @@ plot.lm.ma <- function(x,
             if(plot.data) {
                 cat(paste("\rPlotting data for object ",i," of ",ncol.X,"...",sep=""))
                 plot(x$X[,i],x$y,
+                     xlim=if(is.numeric.X[i]){range(xeval[,i])}else{NULL},
                      ylab=yname,
                      xlab=xznames[i],
                      cex=0.1,
                      col="grey",
                      ...)
+                if(is.numeric.X[i]) suppressWarnings(rug(x$X[,i]))
                 cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))                
                 foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)    
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
