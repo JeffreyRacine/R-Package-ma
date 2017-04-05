@@ -1,6 +1,6 @@
 useDynLib(ma)
 import(stats, quadprog)
-importFrom("graphics", "lines", "par", "plot", "points")
+importFrom("graphics", "lines", "par", "plot", "points", "rug")
 
 export(lm.ma)
 
