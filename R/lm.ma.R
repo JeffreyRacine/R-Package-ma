@@ -622,9 +622,15 @@ plot.lm.ma <- function(x,
         if(ncol.X > 1) par(mfrow=c(2,ifelse(ncol.X %%2 == 0, ncol.X/2, (ncol.X+1)/2)))
         for(i in 1:ncol.X) {
             xeval <- xeval.median
-            xeval[,i] <- seq(uocquantile(x$X[,i],plot.xtrim),
-                             uocquantile(x$X[,i],1-plot.xtrim),
-                             length=plot.num.eval)
+            if(is.numeric.X[i]) {
+              xeval[,i] <- seq(uocquantile(x$X[,i],plot.xtrim),
+                               uocquantile(x$X[,i],1-plot.xtrim),
+                               length=plot.num.eval)
+            } else {
+                u <- sort(unique(x$X[,i]))
+                xeval[1:length(u),i] <- u
+                xeval <- xeval[1:length(u),]
+            }
             x$compute.deriv <- FALSE
             if(plot.data) {
                 cat(paste("\rPlotting data for object ",i," of ",ncol.X,"...",sep=""))
@@ -695,9 +701,15 @@ plot.lm.ma <- function(x,
         for(i in 1:ncol.X) {
             cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))
             xeval <- xeval.median
-            xeval[,i] <- seq(uocquantile(x$X[,i],plot.xtrim),
-                             uocquantile(x$X[,i],1-plot.xtrim),
-                             length=plot.num.eval)
+            if(is.numeric.X[i]) {
+                xeval[,i] <- seq(uocquantile(x$X[,i],plot.xtrim),
+                                 uocquantile(x$X[,i],1-plot.xtrim),
+                                 length=plot.num.eval)
+            } else {
+                u <- sort(unique(x$X[,i]))
+                xeval[1:length(u),i] <- u
+                xeval <- xeval[1:length(u),]
+            }
             x$compute.deriv <- TRUE
             x$deriv.index <- i
  
