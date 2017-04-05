@@ -188,10 +188,8 @@ lm.ma.default <- function(y=NULL,
     
     if(bootstrap.ci) {
 
-        if(is.null(X.eval)) {
-            n <- NROW(X) 
-            n.eval <- n
-        } else {
+        n <- n.eval <- NROW(X) 
+        if(!is.null(X.eval)) {
             n.eval <- NROW(X.eval)
         }
         

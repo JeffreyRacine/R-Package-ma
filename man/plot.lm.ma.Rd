@@ -3,14 +3,14 @@
 \title{Plot an \code{lm.ma} object}
 \description{Plots a model average model and its derivatives.}
 \usage{
-plot.lm.ma(x,
-           B = 99,
-           plot.deriv = FALSE,
-           plot.ci = FALSE,
-           plot.data = FALSE,
-           plot.num.eval = 250,
-           plot.xtrim = 0.001,
-           ...)
+\method{plot}{lm.ma}(x,
+     B = 99,
+     plot.deriv = FALSE,
+     plot.ci = FALSE,
+     plot.data = FALSE,
+     plot.num.eval = 250,
+     plot.xtrim = 0.001,
+     ...)
 }
 
 \arguments{
@@ -37,7 +37,7 @@ Jeffrey S. Racine
 }
 \examples{
 data(cps71)
-model <- lm.ma(lwage~age)
+model <- lm.ma(logwage~age,data=cps71)
 plot(model,plot.data=TRUE,plot.ci=TRUE)
 }
 
