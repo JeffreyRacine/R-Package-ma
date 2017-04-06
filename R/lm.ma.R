@@ -1528,6 +1528,9 @@ lm.ma.Est <- function(y=NULL,
             A <- diag(1,M,M)
             b0 <- rep(0,M)
             b <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0)$solution
+            ## Not constrained to sum to one but normalize ex-post as
+            ## we construct weighted averages
+            b <- b/sum(b)
         }
 
         num.attempts <- 0
@@ -1562,8 +1565,10 @@ lm.ma.Est <- function(y=NULL,
                 A <- diag(1,M,M)
                 b0 <- rep(0,M)
                 b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0)$solution
+                ## Not constrained to sum to one but normalize ex-post
+                ## as we construct weighted averages
+                b.reb <- b.reb/sum(b.reb)
             }
-            b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
             
             if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
                 if(verbose) {
