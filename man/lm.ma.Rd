@@ -20,7 +20,8 @@ lm.ma(...)
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
-      compute.sigtest = FALSE,
+      compute.sigtest.anova = FALSE,
+      compute.sigtest.deriv = FALSE,
       compute.deriv = FALSE,
       degree.max = NULL,
       degree.min = 1,
@@ -51,7 +52,8 @@ lm.ma(...)
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
-      compute.sigtest = FALSE,
+      compute.sigtest.anova = FALSE,
+      compute.sigtest.deriv = FALSE,
       compute.deriv = FALSE,
       degree.max = NULL,
       degree.min = 1,
@@ -96,7 +98,9 @@ lm.ma(...)
 
   \item{bootstrap.ci}{a logical value indicating whether to bootstrap nonparametric confidence intervals or not}
 
-  \item{compute.sigtest}{whether to conduct a bootstrap procedure to test for significance of each predictor}
+  \item{compute.sigtest.anova}{whether to conduct an anova-based bootstrap procedure to test for significance of each predictor}
+
+  \item{compute.sigtest.deriv}{whether to conduct a derivative-based bootstrap procedure to test for significance of each predictor}
 
   \item{compute.deriv}{a logical value indicating whether or not to compute derivatives}
 

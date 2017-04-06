@@ -24,7 +24,15 @@
   \item{\dots}{optional arguments to be passed to \code{plot}}
 }
 \details{
-This function plots an object returned by \code{lm.ma}.
+This function plots an object returned by \code{lm.ma}. Typical usages are
+\preformatted{
+    plot(model)
+    plot(model,plot.data=TRUE)
+    plot(model,plot.ci=TRUE,B=99)    
+    plot(model,plot.data=TRUE,plot.ci=TRUE,B=199)
+    plot(model,plot.deriv=TRUE)    
+    plot(model,plot.deriv=TRUE,plot.ci=TRUE,B=399)        
+  }
 }
 \value{
 None.
