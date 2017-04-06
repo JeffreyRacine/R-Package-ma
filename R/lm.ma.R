@@ -28,6 +28,7 @@ lm.ma.formula <- function(formula,
                           ma.weights=NULL,
                           method=c("jma","mma"),
                           rank.vec=NULL,
+                          restrict.sum.ma.weights=FALSE,
                           S=2,
                           segments.max=3,
                           tol=1e-12,
@@ -64,6 +65,7 @@ lm.ma.formula <- function(formula,
                        ma.weights=ma.weights,
                        method=method,
                        rank.vec=rank.vec,
+                       restrict.sum.ma.weights=restrict.sum.ma.weights,
                        S=S,
                        segments.max=segments.max,
                        tol=tol,
@@ -107,6 +109,7 @@ lm.ma.default <- function(y=NULL,
                           ma.weights=NULL,
                           method=c("jma","mma"),
                           rank.vec=NULL,
+                          restrict.sum.ma.weights=FALSE,
                           S=2,
                           segments.max=3,
                           tol=1e-12,
@@ -152,6 +155,7 @@ lm.ma.default <- function(y=NULL,
                      ma.weights=ma.weights,
                      basis.vec=basis.vec,
                      rank.vec=rank.vec,
+                     restrict.sum.ma.weights=restrict.sum.ma.weights,
                      K.mat=K.mat,
                      weights=weights,
                      vc=vc,
@@ -185,6 +189,7 @@ lm.ma.default <- function(y=NULL,
                          ma.weights=Est$ma.weights,
                          basis.vec=Est$basis.vec,
                          rank.vec=Est$rank.vec,
+                         restrict.sum.ma.weights=restrict.sum.ma.weights,
                          K.mat=Est$DS,
                          weights=weights,
                          vc=vc,
@@ -236,6 +241,7 @@ lm.ma.default <- function(y=NULL,
                                   ma.weights=Est$ma.weights,
                                   basis.vec=Est$basis.vec,
                                   rank.vec=Est$rank.vec,
+                                  restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
                                   K.mat=Est$DS,
                                   weights=weights,
                                   vc=vc,
@@ -297,6 +303,7 @@ lm.ma.default <- function(y=NULL,
                                ma.weights=Est$ma.weights,
                                basis.vec=Est$basis.vec,
                                rank.vec=Est$rank.vec,
+                               restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
                                K.mat=Est$DS,
                                weights=weights,
                                vc=vc,
@@ -330,6 +337,7 @@ lm.ma.default <- function(y=NULL,
                                           ma.weights=Est$ma.weights,
                                           basis.vec=Est$basis.vec,
                                           rank.vec=Est$rank.vec,
+                                          restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
                                           K.mat=Est$DS,
                                           weights=weights,
                                           vc=vc,
@@ -372,6 +380,7 @@ lm.ma.default <- function(y=NULL,
                                         ma.weights=ma.weights,
                                         basis.vec=basis.vec,
                                         rank.vec=rank.vec,
+                                        restrict.sum.ma.weights=restrict.sum.ma.weights,
                                         K.mat=K.mat,
                                         weights=weights,
                                         vc=vc,
@@ -396,6 +405,7 @@ lm.ma.default <- function(y=NULL,
                                         ma.weights=Est.k.boot$ma.weights,
                                         basis.vec=Est.k.boot$basis.vec,
                                         rank.vec=Est.k.boot$rank.vec,
+                                        restrict.sum.ma.weights=Est.k.boot$restrict.sum.ma.weights,
                                         K.mat=Est.k.boot$DS,
                                         weights=weights,
                                         vc=vc,
@@ -425,6 +435,7 @@ lm.ma.default <- function(y=NULL,
                                               ma.weights=Est$ma.weights,
                                               basis.vec=Est$basis.vec,
                                               rank.vec=Est$rank.vec,
+                                              restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
                                               K.mat=Est$DS,
                                               weights=weights,
                                               vc=vc,
@@ -485,6 +496,7 @@ lm.ma.default <- function(y=NULL,
                                  ma.weights=Est$ma.weights,
                                  basis.vec=Est$basis.vec,
                                  rank.vec=Est$rank.vec,
+                                 restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
                                  K.mat=Est$DS,
                                  weights=weights,
                                  vc=vc,
@@ -525,6 +537,7 @@ lm.ma.default <- function(y=NULL,
                                      ma.weights=Est.ssu$ma.weights,
                                      basis.vec=Est.ssu$basis.vec,
                                      rank.vec=Est.ssu$rank.vec,
+                                     restrict.sum.ma.weights=Est.ssu$restrict.sum.ma.weights,
                                      K.mat=if(is.numeric.X.k){Est.ssu$DS[,c(-k,-(k+Est.ssu$num.x)),drop=FALSE]}else{Est.ssu$DS},
                                      weights=weights,
                                      vc=vc,
@@ -592,6 +605,7 @@ lm.ma.default <- function(y=NULL,
                                           ma.weights=ma.weights,
                                           basis.vec=basis.vec,
                                           rank.vec=rank.vec,
+                                          restrict.sum.ma.weights=restrict.sum.ma.weights,
                                           K.mat=K.mat,
                                           weights=weights,
                                           vc=vc,
@@ -616,6 +630,7 @@ lm.ma.default <- function(y=NULL,
                                           ma.weights=Est.ssu.boot$ma.weights,
                                           basis.vec=Est.ssu.boot$basis.vec,
                                           rank.vec=Est.ssu.boot$rank.vec,
+                                          restrict.sum.ma.weights=Est.ssu$restrict.sum.ma.weights,
                                           K.mat=Est.ssu.boot$DS,
                                           weights=weights,
                                           vc=vc,
@@ -644,6 +659,7 @@ lm.ma.default <- function(y=NULL,
                                               ma.weights=Est.ssu.boot$ma.weights,
                                               basis.vec=Est.ssu.boot$basis.vec,
                                               rank.vec=Est.ssu.boot$rank.vec,
+                                              restrict.sum.ma.weights=Est.ssu.boot$restrict.sum.ma.weights,
                                               K.mat=if(is.numeric.X.k){Est.ssu.boot$DS[,c(-k,-(k+Est.ssu.boot$num.x)),drop=FALSE]}else{Est.ssu.boot$DS},
                                               weights=weights,
                                               vc=vc,
@@ -824,6 +840,7 @@ predict.lm.ma <- function(object,
                              ma.weights=object$ma.weights,
                              basis.vec=object$basis.vec,
                              rank.vec=object$rank.vec,
+                             restrict.sum.ma.weights=object$restrict.sum.ma.weights,
                              weights=object$weights,
                              vc=object$vc,
                              verbose=object$verbose,
@@ -1027,6 +1044,7 @@ lm.ma.Est <- function(y=NULL,
                       ma.weights=NULL,
                       method=c("jma","mma"),
                       rank.vec=NULL,
+                      restrict.sum.ma.weights=FALSE,
                       S=2,
                       segments.max=3,
                       tol=1e-12,
@@ -1497,14 +1515,20 @@ lm.ma.Est <- function(y=NULL,
             if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
             singular.D <- TRUE
         }
-        A <- cbind(rep(1,M),diag(1,M,M))
-        b0 <- c(1,rep(0,M))
         if(method=="mma") {
             d <- -sigsq[which.max(rank.vec)]*rank.vec
         } else {
             d <- t(y)%*%ma.mat
         }        
-        b <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
+        if(restrict.sum.ma.weights) {
+            A <- cbind(rep(1,M),diag(1,M,M))
+            b0 <- c(1,rep(0,M))
+            b <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
+        } else {
+            A <- diag(1,M,M)
+            b0 <- rep(0,M)
+            b <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0)$solution
+        }
 
         num.attempts <- 0
         while(singular.D & num.attempts < 10) {
@@ -1524,14 +1548,21 @@ lm.ma.Est <- function(y=NULL,
                 if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
                 singular.D <- TRUE
             } 
-            A <- cbind(rep(1,M),diag(1,M,M))
-            b0 <- c(1,rep(0,M))
-            rank.vec.reb <- rank.vec[b>1e-05]
             if(method=="mma") {
+                rank.vec.reb <- rank.vec[b>1e-05]
                 d <- -sigsq[which.max(rank.vec)]*rank.vec.reb
             } else {
                 d <- t(y)%*%ma.mat.reb
             }        
+            if(restrict.sum.ma.weights) {
+                A <- cbind(rep(1,M),diag(1,M,M))
+                b0 <- c(1,rep(0,M))
+                b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
+            } else {
+                A <- diag(1,M,M)
+                b0 <- rep(0,M)
+                b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0)$solution
+            }
             b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
             
             if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
@@ -1593,6 +1624,7 @@ lm.ma.Est <- function(y=NULL,
                 num.z=num.z,
                 numeric.logical=numeric.logical,
                 rank.vec=rank.vec,
+                restrict.sum.ma.weights=restrict.sum.ma.weights,
                 ma.model.rank=sum(rank.vec*abs(b)),
                 nobs=nrow.X,
                 DS=K.mat.orig,

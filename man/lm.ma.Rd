@@ -33,6 +33,7 @@ lm.ma(...)
       ma.weights = NULL,
       method = c("jma","mma"),
       rank.vec = NULL,
+      restrict.sum.ma.weights = FALSE,
       S = 2,
       segments.max = 3,
       tol = 1e-12,
@@ -65,6 +66,7 @@ lm.ma(...)
       ma.weights = NULL,
       method = c("jma","mma"),
       rank.vec = NULL,
+      restrict.sum.ma.weights = FALSE,
       S = 2,
       segments.max = 3,
       tol = 1e-12,
@@ -125,6 +127,9 @@ lm.ma(...)
 
   \item{rank.vec}{a vector of ranks for each candidate model}
 
+  \item{restrict.sum.ma.weights}{a logical value indicating whether or
+  not to restrict the sum of the model average weights to one}
+  
   \item{S}{the constant in the data-driven rule for determining degree.max}
 
   \item{segments.max}{when \code{knots=TRUE} the maximum number of segments (i.e., interior knots plus 1) to use for the B-spline basis}
