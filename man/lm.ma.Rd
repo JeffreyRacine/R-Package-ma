@@ -15,12 +15,12 @@ lm.ma(...)
       X = NULL,
       X.eval = NULL,
       alpha = 0.05,
-      B = 199,
-      B.scale = 25,
+      B = 99,
+      B.scale = 0,
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
-      compute.anova = FALSE,
+      compute.sigtest = FALSE,
       compute.deriv = FALSE,
       degree.max = NULL,
       degree.min = 1,
@@ -46,12 +46,12 @@ lm.ma(...)
       X = NULL,
       X.eval = NULL,
       alpha = 0.05,
-      B = 199,
-      B.scale = 25,
+      B = 99,
+      B.scale = 0,
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
-      compute.anova = FALSE,
+      compute.sigtest = FALSE,
       compute.deriv = FALSE,
       degree.max = NULL,
       degree.min = 1,
@@ -92,11 +92,11 @@ lm.ma(...)
 
   \item{basis.vec}{a vector (character) of bases for each candidate model selected by cross-validation}
 
-  \item{basis}{ a character string indicating whether the generalized polynomial, additive or tensor product basis should be used}
+  \item{basis}{a character string indicating whether the generalized polynomial, additive or tensor product basis should be used}
 
   \item{bootstrap.ci}{a logical value indicating whether to bootstrap nonparametric confidence intervals or not}
 
-  \item{compute.anova}{whether to conduct a quasi-anova bootstrap procedure to test for significance of each predictor}
+  \item{compute.sigtest}{whether to conduct a bootstrap procedure to test for significance of each predictor}
 
   \item{compute.deriv}{a logical value indicating whether or not to compute derivatives}
 

@@ -1,6 +1,10 @@
-Changes from Version 1.10 to 1.11 [XXX-Apr-2017]
+Changes from Version 1.11 to 1.12 [5-Apr-2017]
 
--
+- potting added horizontal line for derivatives
+
+Changes from Version 1.10 to 1.11 [4-Apr-2017]
+
+- modifying significance testing, changed defaults
 
 Changes from Version 1.09 to 1.10 [4-Apr-2017]
 

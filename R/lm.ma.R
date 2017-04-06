@@ -10,12 +10,12 @@ lm.ma.formula <- function(formula,
                           X=NULL,
                           X.eval=NULL,
                           alpha=0.05,
-                          B=199,
-                          B.scale=25,
+                          B=99,
+                          B.scale=0,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
-                          compute.anova=FALSE,
+                          compute.sigtest=FALSE,
                           compute.deriv=FALSE,
                           degree.max=NULL,
                           degree.min=1,
@@ -50,7 +50,7 @@ lm.ma.formula <- function(formula,
                        basis.vec=basis.vec,
                        basis=basis,
                        bootstrap.ci=bootstrap.ci,
-                       compute.anova=compute.anova,
+                       compute.sigtest=compute.sigtest,
                        compute.deriv=compute.deriv,
                        degree.max=degree.max,
                        degree.min=degree.min,
@@ -87,12 +87,12 @@ lm.ma.default <- function(y=NULL,
                           X=NULL,
                           X.eval=NULL,
                           alpha=0.05,
-                          B=199,
-                          B.scale=25,
+                          B=99,
+                          B.scale=0,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
-                          compute.anova=FALSE,
+                          compute.sigtest=FALSE,
                           compute.deriv=FALSE,
                           degree.max=NULL,
                           degree.min=1,
@@ -257,7 +257,7 @@ lm.ma.default <- function(y=NULL,
 
     }
 
-    if(compute.anova) {
+    if(compute.sigtest) {
 
         nrow.X <- NROW(X)
         ncol.X <- NCOL(X)
@@ -294,7 +294,7 @@ lm.ma.default <- function(y=NULL,
                                tol=tol,
                                ...)
 
-            ## Scale
+            ## Scale - must evaluate on same X...
 
             if(B.scale > 0) {
 
@@ -330,7 +330,7 @@ lm.ma.default <- function(y=NULL,
                 }
                 
                 deriv.scale <- apply(boot.mat,1,mad,na.rm=TRUE)
-                
+
                 F.stat[k] <- mean((Est.k$deriv[,1]/deriv.scale)^2)
                 
             } else {
@@ -341,15 +341,13 @@ lm.ma.default <- function(y=NULL,
 
             for(b in 1:B) {
                 if(verbose) cat(paste("\rSignificance Test for predictor ",k," of ",ncol.X," (bootstrap replication ",b," of ",B,")",sep=""))
-                ## Residual bootstrap from the null model, use
-                ## original model configuration with bootstrap y
 
                 X.boot <- X
                 X.boot[,k] <- X.boot[sample(1:nrow.X,replace=TRUE),k]
 
                 Est.k.boot <- lm.ma.Est(y=y,
                                         X=X.boot,
-                                        X.eval=X.boot,
+                                        X.eval=X,
                                         basis=basis,
                                         compute.deriv=TRUE,
                                         deriv.order=deriv.order,
@@ -378,7 +376,7 @@ lm.ma.default <- function(y=NULL,
                         ii <- sample(1:nrow.X,replace=TRUE)
                         out.boot <- lm.ma.Est(y=y[ii],
                                               X=X.boot[ii,],
-                                              X.eval=X.boot,
+                                              X.eval=X,
                                               basis=basis,
                                               compute.deriv=TRUE,
                                               deriv.order=deriv.order,
@@ -403,7 +401,7 @@ lm.ma.default <- function(y=NULL,
                     }
                     
                     deriv.scale.boot <- apply(boot.mat,1,mad,na.rm=TRUE)
-                    
+
                     F.boot[b] <- mean((Est.k.boot$deriv[,1]/deriv.scale.boot)^2)
                     
                 } else {
@@ -622,7 +620,7 @@ lm.ma.default <- function(y=NULL,
 ##        Est$F.stat <- F.stat
 ##    }
     
-    Est$compute.anova <- compute.anova
+    Est$compute.sigtest <- compute.sigtest
     Est$bootstrap.ci <- bootstrap.ci
     
     if(verbose) cat("\r                                                                               ")
@@ -680,7 +678,7 @@ summary.lm.ma <- function(object,
         cat("\nNon-zero weight model bases: ")
         cat(object$basis.vec[object$ma.weights>1e-05])    
     }
-    if(object$compute.anova) {
+    if(object$compute.sigtest) {
         
         reject <- rep('', length(object$P.vec))
         reject[a <- (object$P.vec < 0.1)] <- '.'
@@ -698,10 +696,10 @@ summary.lm.ma <- function(object,
                                  format.pval(object$P.vec),
                                  blank(maxPvalLen-ncp),
                                  " ", reject,
-                                 blank(maxrejLen-ncr),
-                                 " [F = ",
-                                 formatC(object$F.stat,format="f",digits=3),
-                                 "]",
+#                                 blank(maxrejLen-ncr),
+#                                 " [test-statistic = ",
+#                                 formatC(object$F.stat,format="f",digits=3),
+#                                 "]",
                                  sep=''))
         
         cat("\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
@@ -895,6 +893,7 @@ plot.lm.ma <- function(x,
                      xlab=xznames[i],
                      type=if(is.numeric(x$X[,i])){"l"}else{"p"},
                      ...)
+                abline(h=0,lty=2,col="grey")
             } else {
                 ylim <- range(c(foo$deriv.low[,1],foo$deriv.up[,1]))
                 plot(xeval[,i],foo$deriv[,1],
@@ -903,6 +902,7 @@ plot.lm.ma <- function(x,
                      type=if(is.numeric(x$X[,i])){"l"}else{"p"},
                      ylim=ylim,
                      ...)
+                abline(h=0,lty=2,col="grey")                
                 if(is.numeric(x$X[,i])) {
                     lines(xeval[,i],foo$deriv.low[,1],col=2,lty=2)
                     lines(xeval[,i],foo$deriv.up[,1],col=2,lty=2)
