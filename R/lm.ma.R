@@ -471,6 +471,8 @@ lm.ma.default <- function(y=NULL,
 
     if(compute.sigtest.anova) {
 
+        if(Est$num.x==1 & !is.null(Est$num.z) & vc) stop("The combination vc=TRUE with factors and only one numeric predictor is not feasible")
+
         nrow.X <- NROW(X)
         ncol.X <- NCOL(X)
         
