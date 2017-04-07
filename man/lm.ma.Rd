@@ -127,8 +127,7 @@ lm.ma(...)
 
   \item{rank.vec}{a vector of ranks for each candidate model}
 
-  \item{restrict.sum.ma.weights}{a logical value indicating whether or
-  not to restrict the sum of the model average weights to one}
+  \item{restrict.sum.ma.weights}{a logical value indicating whether or not to restrict the sum of the model average weights to one when solving the quadratic program (they are normlized afterwards when \code{restrict.sum.ma.weights=FALSE})}
   
   \item{S}{the constant in the data-driven rule for determining degree.max}
 
@@ -356,7 +355,7 @@ detach(cps71)
 
 #### Example 5 - simulated multiplicative nonlinear two-predictor function
 
-require(rgl)
+suppressPackageStartupMessages(require(rgl))
 
 set.seed(42)
 n <- 1000

@@ -516,10 +516,11 @@ lm.ma.default <- function(y=NULL,
 
             is.numeric.X.k <- is.numeric(X[,k])
             
+            X.res <- X[,-k,drop=FALSE]
+
             ## With > 1 predictor, restricted model does not incorporate the kth predictor
 
             if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
-                X.res <- X[,-k,drop=FALSE]
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
                                      X.eval=NULL,
