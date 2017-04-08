@@ -127,7 +127,7 @@ lm.ma(...)
 
   \item{rank.vec}{a vector of ranks for each candidate model}
 
-  \item{restrict.sum.ma.weights}{a logical value indicating whether or not to restrict the sum of the model average weights to one when solving the quadratic program (they are normlized afterwards when \code{restrict.sum.ma.weights=FALSE})}
+  \item{restrict.sum.ma.weights}{a logical value indicating whether or not to restrict the sum of the model average weights to one when solving the quadratic program (they are normalized afterwards when \code{restrict.sum.ma.weights=FALSE})}
   
   \item{S}{the constant in the data-driven rule for determining degree.max}
 
@@ -185,8 +185,6 @@ This function computes model averages over least squares candidate models whose 
 
 This approach frees the user from using either model assertion or selection methods and thereby attenuates bias arising from model misspecification. Simulations reveal that this approach is competitive with some semi- and nonparametric approaches. Because it uses only least squares fits, it can be more computationally efficient than its nonparametric counterparts.
 
-The options \code{compute.sigtest.anova} and \code{compute.sigtest.deriv} use a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it will be fairly fast, but as the model complexity increases it may take some patience. Virtually all of the approaches required herein are parallel in nature and could be run on multiple cores. If there were enough demand for this feature I might be encouraged to add a parallel option.
-
 }
 \value{
 
@@ -227,6 +225,11 @@ Jeffrey S. Racine
 }
 \note{
 This code is in beta status until further notice - proceed accordingly.
+
+The options \code{compute.sigtest.anova} and \code{compute.sigtest.deriv} use a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it will be fairly fast, but as the model complexity increases it may take some patience. Virtually all of the approaches required herein are parallel in nature and could be run on multiple cores. If there were enough demand for this feature I might be encouraged to add a parallel option.
+
+The option \code{compute.sigtest.anova} cannot be used in the presence of one or more factors and exactly one numeric predictor since there is no numeric predictor present when testing for significance for the one numeric predictor.
+
 }
 
 \seealso{
