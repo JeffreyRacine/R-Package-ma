@@ -231,6 +231,7 @@ The option \code{compute.anova} cannot be used in the presence of one or more fa
 \code{\link{lm}}, \code{\link[crs]{crs}}, \code{\link[np]{npreg}}
 }
 \examples{
+options(warn=-1)
 #### Example 1 - simulated nonlinear one-predictor function
 
 set.seed(42)
