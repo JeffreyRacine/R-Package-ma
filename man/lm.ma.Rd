@@ -21,6 +21,7 @@ lm.ma(...)
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
       compute.anova = FALSE,
+      compute.anova.index = NULL,
       compute.deriv = FALSE,
       degree.max = NULL,
       degree.min = 1,
@@ -32,7 +33,7 @@ lm.ma(...)
       ma.weights = NULL,
       method = c("jma","mma"),
       rank.vec = NULL,
-      restrict.sum.ma.weights = FALSE,
+      restrict.sum.ma.weights = TRUE,
       S = 2,
       segments.max = 3,
       vc = TRUE,
@@ -52,6 +53,7 @@ lm.ma(...)
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
       compute.anova = FALSE,
+      compute.anova.index = NULL,
       compute.deriv = FALSE,
       degree.max = NULL,
       degree.min = 1,
@@ -63,7 +65,7 @@ lm.ma(...)
       ma.weights = NULL,
       method = c("jma","mma"),
       rank.vec = NULL,
-      restrict.sum.ma.weights = FALSE,
+      restrict.sum.ma.weights = TRUE,
       S = 2,
       segments.max = 3,
       vc = TRUE,
@@ -97,6 +99,8 @@ lm.ma(...)
   \item{bootstrap.ci}{a logical value indicating whether or not to bootstrap nonparametric confidence intervals}
 
   \item{compute.anova}{a logical value indicating whether or not conduct an anova-based bootstrap procedure to test for significance of each predictor}
+
+  \item{compute.anova.index}{an option vector of indices indicating as to which predictor(s) the test procedure is to be performed (default is all predictors)}
 
   \item{compute.deriv}{a logical value indicating whether or not to compute derivatives}
 
