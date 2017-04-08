@@ -43,14 +43,7 @@ prod.spline <- function(x,
   num.K <- nrow(K)
 
   if(deriv < 0) stop(" deriv is invalid")
-  if(deriv > K[deriv.index,1]) {
-      warning(" deriv order too large, result will be zero")
-      print(deriv)
-      print("deriv")
-      print("K[deriv.index,1]")
-      print(K[deriv.index,1])
-      stop()
-  }
+  if(deriv > K[deriv.index,1]) warning(" deriv order too large, result will be zero")
   if(deriv.index < 1 || deriv.index > num.x) stop(" deriv.index is invalid")
 
   if(!is.null(z)) {

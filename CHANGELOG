@@ -1,3 +1,7 @@
+Changes from Version 1.14 to 1.15 [8-Apr-2017]
+
+- dumped derivative-based test as anova-based approach is working splendidly
+
 Changes from Version 1.13 to 1.14 [6-Apr-2017]
 
 - added option to restrict the sum of ma.weights to one or not (previous used this restriction, now default it to not restrict)

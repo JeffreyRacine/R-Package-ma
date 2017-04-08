@@ -20,8 +20,7 @@ lm.ma(...)
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
-      compute.sigtest.anova = FALSE,
-      compute.sigtest.deriv = FALSE,
+      compute.anova = FALSE,
       compute.deriv = FALSE,
       degree.max = NULL,
       degree.min = 1,
@@ -36,7 +35,6 @@ lm.ma(...)
       restrict.sum.ma.weights = FALSE,
       S = 2,
       segments.max = 3,
-      tol = 1e-12,
       vc = TRUE,
       verbose = TRUE,
       weights = NULL,
@@ -53,8 +51,7 @@ lm.ma(...)
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
-      compute.sigtest.anova = FALSE,
-      compute.sigtest.deriv = FALSE,
+      compute.anova = FALSE,
       compute.deriv = FALSE,
       degree.max = NULL,
       degree.min = 1,
@@ -69,7 +66,6 @@ lm.ma(...)
       restrict.sum.ma.weights = FALSE,
       S = 2,
       segments.max = 3,
-      tol = 1e-12,
       vc = TRUE,
       verbose = TRUE,
       weights = NULL,
@@ -98,11 +94,9 @@ lm.ma(...)
 
   \item{basis}{a character string indicating whether the generalized polynomial, additive or tensor product basis should be used}
 
-  \item{bootstrap.ci}{a logical value indicating whether to bootstrap nonparametric confidence intervals or not}
+  \item{bootstrap.ci}{a logical value indicating whether or not to bootstrap nonparametric confidence intervals}
 
-  \item{compute.sigtest.anova}{whether to conduct an anova-based bootstrap procedure to test for significance of each predictor}
-
-  \item{compute.sigtest.deriv}{whether to conduct a derivative-based bootstrap procedure to test for significance of each predictor}
+  \item{compute.anova}{a logical value indicating whether or not conduct an anova-based bootstrap procedure to test for significance of each predictor}
 
   \item{compute.deriv}{a logical value indicating whether or not to compute derivatives}
 
@@ -117,13 +111,13 @@ lm.ma(...)
 
   \item{K.mat}{matrix with degree and knots that could be passed to the basis routines}
 
-  \item{knots}{a logical value indicating whether to include interior knots or not (set equal to the degree)}
+  \item{knots}{a logical value indicating whether or not to include interior knots (set equal to the degree)}
 
   \item{lambda}{smoothing parameter for weight function for the categorical predictors when \code{vc=TRUE}}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
 
-  \item{method}{whether to use jackknife model averaging (jma, Hansen and Racine (2013)) or Mallows model averaging (mma, Hansen (2007))}
+  \item{method}{a character string indicating whether to use jackknife model averaging (jma, Hansen and Racine (2013)) or Mallows model averaging (mma, Hansen (2007))}
 
   \item{rank.vec}{a vector of ranks for each candidate model}
 
@@ -132,8 +126,6 @@ lm.ma(...)
   \item{S}{the constant in the data-driven rule for determining degree.max}
 
   \item{segments.max}{when \code{knots=TRUE} the maximum number of segments (i.e., interior knots plus 1) to use for the B-spline basis}
-
-  \item{tol}{a small constant used to ensure the forcing matrix for the quadratic program is not ill-conditioned}
 
   \item{vc}{a logical value indicating whether to allow the categorical predictors to enter additively (only the intercept can shift) or to instead use a varying coefficient structure (all parameters can shift)}
 
@@ -151,8 +143,7 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     model <- lm.ma(y~x1+x2)
     model <- lm.ma(y~x1+x2,compute.deriv=TRUE)
     model <- lm.ma(y~x1+x2,bootstrap.ci=TRUE)  
-    model <- lm.ma(y~x1+x2,compute.sigtest.anova=TRUE)
-    model <- lm.ma(y~x1+x2,compute.sigtest.deriv=TRUE)      
+    model <- lm.ma(y~x1+x2,compute.anova=TRUE)
 
     plot(model)
     plot(model,plot.data=TRUE)
@@ -226,9 +217,9 @@ Jeffrey S. Racine
 \note{
 This code is in beta status until further notice - proceed accordingly.
 
-The options \code{compute.sigtest.anova} and \code{compute.sigtest.deriv} use a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it will be fairly fast, but as the model complexity increases it may take some patience. Virtually all of the approaches required herein are parallel in nature and could be run on multiple cores. If there were enough demand for this feature I might be encouraged to add a parallel option.
+The option \code{compute.anova} uses a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it will be fairly fast, but as the model complexity increases it may take some patience. Virtually all of the approaches required herein are parallel in nature and could be run on multiple cores. If there were enough demand for this feature I might be encouraged to add a parallel option.
 
-The option \code{compute.sigtest.anova} cannot be used in the presence of one or more factors and exactly one numeric predictor since there is no numeric predictor present when testing for significance for the one numeric predictor.
+The option \code{compute.anova} cannot be used in the presence of one or more factors and exactly one numeric predictor since there is no numeric predictor present when testing for significance for the one numeric predictor.
 
 }
 

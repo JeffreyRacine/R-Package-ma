@@ -15,8 +15,8 @@ lm.ma.formula <- function(formula,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
-                          compute.sigtest.anova=FALSE,
-                          compute.sigtest.deriv=FALSE,
+                          compute.anova=FALSE,
+                          compute.anova.index=NULL,
                           compute.deriv=FALSE,
                           degree.max=NULL,
                           degree.min=1,
@@ -31,7 +31,6 @@ lm.ma.formula <- function(formula,
                           restrict.sum.ma.weights=FALSE,
                           S=2,
                           segments.max=3,
-                          tol=1e-12,
                           vc=TRUE,
                           verbose=TRUE,
                           weights=NULL,
@@ -52,8 +51,8 @@ lm.ma.formula <- function(formula,
                        basis.vec=basis.vec,
                        basis=basis,
                        bootstrap.ci=bootstrap.ci,
-                       compute.sigtest.anova=compute.sigtest.anova,
-                       compute.sigtest.deriv=compute.sigtest.deriv,
+                       compute.anova=compute.anova,
+                       compute.anova.index=compute.anova.index,
                        compute.deriv=compute.deriv,
                        degree.max=degree.max,
                        degree.min=degree.min,
@@ -68,7 +67,6 @@ lm.ma.formula <- function(formula,
                        restrict.sum.ma.weights=restrict.sum.ma.weights,
                        S=S,
                        segments.max=segments.max,
-                       tol=tol,
                        vc=vc,
                        verbose=verbose,
                        weights=weights,
@@ -96,8 +94,8 @@ lm.ma.default <- function(y=NULL,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
-                          compute.sigtest.anova=FALSE,
-                          compute.sigtest.deriv=FALSE,
+                          compute.anova=FALSE,
+                          compute.anova.index=NULL,
                           compute.deriv=FALSE,
                           degree.max=NULL,
                           degree.min=1,
@@ -112,7 +110,6 @@ lm.ma.default <- function(y=NULL,
                           restrict.sum.ma.weights=FALSE,
                           S=2,
                           segments.max=3,
-                          tol=1e-12,
                           vc=TRUE,
                           verbose=TRUE,
                           weights=NULL,
@@ -122,7 +119,6 @@ lm.ma.default <- function(y=NULL,
     method <- match.arg(method)
 
     if(!is.logical(compute.deriv)) stop("compute.deriv must be either TRUE or FALSE")
-    if(!is.logical(compute.sigtest.deriv)) stop("compute.sigtest.deriv must be either TRUE or FALSE")
     if(!is.logical(bootstrap.ci)) stop("bootstrap.ci must be either TRUE or FALSE")
     if(!is.logical(knots)) stop("knots must be either TRUE or FALSE")
     if(!is.logical(vc)) stop("vc must be either TRUE or FALSE")
@@ -134,6 +130,7 @@ lm.ma.default <- function(y=NULL,
     if(compute.deriv & (degree.min < deriv.order)) stop("Minimum degree (degree.min) must be at least as large the order of the derivative required (deriv.order)")
     if(degree.min < 1) stop("Minimum degree (degree.min) must be at least one")
     if(!is.null(deriv.index)) if(any(deriv.index < 1) | any(deriv.index > NCOL(X))) stop("Derivative indices must correspond to columns of X")
+    if(!is.null(compute.anova.index)) if(any(compute.anova.index < 1) | any(compute.anova.index > NCOL(X))) stop("anova indices must correspond to columns of X")
 
     ## First obtain weights, then in subsequent call computes fits and
     ## derivatives
@@ -160,7 +157,6 @@ lm.ma.default <- function(y=NULL,
                      weights=weights,
                      vc=vc,
                      verbose=verbose,
-                     tol=tol,
                      ...)
     
     ## Save rank vector and matrix of degrees and segments (not
@@ -194,7 +190,6 @@ lm.ma.default <- function(y=NULL,
                          weights=weights,
                          vc=vc,
                          verbose=verbose,
-                         tol=tol,
                          ...)
         
         Est$rank.vec <- rank.vec
@@ -246,7 +241,6 @@ lm.ma.default <- function(y=NULL,
                                   weights=weights,
                                   vc=vc,
                                   verbose=FALSE,
-                                  tol=tol,
                                   ...)
             boot.mat[,b] <- out.boot$fitted
             if(compute.deriv) for(k in 1:num.deriv) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
@@ -273,211 +267,22 @@ lm.ma.default <- function(y=NULL,
 
     }
 
-    if(compute.sigtest.deriv) {
-
-        nrow.X <- NROW(X)
-        ncol.X <- NCOL(X)
-        
-        P.vec <- numeric(length=ncol.X)
-        F.stat <- numeric(length=ncol.X)
-        F.boot <- numeric(length=B)
-
-        for(k in 1:ncol.X) {
-
-            if(verbose) cat(paste("\rSignificance Test for predictor ",k," of ",ncol.X,sep=""))
-
-            Est.k <- lm.ma.Est(y=y,
-                               X=X,
-                               X.eval=X,
-                               basis=basis,
-                               compute.deriv=TRUE,
-                               deriv.order=deriv.order,
-                               degree.min=degree.min,
-                               deriv.index=k,
-                               degree.max=degree.max,
-                               lambda=lambda,
-                               segments.max=segments.max,
-                               knots=knots,
-                               S=S,
-                               method=method,
-                               ma.weights=Est$ma.weights,
-                               basis.vec=Est$basis.vec,
-                               rank.vec=Est$rank.vec,
-                               restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
-                               K.mat=Est$DS,
-                               weights=weights,
-                               vc=vc,
-                               verbose=FALSE,
-                               tol=tol,
-                               ...)
-
-            ## Scale - must evaluate on same X...
-
-            if(B.scale > 0) {
-
-                boot.mat <- matrix(NA,nrow.X,B.scale)
-                
-                for(b in 1:B.scale) {
-
-                    ii <- sample(1:nrow.X,replace=TRUE)
-                    out.boot <- lm.ma.Est(y=y[ii],
-                                          X=X[ii,],
-                                          X.eval=X,
-                                          basis=basis,
-                                          compute.deriv=TRUE,
-                                          deriv.order=deriv.order,
-                                          degree.min=degree.min,
-                                          deriv.index=k,
-                                          degree.max=degree.max,
-                                          lambda=lambda,
-                                          segments.max=segments.max,
-                                          knots=knots,
-                                          S=S,
-                                          method=method,
-                                          ma.weights=Est$ma.weights,
-                                          basis.vec=Est$basis.vec,
-                                          rank.vec=Est$rank.vec,
-                                          restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
-                                          K.mat=Est$DS,
-                                          weights=weights,
-                                          vc=vc,
-                                          verbose=FALSE,
-                                          tol=tol,
-                                          ...)
-                    boot.mat[,b] <- out.boot$deriv[,1]
-                }
-                
-                deriv.scale <- apply(boot.mat,1,mad,na.rm=TRUE)
-
-                F.stat[k] <- mean((Est.k$deriv[,1]/deriv.scale)^2)
-                
-            } else {
-                
-                F.stat[k] <- mean(Est.k$deriv[,1]^2)
-                
-            }
-
-            for(b in 1:B) {
-                if(verbose) cat(paste("\rSignificance Test for predictor ",k," of ",ncol.X," (bootstrap replication ",b," of ",B,")",sep=""))
-
-                X.boot <- X
-                X.boot[,k] <- X.boot[sample(1:nrow.X,replace=TRUE),k]
-
-                Est.k.boot <- lm.ma.Est(y=y,
-                                        X=X.boot,
-                                        X.eval=X,
-                                        basis=basis,
-                                        compute.deriv=FALSE,
-                                        deriv.order=deriv.order,
-                                        degree.min=degree.min,
-                                        deriv.index=k,
-                                        degree.max=degree.max,
-                                        lambda=lambda,
-                                        segments.max=segments.max,
-                                        knots=knots,
-                                        S=S,
-                                        method=method,
-                                        ma.weights=ma.weights,
-                                        basis.vec=basis.vec,
-                                        rank.vec=rank.vec,
-                                        restrict.sum.ma.weights=restrict.sum.ma.weights,
-                                        K.mat=K.mat,
-                                        weights=weights,
-                                        vc=vc,
-                                        verbose=FALSE,
-                                        tol=tol,
-                                        ...)
-
-                Est.k.boot <- lm.ma.Est(y=y,
-                                        X=X.boot,
-                                        X.eval=X,
-                                        basis=basis,
-                                        compute.deriv=TRUE,
-                                        deriv.order=deriv.order,
-                                        degree.min=degree.min,
-                                        deriv.index=k,
-                                        degree.max=degree.max,
-                                        lambda=lambda,
-                                        segments.max=segments.max,
-                                        knots=knots,
-                                        S=S,
-                                        method=method,
-                                        ma.weights=Est.k.boot$ma.weights,
-                                        basis.vec=Est.k.boot$basis.vec,
-                                        rank.vec=Est.k.boot$rank.vec,
-                                        restrict.sum.ma.weights=Est.k.boot$restrict.sum.ma.weights,
-                                        K.mat=Est.k.boot$DS,
-                                        weights=weights,
-                                        vc=vc,
-                                        verbose=FALSE,
-                                        tol=tol,
-                                        ...)
-
-                if(B.scale > 0) {
-
-                    for(bb in 1:B.scale) {
-
-                        ii <- sample(1:nrow.X,replace=TRUE)
-                        out.boot <- lm.ma.Est(y=y[ii],
-                                              X=X.boot[ii,],
-                                              X.eval=X,
-                                              basis=basis,
-                                              compute.deriv=TRUE,
-                                              deriv.order=deriv.order,
-                                              degree.min=degree.min,
-                                              deriv.index=k,
-                                              degree.max=degree.max,
-                                              lambda=lambda,
-                                              segments.max=segments.max,
-                                              knots=knots,
-                                              S=S,
-                                              method=method,
-                                              ma.weights=Est$ma.weights,
-                                              basis.vec=Est$basis.vec,
-                                              rank.vec=Est$rank.vec,
-                                              restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
-                                              K.mat=Est$DS,
-                                              weights=weights,
-                                              vc=vc,
-                                              verbose=FALSE,
-                                              tol=tol,
-                                              ...)
-                        boot.mat[,bb] <- out.boot$deriv[,1]
-                    }
-                    
-                    deriv.scale.boot <- apply(boot.mat,1,mad,na.rm=TRUE)
-
-                    F.boot[b] <- mean((Est.k.boot$deriv[,1]/deriv.scale.boot)^2)
-                    
-                } else {
-                    
-                    F.boot[b] <- mean(Est.k.boot$deriv[,1]^2)
-                    
-                }
-                
-            }
-
-            P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
-
-            if(verbose) cat("\r                                                                               ")
-            if(verbose) cat("\r")
-
-        }
-
-        Est$P.vec <- P.vec
-        Est$F.stat <- F.stat
-    }
-    
-
-    if(compute.sigtest.anova) {
+    if(compute.anova) {
 
         if(Est$num.x==1 & !is.null(Est$num.z) & vc) stop("The combination vc=TRUE with factors and only one numeric predictor is not feasible")
 
+        if(is.null(compute.anova.index)) {
+            compute.anova.index <- 1:NCOL(X)
+            num.tests <- NCOL(X)
+        } else {
+            num.tests <- length(compute.anova.index)
+        }
+
         nrow.X <- NROW(X)
         ncol.X <- NCOL(X)
         
-        P.vec <- numeric(length=ncol.X)
-        F.stat <- numeric(length=ncol.X)
+        P.vec <- numeric(length=num.tests)
+        F.stat <- numeric(length=num.tests)
         F.boot <- numeric(length=B)
         
         if(!is.null(X.eval)) {
@@ -503,7 +308,6 @@ lm.ma.default <- function(y=NULL,
                                  weights=weights,
                                  vc=vc,
                                  verbose=FALSE,
-                                 tol=tol,
                                  ...)
         } else {
             Est.ssu <- Est
@@ -512,13 +316,13 @@ lm.ma.default <- function(y=NULL,
         ssu <- sum((y-Est.ssu$fitted.values)^2) 
         ssu.rank <- Est.ssu$ma.model.rank
 
-        for(k in 1:ncol.X) {
+        for(k in 1:num.tests) {
 
-            if(verbose) cat(paste("\rAnova for predictor ",k," of ",ncol.X,sep=""))
+            if(verbose) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests,sep=""))
 
-            is.numeric.X.k <- is.numeric(X[,k])
+            is.numeric.X.k <- is.numeric(X[,compute.anova.index[k]])
             
-            X.res <- X[,-k,drop=FALSE]
+            X.res <- X[,-compute.anova.index[k],drop=FALSE]
 
             ## With > 1 predictor, restricted model does not incorporate the kth predictor
 
@@ -545,7 +349,6 @@ lm.ma.default <- function(y=NULL,
                                      weights=weights,
                                      vc=vc,
                                      verbose=FALSE,
-                                     tol=tol,
                                      ...)
 
                 ssr <- sum((y-Est.ssr$fitted.values)^2) 
@@ -579,7 +382,7 @@ lm.ma.default <- function(y=NULL,
             F.stat[k] <- (nrow.X-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
 
             for(b in 1:B) {
-                if(verbose) cat(paste("\rAnova for predictor ",k," of ",ncol.X," (bootstrap replication ",b," of ",B,")",sep=""))
+                if(verbose) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests," (bootstrap replication ",b," of ",B,")",sep=""))
                 ## Residual bootstrap from the null model, use
                 ## original model configuration with bootstrap y
 
@@ -613,7 +416,6 @@ lm.ma.default <- function(y=NULL,
                                           weights=weights,
                                           vc=vc,
                                           verbose=FALSE,
-                                          tol=tol,
                                           ...)
 
                 Est.ssu.boot <- lm.ma.Est(y=y.boot,
@@ -638,7 +440,6 @@ lm.ma.default <- function(y=NULL,
                                           weights=weights,
                                           vc=vc,
                                           verbose=FALSE,
-                                          tol=tol,
                                           ...)
 
                 ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)  
@@ -667,7 +468,6 @@ lm.ma.default <- function(y=NULL,
                                               weights=weights,
                                               vc=vc,
                                               verbose=FALSE,
-                                              tol=tol,
                                               ...)
 
                     ssr.boot <- sum((y.boot-Est.ssr.boot$fitted.values)^2)         
@@ -698,8 +498,8 @@ lm.ma.default <- function(y=NULL,
         Est$F.stat <- F.stat
     }
     
-    Est$compute.sigtest.anova <- compute.sigtest.anova
-    Est$compute.sigtest.deriv <- compute.sigtest.deriv
+    Est$compute.anova <- compute.anova
+    Est$compute.anova.index <- compute.anova.index
     Est$bootstrap.ci <- bootstrap.ci
     
     if(verbose) cat("\r                                                                               ")
@@ -757,7 +557,7 @@ summary.lm.ma <- function(object,
         cat("\nNon-zero weight model bases: ")
         cat(object$basis.vec[object$ma.weights>1e-05])    
     }
-    if(object$compute.sigtest.deriv) {
+    if(object$compute.anova) {
         
         reject <- rep('', length(object$P.vec))
         reject[a <- (object$P.vec < 0.1)] <- '.'
@@ -765,34 +565,7 @@ summary.lm.ma <- function(object,
         reject[a <- (object$P.vec < 0.01)] <- '**'
         reject[a <- (object$P.vec < 0.001)] <- '***'
       
-        maxNameLen <- max(nc <- nchar(nm <- names(object$X)))
-        maxPvalLen <- max(ncp <- nchar(format.pval(object$P.vec)))
-        maxrejLen <- max(ncr <- nchar(reject))
-
-        cat("\n\nNonparametric significance test(s)\n")
-        cat("P Value(s):", paste("\n", nm," ",
-                                 blank(maxNameLen-nc),
-                                 format.pval(object$P.vec),
-                                 blank(maxPvalLen-ncp),
-                                 " ", reject,
-#                                 blank(maxrejLen-ncr),
-#                                 " [test-statistic = ",
-#                                 formatC(object$F.stat,format="f",digits=3),
-#                                 "]",
-                                 sep=''))
-        
-        cat("\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
-        
-    }
-    if(object$compute.sigtest.anova) {
-        
-        reject <- rep('', length(object$P.vec))
-        reject[a <- (object$P.vec < 0.1)] <- '.'
-        reject[a <- (object$P.vec < 0.05)] <- '*'
-        reject[a <- (object$P.vec < 0.01)] <- '**'
-        reject[a <- (object$P.vec < 0.001)] <- '***'
-      
-        maxNameLen <- max(nc <- nchar(nm <- names(object$X)))
+        maxNameLen <- max(nc <- nchar(nm <- names(object$X[,object$compute.anova.index,drop=FALSE])))
         maxPvalLen <- max(ncp <- nchar(format.pval(object$P.vec)))
         maxrejLen <- max(ncr <- nchar(reject))
 
@@ -847,7 +620,6 @@ predict.lm.ma <- function(object,
                              weights=object$weights,
                              vc=object$vc,
                              verbose=object$verbose,
-                             tol=object$tol,
                              ...)
         
         if(object$bootstrap.ci | object$compute.deriv) {
@@ -1050,7 +822,6 @@ lm.ma.Est <- function(y=NULL,
                       restrict.sum.ma.weights=FALSE,
                       S=2,
                       segments.max=3,
-                      tol=1e-12,
                       vc=TRUE,
                       verbose=TRUE,
                       weights=NULL,                      
@@ -1510,7 +1281,7 @@ lm.ma.Est <- function(y=NULL,
         ## weights
         M <- ncol(ma.mat)
         D <- t(ma.mat)%*%ma.mat
-        tol.ridge <- tol
+        tol.ridge <- 1e-08
         singular.D <- FALSE
         while(qr(D)$rank<M) {
             D <- D + diag(tol.ridge,M,M)
@@ -1546,7 +1317,7 @@ lm.ma.Est <- function(y=NULL,
             ma.mat.reb <- ma.mat[,b>1e-05,drop=FALSE]
             M <- ncol(ma.mat.reb)
             D <- t(ma.mat.reb)%*%ma.mat.reb
-            tol.ridge <- tol
+            tol.ridge <- 1e-08
             singular.D <- FALSE
             while(qr(D)$rank<M) {
                 D <- D + diag(tol.ridge,M,M)
@@ -1638,7 +1409,6 @@ lm.ma.Est <- function(y=NULL,
                 DS=K.mat.orig,
                 vc=vc,
                 verbose=verbose,
-                tol=tol,
                 xnames=xnames,
                 znames=znames))
 
