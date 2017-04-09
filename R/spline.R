@@ -139,11 +139,14 @@ prod.spline <- function(x,
       dim.P.no.tensor <- NCOL(P)
     }
 
+    attr(P,"relevant") <- TRUE
+
   } else {
 
     ## No relevant continuous or discrete predictors.
     dim.P.no.tensor <- 0
     P <- matrix(rep(1,num.x),num.x,1)
+    attr(P,"relevant") <- FALSE
 
   }
 
