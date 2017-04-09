@@ -24,7 +24,7 @@ lm.ma(...)
       compute.anova.index = NULL,
       compute.deriv = FALSE,
       degree.max = NULL,
-      degree.min = 1,
+      degree.min = 0,
       deriv.index = NULL,
       deriv.order = 1,
       K.mat = NULL,
@@ -56,7 +56,7 @@ lm.ma(...)
       compute.anova.index = NULL,
       compute.deriv = FALSE,
       degree.max = NULL,
-      degree.min = 1,
+      degree.min = 0,
       deriv.index = NULL,
       deriv.order = 1,
       K.mat = NULL,
@@ -107,7 +107,6 @@ lm.ma(...)
   \item{degree.max}{maximum value for the basis in each dimension (defaults to \code{max(2,S*log(n)/k} where \code{k} is the number of numeric (i.e., non categorical) predictors and \code{n} the number of observations}
 
   \item{degree.min}{minimum value for the basis in each dimension}
-
 
   \item{deriv.index}{optional vector of indices indicating as to which predictor(s) the derivative computation is to be performed}
   
