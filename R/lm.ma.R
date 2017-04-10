@@ -18,6 +18,7 @@ lm.ma.formula <- function(formula,
                           compute.anova=FALSE,
                           compute.anova.index=NULL,
                           compute.deriv=FALSE,
+                          compute.mean=TRUE,
                           degree.max=NULL,
                           degree.min=0,
                           deriv.index=NULL,
@@ -54,6 +55,7 @@ lm.ma.formula <- function(formula,
                        compute.anova=compute.anova,
                        compute.anova.index=compute.anova.index,
                        compute.deriv=compute.deriv,
+                       compute.mean=compute.mean,
                        degree.max=degree.max,
                        degree.min=degree.min,
                        deriv.index=deriv.index,
@@ -97,6 +99,7 @@ lm.ma.default <- function(y=NULL,
                           compute.anova=FALSE,
                           compute.anova.index=NULL,
                           compute.deriv=FALSE,
+                          compute.mean=TRUE,
                           degree.max=NULL,
                           degree.min=0,
                           deriv.index=NULL,
@@ -140,6 +143,7 @@ lm.ma.default <- function(y=NULL,
                      X.eval=X.eval,
                      basis=basis,
                      compute.deriv=FALSE,
+                     compute.mean=TRUE,
                      deriv.order=deriv.order,
                      degree.min=degree.min,
                      deriv.index=deriv.index,
@@ -173,6 +177,7 @@ lm.ma.default <- function(y=NULL,
                          X.eval=X.eval,
                          basis=basis,
                          compute.deriv=compute.deriv,
+                         compute.mean=compute.mean,
                          deriv.order=deriv.order,
                          degree.min=degree.min,
                          deriv.index=deriv.index,
@@ -224,6 +229,7 @@ lm.ma.default <- function(y=NULL,
                                   X.eval=if(is.null(X.eval)){X}else{X.eval},
                                   basis=basis,
                                   compute.deriv=compute.deriv,
+                                  compute.mean=compute.mean,
                                   deriv.order=deriv.order,
                                   degree.min=degree.min,
                                   deriv.index=deriv.index,
@@ -291,6 +297,7 @@ lm.ma.default <- function(y=NULL,
                                  X.eval=NULL,
                                  basis=basis,
                                  compute.deriv=FALSE,
+                                 compute.mean=TRUE,
                                  deriv.order=deriv.order,
                                  degree.min=degree.min,
                                  deriv.index=deriv.index,
@@ -332,6 +339,7 @@ lm.ma.default <- function(y=NULL,
                                      X.eval=NULL,
                                      basis=basis,
                                      compute.deriv=FALSE,
+                                     compute.mean=TRUE,
                                      deriv.order=deriv.order,
                                      degree.min=degree.min,
                                      deriv.index=NULL,
@@ -399,6 +407,7 @@ lm.ma.default <- function(y=NULL,
                                           X.eval=NULL,
                                           basis=basis,
                                           compute.deriv=FALSE,
+                                          compute.mean=TRUE,
                                           deriv.order=deriv.order,
                                           degree.min=degree.min,
                                           deriv.index=NULL,
@@ -423,6 +432,7 @@ lm.ma.default <- function(y=NULL,
                                           X.eval=NULL,
                                           basis=basis,
                                           compute.deriv=FALSE,
+                                          compute.mean=TRUE,
                                           deriv.order=deriv.order,
                                           degree.min=degree.min,
                                           deriv.index=NULL,
@@ -451,6 +461,7 @@ lm.ma.default <- function(y=NULL,
                                               X.eval=NULL,
                                               basis=basis,
                                               compute.deriv=FALSE,
+                                              compute.mean=TRUE,
                                               deriv.order=deriv.order,
                                               degree.min=degree.min,
                                               deriv.index=NULL,
@@ -605,6 +616,7 @@ predict.lm.ma <- function(object,
                              X.eval=exdat,
                              basis=object$basis,
                              compute.deriv=object$compute.deriv,
+                             compute.mean=object$compute.mean,
                              deriv.index=object$deriv.index,
                              deriv.order=object$deriv.order,
                              degree.max=object$degree.max,
@@ -809,6 +821,7 @@ lm.ma.Est <- function(y=NULL,
                       basis.vec=NULL,
                       basis=c("tensor","taylor","additive","auto"),
                       compute.deriv=FALSE,
+                      compute.mean=TRUE,
                       degree.max=NULL,
                       degree.min=0,
                       deriv.index=NULL,
@@ -827,6 +840,9 @@ lm.ma.Est <- function(y=NULL,
                       weights=NULL,                      
                       ...) {
 
+    ## Take the input data frame and split into factors and numeric,
+    ## get certain quantities (num.z, num.x, numeric.logical etc.)
+
     if(!vc) {
         xztmp <- splitFrame(as.data.frame(X))
     } else {
@@ -844,6 +860,7 @@ lm.ma.Est <- function(y=NULL,
     xzindex[numeric.logical] <- 1:num.x
     if(!is.null(num.z)) xzindex[!numeric.logical] <- 1:num.z
     is.ordered.z <- xztmp$is.ordered.z
+    nrow.Xeval <- nrow.X <- NROW(X)
     if(!is.null(X.eval)) {
         if(!vc) {
             xztmp <- splitFrame(as.data.frame(X.eval))
@@ -852,11 +869,14 @@ lm.ma.Est <- function(y=NULL,
         }
         xeval <- xztmp$x
         zeval <- xztmp$z
+        nrow.Xeval <- NROW(X.eval)
     } else {
+        ## If there is no evaluation data set to x and z (wise?)
         xeval <- x
         zeval <- z
     }
-
+    rm(xztmp)
+    
     ## Construct base levels for computing differences for factors,
     ## only one row but keep as a data frame
 
@@ -869,10 +889,13 @@ lm.ma.Est <- function(y=NULL,
         }
     }
 
-    rm(xztmp)
-
     nrow.X <- NROW(X)
-    if(!is.null(X.eval)) nrow.Xeval <- NROW(X.eval)
+    if(!is.null(X.eval)) {
+        nrow.Xeval <- NROW(X.eval)
+    } else {
+        nrow.Xeval <- nrow.X
+    }
+        
     
     ## If there is only one numeric predictor, use additive basis
     ## (waste to use auto in this case as all bases coincide)
@@ -953,16 +976,33 @@ lm.ma.Est <- function(y=NULL,
     ma.mat <- matrix(NA,nrow.X,P.num)
     fitted.mat <- matrix(NA,if(is.null(X.eval)){nrow.X}else{nrow.Xeval},P.num)
 
-    for(p in P.num:1) {
+    if(is.null(ma.weights)) {
 
-        DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
+        ## No weights passed, compute mma/jma weights
 
-        if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+        ## For computing model average weights, scale y to have unit
+        ## variance and zero mean, then rescale prior to computing
+        ## fitted values. Some datasets (india from quantreg.nonpar)
+        ## caused issues with Dmat being singular and I suspected
+        ## simple/same issue as using raw polynomials. Confirmed
+        ## produces same result as previous code.
 
-        if(is.null(ma.weights)) {
+        y <- scale(y)
 
+        for(p in P.num:1) {
+
+            DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
+
+            if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+
+            ## This function is a bit odd, but when called with
+            ## weights this part is not evaluated, otherwise it is.
+            
             if(vc & !is.null(num.z)) {
 
+                ## Varying coefficient regression spline formulation -
+                ## must have categorical predictors
+                    
                 if(basis=="auto") {
                     cv.min <- Inf
                     for(b.basis in c("tensor","taylor","additive")) {
@@ -1054,6 +1094,9 @@ lm.ma.Est <- function(y=NULL,
 
             } else {
 
+                ## Regression spline formulation (no categorical
+                ## predictors)
+                    
                 if(basis=="auto") {
                     cv.min <- Inf
                     basis.singular <- logical(1)
@@ -1120,55 +1163,165 @@ lm.ma.Est <- function(y=NULL,
             
         }
 
-        ## Evaluation matters - xeval and zeval set to x and z if no evaluation so use throughout
+        if(verbose) cat("\r                                                    ")
+        if(verbose) cat("\r")
+        if(verbose) cat("\rComputing model average weights...")
 
-        if(!is.null(ma.weights))  {
-            if(vc & !is.null(num.z)) {
+        ## Solve the quadratic program for the Mallows model average
+        ## weights
+        M <- ncol(ma.mat)
+        D <- t(ma.mat)%*%ma.mat
+        tol.ridge <- 1e-08
+        singular.D <- FALSE
+        while(qr(D)$rank<M) {
+            D <- D + diag(tol.ridge,M,M)
+            tol.ridge <- tol.ridge*10
+            if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
+            singular.D <- TRUE
+        }
+        if(method=="mma") {
+            d <- -sigsq[which.max(rank.vec)]*rank.vec
+        } else {
+            d <- t(y)%*%ma.mat
+        }        
+        if(restrict.sum.ma.weights) {
+            A <- cbind(rep(1,M),diag(1,M,M))
+            b0 <- c(1,rep(0,M))
+            b <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
+        } else {
+            A <- diag(1,M,M)
+            b0 <- rep(0,M)
+            b <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0)$solution
+            ## Not constrained to sum to one but normalize ex-post as
+            ## we construct weighted averages
+            b <- b/sum(b)
+        }
 
-                fit.spline <- numeric(length=num.eval)
-                for(i in 1:nrow.zeval.unique) {
-                    zz <- ind.zeval == ind.zeval.vals[i]
-                    L <- suppressWarnings(prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
-                    if(!is.null(weights)) L <- weights*L
-                    P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
-                    if(attr(P,"relevant")) {
-                        if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
-                            model.z.unique <- lm(y~P,weights=L)
-                        } else {
-                            model.z.unique <- lm(y~P-1,weights=L)
-                        }
-                    } else {
-                        model.z.unique <- lm(y~1,weights=L)
-                    }
-                    P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
-                    fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
-
-                }
-
-                fitted.mat[,p] <- fit.spline
-                rank.vec[p] <- model.z.unique$rank
-                
+        num.attempts <- 0
+        while(singular.D & num.attempts < 10) {
+            num.attempts <- num.attempts + 1
+            ## Re-solve the quadratic program for the non-zero Mallows
+            ## model average weights (trivial overhead and can only
+            ## improve upon the existing weights when D is not
+            ## well-conditioned)
+            ma.mat.reb <- ma.mat[,b>1e-05,drop=FALSE]
+            M <- ncol(ma.mat.reb)
+            D <- t(ma.mat.reb)%*%ma.mat.reb
+            tol.ridge <- 1e-08
+            singular.D <- FALSE
+            while(qr(D)$rank<M) {
+                D <- D + diag(tol.ridge,M,M)
+                tol.ridge <- tol.ridge*10
+                if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
+                singular.D <- TRUE
+            } 
+            if(method=="mma") {
+                rank.vec.reb <- rank.vec[b>1e-05]
+                d <- -sigsq[which.max(rank.vec)]*rank.vec.reb
             } else {
+                d <- t(y)%*%ma.mat.reb
+            }        
+            if(restrict.sum.ma.weights) {
+                A <- cbind(rep(1,M),diag(1,M,M))
+                b0 <- c(1,rep(0,M))
+                b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
+            } else {
+                A <- diag(1,M,M)
+                b0 <- rep(0,M)
+                b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0)$solution
+                ## Not constrained to sum to one but normalize ex-post
+                ## as we construct weighted averages
+                b.reb <- b.reb/sum(b.reb)
+            }
+            
+            if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
+                if(verbose) {
+                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>1e-05])," initial models, ",length(b.reb[b.reb>1e-05])," rebalanced ones)",sep=""))   
+                    if(!isTRUE(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))) warning(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))
+                }
+                b[b>1e-05] <- b.reb
+            }
+        }
 
-                P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
-                if(attr(P,"relevant")) {
-                    if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
-                        model.ma <- lm(y~P,weights=weights)
-                    } else {
-                        model.ma <- lm(y~P-1,weights=weights)
+        y <- as.numeric(y * attr(y, 'scaled:scale') + attr(y, 'scaled:center'))
+            
+    } else if(!is.null(ma.weights))  {
+
+        ## Weights passed, copy to b for computation of fit and/or
+        ## derivatives
+
+        b <- ma.weights
+
+        ## NOTE - if only the derivatives are needed, can skip
+        ## computing the fitted values UNLESS derivatives are for
+        ## categorical predictors.
+
+         for(p in P.num:1) {
+
+            DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
+            
+            if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+
+            if(compute.mean) {
+
+                ## Compute fitted values
+                
+                if(vc & !is.null(num.z)) {
+                    
+                    ## Varying coefficient regression spline formulation -
+                    ## must have categorical predictors
+                    
+                    fit.spline <- numeric(length=num.eval)
+                    for(i in 1:nrow.zeval.unique) {
+                        zz <- ind.zeval == ind.zeval.vals[i]
+                        L <- suppressWarnings(prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
+                        if(!is.null(weights)) L <- weights*L
+                        P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
+                        if(attr(P,"relevant")) {
+                            if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+                                model.z.unique <- lm(y~P,weights=L)
+                            } else {
+                                model.z.unique <- lm(y~P-1,weights=L)
+                            }
+                        } else {
+                            model.z.unique <- lm(y~1,weights=L)
+                        }
+                        P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
+                        fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
+                        
                     }
                     
-                    P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p]))
-                    fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
+                    fitted.mat[,p] <- fit.spline
+                    rank.vec[p] <- model.z.unique$rank
+                    
                 } else {
-                    model.ma <- lm(y~1,weights=weights)
-                    fitted.mat[,p] <- rep(fitted(model.ma)[1],NROW(xeval)) # xxx
+                    
+                    ## Regression spline formulation (no categorical
+                    ## predictors)
+                    
+                    P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
+                    if(attr(P,"relevant")) {
+                        if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+                            model.ma <- lm(y~P,weights=weights)
+                        } else {
+                            model.ma <- lm(y~P-1,weights=weights)
+                        }
+                        
+                        P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p]))
+                        fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
+                    } else {
+                        model.ma <- lm(y~1,weights=weights)
+                        fitted.mat[,p] <- rep(fitted(model.ma)[1],nrow.Xeval) # xxx
+                    }
+                    rank.vec[p] <- model.ma$rank
+                    
                 }
-                rank.vec[p] <- model.ma$rank
                 
             }
             
-            if(compute.deriv) {
+            ## Compute derivatives
+         
+             if(compute.deriv) {
 
                 if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
                     K.additive <- DS
@@ -1277,7 +1430,7 @@ lm.ma.Est <- function(y=NULL,
                                 
                             } else {
 
-                                model.deriv <- rep(0, NROW(xeval))
+                                model.deriv <- rep(0, nrow.Xeval)
                             }
                             
                         } else {
@@ -1299,7 +1452,7 @@ lm.ma.Est <- function(y=NULL,
                                 
                                 fit.spline <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                             } else {
-                                fit.spline <- rep(mean(y),NROW(zeval))
+                                fit.spline <- rep(mean(y),nrow.Xeval)
                             }
                             ## factor
 
@@ -1314,101 +1467,18 @@ lm.ma.Est <- function(y=NULL,
             }
 
         }
-            
-    }
-    
-    
-    if(is.null(ma.weights)) {
 
-        if(verbose) cat("\r                                                    ")
-        if(verbose) cat("\r")
-        if(verbose) cat("\rComputing model average weights...")
-
-        ## Solve the quadratic program for the Mallows model average
-        ## weights
-        M <- ncol(ma.mat)
-        D <- t(ma.mat)%*%ma.mat
-        tol.ridge <- 1e-08
-        singular.D <- FALSE
-        while(qr(D)$rank<M) {
-            D <- D + diag(tol.ridge,M,M)
-            tol.ridge <- tol.ridge*10
-            if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
-            singular.D <- TRUE
-        }
-        if(method=="mma") {
-            d <- -sigsq[which.max(rank.vec)]*rank.vec
-        } else {
-            d <- t(y)%*%ma.mat
-        }        
-        if(restrict.sum.ma.weights) {
-            A <- cbind(rep(1,M),diag(1,M,M))
-            b0 <- c(1,rep(0,M))
-            b <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
-        } else {
-            A <- diag(1,M,M)
-            b0 <- rep(0,M)
-            b <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0)$solution
-            ## Not constrained to sum to one but normalize ex-post as
-            ## we construct weighted averages
-            b <- b/sum(b)
-        }
-
-        num.attempts <- 0
-        while(singular.D & num.attempts < 10) {
-            num.attempts <- num.attempts + 1
-            ## Re-solve the quadratic program for the non-zero Mallows
-            ## model average weights (trivial overhead and can only
-            ## improve upon the existing weights when D is not
-            ## well-conditioned)
-            ma.mat.reb <- ma.mat[,b>1e-05,drop=FALSE]
-            M <- ncol(ma.mat.reb)
-            D <- t(ma.mat.reb)%*%ma.mat.reb
-            tol.ridge <- 1e-08
-            singular.D <- FALSE
-            while(qr(D)$rank<M) {
-                D <- D + diag(tol.ridge,M,M)
-                tol.ridge <- tol.ridge*10
-                if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
-                singular.D <- TRUE
-            } 
-            if(method=="mma") {
-                rank.vec.reb <- rank.vec[b>1e-05]
-                d <- -sigsq[which.max(rank.vec)]*rank.vec.reb
-            } else {
-                d <- t(y)%*%ma.mat.reb
-            }        
-            if(restrict.sum.ma.weights) {
-                A <- cbind(rep(1,M),diag(1,M,M))
-                b0 <- c(1,rep(0,M))
-                b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0,meq=1)$solution
-            } else {
-                A <- diag(1,M,M)
-                b0 <- rep(0,M)
-                b.reb <- solve.QP(Dmat=D,dvec=d,Amat=A,bvec=b0)$solution
-                ## Not constrained to sum to one but normalize ex-post
-                ## as we construct weighted averages
-                b.reb <- b.reb/sum(b.reb)
-            }
-            
-            if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
-                if(verbose) {
-                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>1e-05])," initial models, ",length(b.reb[b.reb>1e-05])," rebalanced ones)",sep=""))   
-                    if(!isTRUE(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))) warning(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))
-                }
-                b[b>1e-05] <- b.reb
-            }
-        }
-            
-    } else {
-        ## For bootstrapping use weights from initial call
-        b <- ma.weights
     }
 
+    ## Compute fitted values and derivatives if requestions
+    
     if(verbose) cat("\r                                                    ")
     if(verbose) cat("\r")
     if(verbose) cat("\rComputing fitted values...")
-    fitted.values <- fitted.mat%*%b
+
+    if(compute.mean) {
+        fitted.values <- fitted.mat%*%b
+    }
     
     if(compute.deriv) {
         if(verbose) cat("\r                                                    ")
@@ -1425,7 +1495,7 @@ lm.ma.Est <- function(y=NULL,
     }
 
     if(verbose) {
-        cat("\r                                                    ")
+        cat("\r                                                            ")
         cat("\r")
     }
 
@@ -1437,6 +1507,7 @@ lm.ma.Est <- function(y=NULL,
                 X=X,
                 basis=basis,
                 compute.deriv=compute.deriv,
+                compute.mean=compute.mean,
                 deriv.order=deriv.order,
                 degree.min=degree.min,
                 deriv.index=deriv.index,
@@ -1460,4 +1531,3 @@ lm.ma.Est <- function(y=NULL,
                 znames=znames))
 
 }
-

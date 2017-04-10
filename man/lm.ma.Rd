@@ -23,6 +23,7 @@ lm.ma(...)
       compute.anova = FALSE,
       compute.anova.index = NULL,
       compute.deriv = FALSE,
+      compute.mean = TRUE,
       degree.max = NULL,
       degree.min = 0,
       deriv.index = NULL,
@@ -55,6 +56,7 @@ lm.ma(...)
       compute.anova = FALSE,
       compute.anova.index = NULL,
       compute.deriv = FALSE,
+      compute.mean = TRUE,
       degree.max = NULL,
       degree.min = 0,
       deriv.index = NULL,
@@ -103,6 +105,8 @@ lm.ma(...)
   \item{compute.anova.index}{an option vector of indices indicating as to which predictor(s) the test procedure is to be performed (default is all predictors)}
 
   \item{compute.deriv}{a logical value indicating whether or not to compute derivatives}
+
+  \item{compute.mean}{a logical value indicating whether or not to compute the conditional mean}
 
   \item{degree.max}{maximum value for the basis in each dimension (defaults to \code{max(2,S*log(n)/k} where \code{k} is the number of numeric (i.e., non categorical) predictors and \code{n} the number of observations}
 
