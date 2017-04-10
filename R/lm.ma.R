@@ -860,7 +860,7 @@ lm.ma.Est <- function(y=NULL,
     xzindex[numeric.logical] <- 1:num.x
     if(!is.null(num.z)) xzindex[!numeric.logical] <- 1:num.z
     is.ordered.z <- xztmp$is.ordered.z
-    nrow.Xeval <- nrow.X <- NROW(X)
+    num.eval.obs <- num.obs <- NROW(X)
     if(!is.null(X.eval)) {
         if(!vc) {
             xztmp <- splitFrame(as.data.frame(X.eval))
@@ -869,7 +869,7 @@ lm.ma.Est <- function(y=NULL,
         }
         xeval <- xztmp$x
         zeval <- xztmp$z
-        nrow.Xeval <- NROW(X.eval)
+        num.eval.obs <- NROW(X.eval)
     } else {
         ## If there is no evaluation data set to x and z (wise?)
         xeval <- x
@@ -889,14 +889,6 @@ lm.ma.Est <- function(y=NULL,
         }
     }
 
-    nrow.X <- NROW(X)
-    if(!is.null(X.eval)) {
-        nrow.Xeval <- NROW(X.eval)
-    } else {
-        nrow.Xeval <- nrow.X
-    }
-        
-    
     ## If there is only one numeric predictor, use additive basis
     ## (waste to use auto in this case as all bases coincide)
     
@@ -915,7 +907,6 @@ lm.ma.Est <- function(y=NULL,
         ind.zeval <-  attr(zeval.unique,"index")
         ind.zeval.vals <-  unique(ind.zeval)
         nrow.zeval.unique <- nrow(zeval.unique)
-        num.eval <- nrow(zeval)
     }
 
     if(is.null(z)) {
@@ -926,7 +917,7 @@ lm.ma.Est <- function(y=NULL,
     }
 
     if(is.null(degree.max)) {
-        degree.max <- max(2,ceiling(S*log(nrow.X)/num.x))
+        degree.max <- max(2,ceiling(S*log(num.obs)/num.x))
     }
     
     P <- degree.max
@@ -964,8 +955,8 @@ lm.ma.Est <- function(y=NULL,
     num.deriv <- length(deriv.index)
 
     if(compute.deriv) {
-        deriv.mat <- array(NA,c(if(is.null(X.eval)){nrow.X}else{nrow.Xeval},P.num,num.deriv))
-        deriv <- matrix(NA,if(is.null(X.eval)){nrow.X}else{nrow.Xeval},num.deriv)
+        deriv.mat <- array(NA,c(if(is.null(X.eval)){num.obs}else{num.eval.obs},P.num,num.deriv))
+        deriv <- matrix(NA,if(is.null(X.eval)){num.obs}else{num.eval.obs},num.deriv)
         colnames(deriv) <- names(X)[deriv.index]
     } else {
         deriv <- NULL
@@ -973,8 +964,8 @@ lm.ma.Est <- function(y=NULL,
 
     if(is.null(rank.vec)) rank.vec <- numeric(length=P.num)
     sigsq <- numeric(length=P.num)
-    ma.mat <- matrix(NA,nrow.X,P.num)
-    fitted.mat <- matrix(NA,if(is.null(X.eval)){nrow.X}else{nrow.Xeval},P.num)
+    ma.mat <- matrix(NA,num.obs,P.num)
+    fitted.mat <- matrix(NA,if(is.null(X.eval)){num.obs}else{num.eval.obs},P.num)
 
     if(is.null(ma.weights)) {
 
@@ -1007,8 +998,8 @@ lm.ma.Est <- function(y=NULL,
                     cv.min <- Inf
                     for(b.basis in c("tensor","taylor","additive")) {
                         
-                        fit.spline <- numeric(length=nrow.X)
-                        htt <- numeric(length=nrow.X)
+                        fit.spline <- numeric(length=num.obs)
+                        htt <- numeric(length=num.obs)
                         basis.singular <- logical(length=nrow.z.unique)
                         for(i in 1:nrow.z.unique) {
                             zz <- ind == ind.vals[i]
@@ -1022,15 +1013,13 @@ lm.ma.Est <- function(y=NULL,
                                 } else {
                                     model.z.unique <- lm(y~P-1,weights=L)
                                 }
+                                P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=b.basis))
+                                fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                             } else {
                                 model.z.unique <- lm(y~1,weights=L)
+                                fit.spline[zz] <- fitted(model.z.unique)[zz]
                             }
                             htt[zz] <- hatvalues(model.z.unique)[zz]
-                            ## suppresswarnings could be getting one
-                            ## into trouble... perhaps unwrap (check
-                            ## in to github then remove)?
-                            P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=b.basis))
-                            fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                         }
                         
                         htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
@@ -1055,8 +1044,8 @@ lm.ma.Est <- function(y=NULL,
 
                 } else {
 
-                    fit.spline <- numeric(length=nrow.X)
-                    htt <- numeric(length=nrow.X)
+                    fit.spline <- numeric(length=num.obs)
+                    htt <- numeric(length=num.obs)
                     basis.singular <- logical(length=nrow.z.unique)
                     for(i in 1:nrow.z.unique) {
                         zz <- ind == ind.vals[i]
@@ -1070,12 +1059,13 @@ lm.ma.Est <- function(y=NULL,
                             } else {
                                 model.z.unique <- lm(y~P-1,weights=L)
                             }
+                            P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
+                            fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                         } else {
                             model.z.unique <- lm(y~1,weights=L)
+                            fit.spline[zz] <- fitted(model.z.unique)[zz]
                         }
                         htt[zz] <- hatvalues(model.z.unique)[zz]
-                        P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
-                        fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                     }
                     if(any(basis.singular==TRUE) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
                  }
@@ -1090,7 +1080,7 @@ lm.ma.Est <- function(y=NULL,
                 }
                 
                 rank.vec[p] <- model.z.unique$rank
-                sigsq[p] <- sqrt(sum((y - fit.spline)^2)/(nrow.X-model.z.unique$rank))
+                sigsq[p] <- sqrt(sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank))
 
             } else {
 
@@ -1157,7 +1147,7 @@ lm.ma.Est <- function(y=NULL,
 
                 rank.vec[p] <- model.ma$rank
 
-                sigsq[p] <- sqrt(sum(residuals(model.ma)^2)/(nrow.X-model.ma$rank))
+                sigsq[p] <- sqrt(sum(residuals(model.ma)^2)/(num.obs-model.ma$rank))
 
             }
             
@@ -1243,6 +1233,9 @@ lm.ma.Est <- function(y=NULL,
             }
         }
 
+        ## Scale back to original units
+
+        fitted.mat <- as.matrix(fitted.mat * attr(y, 'scaled:scale') + attr(y, 'scaled:center'))
         y <- as.numeric(y * attr(y, 'scaled:scale') + attr(y, 'scaled:center'))
             
     } else if(!is.null(ma.weights))  {
@@ -1271,7 +1264,7 @@ lm.ma.Est <- function(y=NULL,
                     ## Varying coefficient regression spline formulation -
                     ## must have categorical predictors
                     
-                    fit.spline <- numeric(length=num.eval)
+                    fit.spline <- numeric(length=num.eval.obs)
                     for(i in 1:nrow.zeval.unique) {
                         zz <- ind.zeval == ind.zeval.vals[i]
                         L <- suppressWarnings(prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
@@ -1283,11 +1276,12 @@ lm.ma.Est <- function(y=NULL,
                             } else {
                                 model.z.unique <- lm(y~P-1,weights=L)
                             }
+                            P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
+                            fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                         } else {
                             model.z.unique <- lm(y~1,weights=L)
+                            fit.spline[zz] <- predict(model.z.unique)[zz]
                         }
-                        P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
-                        fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                         
                     }
                     
@@ -1306,12 +1300,11 @@ lm.ma.Est <- function(y=NULL,
                         } else {
                             model.ma <- lm(y~P-1,weights=weights)
                         }
-                        
                         P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p]))
                         fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                     } else {
                         model.ma <- lm(y~1,weights=weights)
-                        fitted.mat[,p] <- rep(fitted(model.ma)[1],nrow.Xeval) # xxx
+                        fitted.mat[,p] <- predict(model.ma,newdata=data.frame(1:num.eval.obs))
                     }
                     rank.vec[p] <- model.ma$rank
                     
@@ -1335,9 +1328,10 @@ lm.ma.Est <- function(y=NULL,
                         
                         if(numeric.logical[deriv.index[k]]) {
 
-                            ## numeric
+                            ## Compute numeric derivatives for the
+                            ## varying coefficient formulation
 
-                            deriv.spline <- numeric(length(num.eval))
+                            deriv.spline <- numeric(length(num.eval.obs))
                             for(i in 1:nrow.zeval.unique) {
                                 zz <- ind.zeval == ind.zeval.vals[i]
                                 L <- suppressWarnings(prod.kernel(Z=z,z=zeval.unique[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
@@ -1361,7 +1355,7 @@ lm.ma.Est <- function(y=NULL,
                                     }
 
                                 } else {
-                                    deriv.spline <- rep(0,num.eval)
+                                    deriv.spline <- rep(0,num.eval.obs)
                                 }
                             }
                             
@@ -1369,12 +1363,14 @@ lm.ma.Est <- function(y=NULL,
 
                         } else {
 
-                            ## factor, need base levels
+                            ## Compute factor `derivatives' for the
+                            ## regression spline formulation
+                            ## (differences), require base levels
 
                             zeval.unique.tmp <- zeval.unique
                             zeval.unique.tmp[,xzindex[deriv.index[k]]] <- zeval.base[,xzindex[deriv.index[k]]]
 
-                            fit.spline <- numeric(length=num.eval)
+                            fit.spline <- numeric(length=num.eval.obs)
                             for(i in 1:nrow.zeval.unique) {
                                 zz <- ind.zeval == ind.zeval.vals[i]
                                 L <- suppressWarnings(prod.kernel(Z=z,z=zeval.unique.tmp[ind.zeval.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z))
@@ -1389,7 +1385,8 @@ lm.ma.Est <- function(y=NULL,
                                     P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
                                     fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                                 } else {
-                                    fit.spline[zz] <- mean(y[zz])
+                                    model.z.unique <- lm(y~1,weights=L)
+                                    fitted.mat[,p] <- predict(model.ma,newdata=data.frame(1:num.eval.obs))
                                 }
                                 
                             }
@@ -1401,7 +1398,7 @@ lm.ma.Est <- function(y=NULL,
 
                         if(numeric.logical[deriv.index[k]]) {
 
-                            ## numeric
+                            ## Compute numeric derivatives
 
                             P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
                             if(attr(P,"relevant") & DS[xzindex[deriv.index[k]],1] > 0) {
@@ -1430,12 +1427,13 @@ lm.ma.Est <- function(y=NULL,
                                 
                             } else {
 
-                                model.deriv <- rep(0, nrow.Xeval)
+                                model.deriv <- rep(0, num.eval.obs)
                             }
                             
                         } else {
 
-                            ### need base levels
+                            ## Compute factor `derivatives'
+                            ## (differences), require base levels
 
                             P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
                             if(attr(P,"relevant")) {
@@ -1452,10 +1450,9 @@ lm.ma.Est <- function(y=NULL,
                                 
                                 fit.spline <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                             } else {
-                                fit.spline <- rep(mean(y),nrow.Xeval)
+                                model.ma <- lm(y~1,weights=weights)
+                                fitted.spline <- predict(model.ma,newdata=data.frame(1:num.eval.obs))
                             }
-                            ## factor
-
                             model.deriv <- fitted.mat[,p] - fit.spline
                         }
 
@@ -1523,7 +1520,7 @@ lm.ma.Est <- function(y=NULL,
                 rank.vec=rank.vec,
                 restrict.sum.ma.weights=restrict.sum.ma.weights,
                 ma.model.rank=sum(rank.vec*abs(b)),
-                nobs=nrow.X,
+                nobs=num.obs,
                 DS=K.mat.orig,
                 vc=vc,
                 verbose=verbose,

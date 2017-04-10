@@ -1,5 +1,6 @@
 Changes from Version 1.15 to 1.16 [9-Apr-2017]
 
+- scaling y prior to computing model average weights to have unit variance and zero mean
 - added degree 0 possibility
 
 Changes from Version 1.14 to 1.15 [8-Apr-2017]
