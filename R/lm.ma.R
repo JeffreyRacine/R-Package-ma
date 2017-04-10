@@ -986,6 +986,9 @@ lm.ma.Est <- function(y=NULL,
                                 model.z.unique <- lm(y~1,weights=L)
                             }
                             htt[zz] <- hatvalues(model.z.unique)[zz]
+                            ## suppresswarnings could be getting one
+                            ## into trouble... perhaps unwrap (check
+                            ## in to github then remove)?
                             P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=b.basis))
                             fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                         }

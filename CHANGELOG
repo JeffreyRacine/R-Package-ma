@@ -1,3 +1,7 @@
+Changes from Version 1.15 to 1.16 [9-Apr-2017]
+
+- added degree 0 possibility
+
 Changes from Version 1.14 to 1.15 [8-Apr-2017]
 
 - dumped derivative-based test as anova-based approach is working splendidly
