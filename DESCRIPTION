@@ -1,8 +1,8 @@
 Package: ma
 Type: Package
 Title: Model Averaging
-Version: 1.16
-Date: 2017-04-08
+Version: 1.16-1.16
+Date: 2017-04-11
 Imports: quadprog
 Suggests: crs, np, rgl
 Author: Jeffrey S. Racine
