@@ -975,8 +975,9 @@ lm.ma.Est <- function(y=NULL,
         ## variance and zero mean, then rescale prior to computing
         ## fitted values. Some datasets (india from quantreg.nonpar)
         ## caused issues with Dmat being singular and I suspected
-        ## simple/same issue as using raw polynomials. Confirmed
-        ## produces same result as previous code.
+        ## simple/same issue as those arising when using raw
+        ## polynomials. Confirmed produces same result as previous
+        ## code but more robust.
 
         y <- scale(y)
 
@@ -1280,7 +1281,7 @@ lm.ma.Est <- function(y=NULL,
                             fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                         } else {
                             model.z.unique <- lm(y~1,weights=L)
-                            fit.spline[zz] <- predict(model.z.unique)[zz]
+                            fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(1:num.eval.obs))[zz]
                         }
                         
                     }
@@ -1386,11 +1387,10 @@ lm.ma.Est <- function(y=NULL,
                                     fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                                 } else {
                                     model.z.unique <- lm(y~1,weights=L)
-                                    fitted.mat[,p] <- predict(model.ma,newdata=data.frame(1:num.eval.obs))
+                                    fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(1:num.eval.obs))[zz]
                                 }
                                 
                             }
-                                
                             model.deriv <- fitted.mat[,p] - fit.spline
                         }
 
@@ -1451,7 +1451,7 @@ lm.ma.Est <- function(y=NULL,
                                 fit.spline <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                             } else {
                                 model.ma <- lm(y~1,weights=weights)
-                                fitted.spline <- predict(model.ma,newdata=data.frame(1:num.eval.obs))
+                                fit.spline <- predict(model.ma,newdata=data.frame(1:num.eval.obs))
                             }
                             model.deriv <- fitted.mat[,p] - fit.spline
                         }

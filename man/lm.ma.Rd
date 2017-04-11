@@ -228,7 +228,7 @@ The option \code{compute.anova} uses a bootstrap procedure that requires re-comp
 
 The option \code{compute.anova} cannot be used in the presence of one or more factors and exactly one numeric predictor since there is no numeric predictor present when testing for significance for the one numeric predictor.
 
-Averaging over models with ill-conditioned bases may invalidate the process. Pay attention to the warning \dQuote{Dimension basis is ill-conditioned - reduce degree.max} and reduce degree.max until this no longer is the case.
+Averaging over models with ill-conditioned bases is not advised. Pay attention to the warning \dQuote{Dimension basis is ill-conditioned - reduce degree.max} and reduce degree.max until this no longer is the case.
 
 }
 
