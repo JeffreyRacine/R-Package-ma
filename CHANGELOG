@@ -1,3 +1,7 @@
+Changes from 1.16 to 1.0-1 [11-Apr-2017]
+
+- changed version number, script for inserting correct date and version number, changes to plot for respecting xlim
+
 Changes from Version 1.15 to 1.16 [9-Apr-2017]
 
 - scaling y prior to computing model average weights to have unit variance and zero mean

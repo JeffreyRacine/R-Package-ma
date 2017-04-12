@@ -559,14 +559,22 @@ summary.lm.ma <- function(object,
     cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
               " on ", formatC(object$nobs-sum(object$rank.vec*object$ma.weights),format="f",digits=2)," degrees of freedom",sep=""))
     cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
+
+    ma.weights <- object$ma.weights[object$ma.weights>1e-05]
+    rank.vec <- object$rank.vec[object$ma.weights>1e-05]
+    basis.vec <- object$basis.vec[object$ma.weights>1e-05]
+
+    ma.weights <- ma.weights[order(rank.vec)]
+    basis.vec <- basis.vec[order(rank.vec)]
+    rank.vec <- rank.vec[order(rank.vec)]
     
     cat("\n\nNon-zero model average weights: ")
-    cat(formatC(object$ma.weights[object$ma.weights>1e-05]/sum(object$ma.weights[object$ma.weights>1e-05]),format="f",digits=5))
+    cat(formatC(ma.weights/sum(ma.weights),format="f",digits=5))
     cat("\nNon-zero weight model ranks: ")
-    cat(object$rank.vec[object$ma.weights>1e-05])
+    cat(rank.vec)
     if(object$basis=="auto") {
         cat("\nNon-zero weight model bases: ")
-        cat(object$basis.vec[object$ma.weights>1e-05])    
+        cat(basis.vec)    
     }
     if(object$compute.anova) {
         
