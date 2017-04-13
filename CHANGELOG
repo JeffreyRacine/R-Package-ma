@@ -1,5 +1,7 @@
 Changes from 1.16 to 1.0-1 [11-Apr-2017]
 
+- need to divide lambda by n for consistency (the optimal bandwidth for discrete covariates is proportional to 1/n)... the constant 1e-02 is then 1e-02/n so for n=100 1e-04, 1000 -05 etc. Simulations and real data hold-out experiments suggest this is a good middle ground value.
+
 - changed version number, script for inserting correct date and version number, changes to plot for respecting xlim
 
 Changes from Version 1.15 to 1.16 [9-Apr-2017]

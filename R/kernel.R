@@ -13,6 +13,13 @@ kernel <- function(Z,
     return(ifelse(Z==z,1,lambda^abs(Z-z)))
   }
 
+  #C <- length(unique(Z))
+  #if(!is.ordered.z) {
+  #  return(ifelse(Z==z,1-lambda,lambda/(C-1)))
+  #} else {
+  #  return(ifelse(Z==z,1-lambda,0.5*(1-lambda)*lambda^abs(Z-z)))
+  #}
+
 }
 
 ## Product kernel function. Z is a vector/matrix, z is a scalar/vector

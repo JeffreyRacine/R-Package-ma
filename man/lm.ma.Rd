@@ -30,7 +30,7 @@ lm.ma(...)
       deriv.order = 1,
       K.mat = NULL,
       knots = FALSE,
-      lambda = 1e-02,
+      c.lambda = 1e-02,
       ma.weights = NULL,
       method = c("jma","mma"),
       rank.vec = NULL,
@@ -63,7 +63,7 @@ lm.ma(...)
       deriv.order = 1,
       K.mat = NULL,
       knots = FALSE,
-      lambda = 1e-02,
+      c.lambda = 1e-02,
       ma.weights = NULL,
       method = c("jma","mma"),
       rank.vec = NULL,
@@ -120,7 +120,7 @@ lm.ma(...)
 
   \item{knots}{a logical value indicating whether or not to include interior knots (set equal to the degree)}
 
-  \item{lambda}{smoothing parameter for weight function for the categorical predictors when \code{vc=TRUE}}
+  \item{c.lambda}{constant for smoothing parameter lambda for weight function for the categorical predictors when \code{vc=TRUE} (lambda=c.lambda/n)}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
 

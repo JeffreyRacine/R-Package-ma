@@ -1,3 +1,17 @@
+lambda.plugin <- function(z) {
+
+    ## Optimal bandwidth for univariate probability function estimation...
+
+    n <- length(z)
+    p.z <- prop.table(table(z))
+    C <- length(p.z)
+    Lambda.1 <- (1-C*p.z)/(C-1)
+    Lambda.2 <- (1+C**2*p.z - 2*C*p.z)/(C-1)**2
+    Lambda.3 <- p.z*(1+Lambda.1)
+    return(sum(Lambda.2)/(sum(Lambda.2-Lambda.1**2) + n*sum(Lambda.1**2)))
+
+}
+
 blank <- function(len){
   sapply(len, function(nb){
     paste(rep(' ', times = nb), collapse='')
