@@ -1,3 +1,7 @@
+Changes from 1.01-1 to 1.0-2 [14-Apr-2017]
+
+- best constant overall for lambda from extensive simulations and an application is 1e-01/n... now modified 1e-01*p/n where p is the number of categorical predictors (slightly more smoothing in small sample settings as you add more categorical predictors)
+
 Changes from 1.16 to 1.0-1 [11-Apr-2017]
 
 - need to divide lambda by n for consistency (the optimal bandwidth for discrete covariates is proportional to 1/n)... the constant 1e-02 is then 1e-02/n so for n=100 1e-04, 1000 -05 etc. Simulations and real data hold-out experiments suggest this is a good middle ground value.
@@ -69,7 +73,7 @@ Changes from Version 1.01 to 1.02 [29-Mar-2017]
 
 Changes from Version 1.0 to 1.01 [28-Mar-2017]
 
-- inlining of basis functions, various enhancements
+- in-lining of basis functions, various enhancements
 
 Version 1.0 [20-Mar-2017]
 
