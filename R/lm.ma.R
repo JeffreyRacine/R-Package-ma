@@ -11,7 +11,6 @@ lm.ma.formula <- function(formula,
                           X.eval=NULL,
                           alpha=0.05,
                           B=99,
-                          B.scale=0,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
@@ -31,6 +30,7 @@ lm.ma.formula <- function(formula,
                           rank.vec=NULL,
                           restrict.sum.ma.weights=TRUE,
                           S=2,
+                          segments.min=1,
                           segments.max=3,
                           vc=TRUE,
                           verbose=TRUE,
@@ -48,7 +48,6 @@ lm.ma.formula <- function(formula,
                        X.eval=NULL,
                        alpha=alpha,
                        B=B,
-                       B.scale=B.scale,
                        basis.vec=basis.vec,
                        basis=basis,
                        bootstrap.ci=bootstrap.ci,
@@ -68,6 +67,7 @@ lm.ma.formula <- function(formula,
                        rank.vec=rank.vec,
                        restrict.sum.ma.weights=restrict.sum.ma.weights,
                        S=S,
+                       segments.min=segments.min,
                        segments.max=segments.max,
                        vc=vc,
                        verbose=verbose,
@@ -92,7 +92,6 @@ lm.ma.default <- function(y=NULL,
                           X.eval=NULL,
                           alpha=0.05,
                           B=99,
-                          B.scale=0,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
@@ -112,6 +111,7 @@ lm.ma.default <- function(y=NULL,
                           rank.vec=NULL,
                           restrict.sum.ma.weights=TRUE,
                           S=2,
+                          segments.min=1,
                           segments.max=3,
                           vc=TRUE,
                           verbose=TRUE,
@@ -127,10 +127,14 @@ lm.ma.default <- function(y=NULL,
     if(!is.logical(vc)) stop("vc must be either TRUE or FALSE")
     if(!is.logical(verbose)) stop("verbose must be either TRUE or FALSE")
 
-    if(!is.null(degree.max)) if(degree.max < 2) stop("You must average over at least two models")
+    if(!is.null(degree.max)) if(degree.max < 0) stop("degree.max cannot be negative")
+    if(segments.max < 1) stop("segments.max must be a positive integer")
+    if(segments.min < 1) stop("segments.min must be a positive integer")
+    if(!is.null(degree.max)) if(degree.max < degree.min) stop("degree.mix must not exceed degree.max")
+    if(segments.max < segments.min) stop("segments.mix must not exceed segments.max")
     if(is.null(y) | is.null(X)) stop("You must provide data for y and X")
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
-#    if(compute.deriv & (degree.min < deriv.order)) warning("Minimum degree (degree.min) must be at least as large the order of the derivative required (deriv.order)")
+    #if(compute.deriv & (degree.min < deriv.order)) warning("Minimum degree (degree.min) must be at least as large the order of the derivative required (deriv.order)")
     if(degree.min < 0) stop("Minimum degree (degree.min) must be non-negative")
     if(!is.null(deriv.index)) if(any(deriv.index < 1) | any(deriv.index > NCOL(X))) stop("Derivative indices must correspond to columns of X")
     if(!is.null(compute.anova.index)) if(any(compute.anova.index < 1) | any(compute.anova.index > NCOL(X))) stop("anova indices must correspond to columns of X")
@@ -149,6 +153,7 @@ lm.ma.default <- function(y=NULL,
                      deriv.index=deriv.index,
                      degree.max=degree.max,
                      c.lambda=c.lambda,
+                     segments.min=segments.min,
                      segments.max=segments.max,
                      knots=knots,
                      S=S,
@@ -183,6 +188,7 @@ lm.ma.default <- function(y=NULL,
                          deriv.index=deriv.index,
                          degree.max=degree.max,
                          c.lambda=c.lambda,
+                         segments.min=segments.min,
                          segments.max=segments.max,
                          knots=knots,
                          S=S,
@@ -235,6 +241,7 @@ lm.ma.default <- function(y=NULL,
                                   deriv.index=deriv.index,
                                   degree.max=degree.max,
                                   c.lambda=c.lambda,
+                                  segments.min=segments.min,
                                   segments.max=segments.max,
                                   knots=knots,
                                   S=S,
@@ -303,6 +310,7 @@ lm.ma.default <- function(y=NULL,
                                  deriv.index=deriv.index,
                                  degree.max=degree.max,
                                  c.lambda=c.lambda,
+                                 segments.min=segments.min,
                                  segments.max=segments.max,
                                  knots=knots,
                                  S=S,
@@ -345,6 +353,7 @@ lm.ma.default <- function(y=NULL,
                                      deriv.index=NULL,
                                      degree.max=degree.max,
                                      c.lambda=c.lambda,
+                                     segments.min=segments.min,
                                      segments.max=segments.max,
                                      knots=knots,
                                      S=S,
@@ -413,6 +422,7 @@ lm.ma.default <- function(y=NULL,
                                           deriv.index=NULL,
                                           degree.max=degree.max,
                                           c.lambda=c.lambda,
+                                          segments.min=segments.min,
                                           segments.max=segments.max,
                                           knots=knots,
                                           S=S,
@@ -438,6 +448,7 @@ lm.ma.default <- function(y=NULL,
                                           deriv.index=NULL,
                                           degree.max=degree.max,
                                           c.lambda=c.lambda,
+                                          segments.min=segments.min,
                                           segments.max=segments.max,
                                           knots=knots,
                                           S=S,
@@ -467,6 +478,7 @@ lm.ma.default <- function(y=NULL,
                                               deriv.index=NULL,
                                               degree.max=degree.max,
                                               c.lambda=c.lambda,
+                                              segments.min=segments.min,
                                               segments.max=segments.max,
                                               knots=knots,
                                               S=S,
@@ -553,6 +565,10 @@ summary.lm.ma <- function(object,
     cat(paste("\nModel average criterion: ", ifelse(object$method=="jma","Jackknife (Hansen and Racine (2013))","Mallows  (Hansen (2007))"), sep=""))
     cat(paste("\nMinimum degree: ", object$degree.min, sep=""))  
     cat(paste("\nMaximum degree: ", object$degree.max, sep=""))
+    if(object$knots) {
+        cat(paste("\nMinimum number of interior knots: ", object$segments.min-1, sep=""))  
+        cat(paste("\nMaximum number of interior knots: ", object$segments.max-1, sep=""))  
+    }
     cat(paste("\nBasis: ", object$basis, sep=""))  
     cat(paste("\nNumber of observations: ", object$nobs, sep=""))
     cat(paste("\nEquivalent number of parameters: ", formatC(object$ma.model.rank,format="f",digits=2), sep=""))
@@ -619,27 +635,30 @@ predict.lm.ma <- function(object,
         
         tt <- terms(object)
         exdat <- model.frame(delete.response(tt),newdata,xlev=object$xlevels)
+
         Est <- lm.ma.default(y=object$y,
                              X=object$X,
                              X.eval=exdat,
+                             basis.vec=object$basis.vec,
                              basis=object$basis,
+                             c.lambda=object$c.lambda,
                              compute.deriv=object$compute.deriv,
                              compute.mean=object$compute.mean,
                              deriv.index=object$deriv.index,
                              deriv.order=object$deriv.order,
+                             degree.min=object$degree.min,
                              degree.max=object$degree.max,
-                             c.lambda=object$c.lambda,
-                             segments.max=object$segments.max,
                              knots=object$knots,
-                             S=object$S,
                              method=object$method,
                              ma.weights=object$ma.weights,
-                             basis.vec=object$basis.vec,
                              rank.vec=object$rank.vec,
                              restrict.sum.ma.weights=object$restrict.sum.ma.weights,
-                             weights=object$weights,
+                             S=object$S,
+                             segments.min=object$segments.min,
+                             segments.max=object$segments.max,
                              vc=object$vc,
                              verbose=object$verbose,
+                             weights=object$weights,
                              ...)
         
         if(object$bootstrap.ci | object$compute.deriv) {
@@ -841,6 +860,7 @@ lm.ma.Est <- function(y=NULL,
                       rank.vec=NULL,
                       restrict.sum.ma.weights=TRUE,
                       S=2,
+                      segments.min=1,
                       segments.max=3,
                       vc=TRUE,
                       verbose=TRUE,
@@ -935,7 +955,7 @@ lm.ma.Est <- function(y=NULL,
 
     if(is.null(K.mat)) {
         if(knots) {
-            K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1:segments.max,num.x=num.x)
+            K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=segments.min:segments.max,num.x=num.x)
         } else {
             K.mat <- matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
             K.mat <- cbind(K.mat[,1:num.x],matrix(1,nrow(K.mat),num.x,byrow=TRUE))
@@ -1519,6 +1539,7 @@ lm.ma.Est <- function(y=NULL,
                 degree.max=degree.max,
                 c.lambda=c.lambda,
                 lambda.vec=lambda.vec,
+                segments.min=segments.min,
                 segments.max=segments.max,
                 knots=knots,
                 S=S,

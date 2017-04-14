@@ -16,7 +16,6 @@ lm.ma(...)
       X.eval = NULL,
       alpha = 0.05,
       B = 99,
-      B.scale = 0,
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
@@ -36,6 +35,7 @@ lm.ma(...)
       rank.vec = NULL,
       restrict.sum.ma.weights = TRUE,
       S = 2,
+      segments.min = 1,
       segments.max = 3,
       vc = TRUE,
       verbose = TRUE,
@@ -49,7 +49,6 @@ lm.ma(...)
       X.eval = NULL,
       alpha = 0.05,
       B = 99,
-      B.scale = 0,
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
@@ -69,6 +68,7 @@ lm.ma(...)
       rank.vec = NULL,
       restrict.sum.ma.weights = TRUE,
       S = 2,
+      segments.min = 1,
       segments.max = 3,
       vc = TRUE,
       verbose = TRUE,
@@ -91,8 +91,6 @@ lm.ma(...)
   \item{alpha}{value in (0,1) used to compute \eqn{1-\alpha\%} confidence intervals}
 
   \item{B}{the number of bootstrap replications desired}
-
-  \item{B.scale}{the number of nested bootstrap replications desired to obtain a robust estimate of derivative scale when conducting hypothesis tests (if set to zero nested bootstrapping is not performed)}
 
   \item{basis.vec}{a vector (character) of bases for each candidate model selected by cross-validation}
 
@@ -134,7 +132,9 @@ lm.ma(...)
   
   \item{S}{the constant in the data-driven rule for determining degree.max}
 
-  \item{segments.max}{when \code{knots=TRUE} the maximum number of segments (i.e., interior knots plus 1) to allow for the B-spline basis}
+  \item{segments.min}{when \code{knots=TRUE} the minimum number of segments (i.e., number of knots minus 1 - there always exist two knots, the endpoints) to allow for the B-spline basis}
+
+  \item{segments.max}{when \code{knots=TRUE} the maximum number of segments (i.e., number of knots minus 1 - there always exist two knots, the endpoints) to allow for the B-spline basis}
 
   \item{vc}{a logical value indicating whether to allow the categorical predictors to enter additively (only the intercept can shift) or to instead use a varying coefficient structure (all parameters can shift)}
 
@@ -165,7 +165,7 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     fitted(model)
     coef(model)
 
-    ## For generating predictions, create foo, a dataframe with named
+    ## For generating predictions, create foo, a data frame with named
     ## elements (important) for all predictors in the object model,
     ## then call predict, e.g.,
 
@@ -210,7 +210,7 @@ Note that \code{predict.ma} produces a vector of predictions or a list of predic
   
 }
 \references{
-  Doksum, K. and A. Samarov (1995), \dQuote{Nonparametric estimation of global functionals and a measure of the explanatory power of covariates in regression,} The Annals of Statistics, 23 1443-1473.  
+  Doksum, K. and A. Samarov (1995), \dQuote{Nonparametric Estimation of Global Functionals and a Measure of the Explanatory Power of Covariates in Regression,} The Annals of Statistics, 23 1443-1473.  
   
   Li, Q. and D. Ouyang and J.S. Racine (2013), \dQuote{Categorical Semiparametric Varying Coefficient Models,} Journal of Applied Econometrics, Volume 28, 551-579.
   
