@@ -33,6 +33,7 @@ lm.ma(...)
       ma.weights = NULL,
       method = c("jma","mma"),
       parallel = FALSE,
+      parallel.cores = NULL,
       rank.vec = NULL,
       restrict.sum.ma.weights = TRUE,
       S = 2,
@@ -67,6 +68,7 @@ lm.ma(...)
       ma.weights = NULL,
       method = c("jma","mma"),
       parallel = FALSE,
+      parallel.cores = NULL,
       rank.vec = NULL,
       restrict.sum.ma.weights = TRUE,
       S = 2,
@@ -129,6 +131,8 @@ lm.ma(...)
   \item{method}{a character string indicating whether to use jackknife model averaging (jma, Hansen and Racine (2013)) or Mallows model averaging (mma, Hansen (2007))}
 
   \item{parallel}{a logical value indicating whether or not to run certain routines in parallel}
+  
+  \item{parallel.cores}{a positive integer indicating the number of cores desired when \code{parallel=TRUE} (when \code{parallel=FALSE} defaults to the number of available cores)}
   
   \item{rank.vec}{a vector of ranks for each candidate model}
 
