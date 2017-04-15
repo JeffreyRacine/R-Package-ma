@@ -142,7 +142,7 @@ lm.ma(...)
 
   \item{vc}{a logical value indicating whether to allow the categorical predictors to enter additively (only the intercept can shift) or to instead use a varying coefficient structure (all parameters can shift)}
 
-  \item{verbose}{a logical value indicating whether to report detailed progress during computation}
+  \item{verbose}{a logical value indicating whether to report detailed progress during computation (\code{warnings()} are not issued when \code{verbose=FALSE})}
 
   \item{weights}{an optional vector of weights to be used in the fitting process. Should be \code{NULL} or a numeric vector; if non-NULL, weighted least squares is used with weights \code{weights} (that is, minimizing \eqn{\sum_iw_ie_i^2}); otherwise ordinary least squares is used}
 

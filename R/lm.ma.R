@@ -137,7 +137,6 @@ lm.ma.default <- function(y=NULL,
     if(segments.max < segments.min) stop("segments.mix must not exceed segments.max")
     if(is.null(y) | is.null(X)) stop("You must provide data for y and X")
     if(!is.null(X) & !is.null(X.eval) & NCOL(X)!=NCOL(X.eval)) stop("X and X.eval must contain the same number of predictors")
-    #if(compute.deriv & (degree.min < deriv.order)) warning("Minimum degree (degree.min) must be at least as large the order of the derivative required (deriv.order)")
     if(degree.min < 0) stop("Minimum degree (degree.min) must be non-negative")
     if(!is.null(deriv.index)) if(any(deriv.index < 1) | any(deriv.index > NCOL(X))) stop("Derivative indices must correspond to columns of X")
     if(!is.null(compute.anova.index)) if(any(compute.anova.index < 1) | any(compute.anova.index > NCOL(X))) stop("anova indices must correspond to columns of X")
