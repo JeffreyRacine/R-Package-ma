@@ -162,6 +162,7 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     model <- lm.ma(y~x1+x2,bootstrap.ci=TRUE)  
     model <- lm.ma(y~x1+x2,compute.anova=TRUE)
     model <- lm.ma(y~x1+x2,parallel=TRUE)
+    model <- lm.ma(y~x1+x2,parallel=TRUE,parallel.cores=2)    
 
     plot(model)
     plot(model,plot.data=TRUE)
@@ -240,6 +241,8 @@ The option \code{compute.anova} uses a bootstrap procedure that requires re-comp
 The option \code{compute.anova} cannot be used in the presence of one or more factors and exactly one numeric predictor since there is no numeric predictor present when testing for significance for the one numeric predictor.
 
 Averaging over models with ill-conditioned bases is not advised. Pay attention to the warning \dQuote{Dimension basis is ill-conditioned - reduce degree.max} and reduce degree.max until this no longer is the case.
+
+If you wish to plot the object with the option \code{plot.ci=TRUE}, it is not necessary to use the option \code{bootstrap.ci=TRUE} in the call to \code{lm.ma()} (this will simply add to overhead)
 
 }
 

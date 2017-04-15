@@ -127,6 +127,8 @@ lm.ma.default <- function(y=NULL,
     basis <- match.arg(basis)
     method <- match.arg(method)
 
+    if(!is.null(parallel.cores)) if(parallel.cores < 1) stop("the number of cores requested must be a positive integer")
+    if(!is.logical(parallel)) stop("parallel must be either TRUE or FALSE")
     if(!is.logical(compute.deriv)) stop("compute.deriv must be either TRUE or FALSE")
     if(!is.logical(bootstrap.ci)) stop("bootstrap.ci must be either TRUE or FALSE")
     if(!is.logical(knots)) stop("knots must be either TRUE or FALSE")
