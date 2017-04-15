@@ -32,6 +32,7 @@ lm.ma(...)
       knots = FALSE,
       ma.weights = NULL,
       method = c("jma","mma"),
+      parallel = FALSE,
       rank.vec = NULL,
       restrict.sum.ma.weights = TRUE,
       S = 2,
@@ -65,6 +66,7 @@ lm.ma(...)
       knots = FALSE,
       ma.weights = NULL,
       method = c("jma","mma"),
+      parallel = FALSE,
       rank.vec = NULL,
       restrict.sum.ma.weights = TRUE,
       S = 2,
@@ -126,6 +128,8 @@ lm.ma(...)
 
   \item{method}{a character string indicating whether to use jackknife model averaging (jma, Hansen and Racine (2013)) or Mallows model averaging (mma, Hansen (2007))}
 
+  \item{parallel}{a logical value indicating whether or not to run certain routines in parallel}
+  
   \item{rank.vec}{a vector of ranks for each candidate model}
 
   \item{restrict.sum.ma.weights}{a logical value indicating whether or not to restrict the sum of the model average weights to one when solving the quadratic program (they are normalized afterwards when \code{restrict.sum.ma.weights=FALSE})}

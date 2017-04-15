@@ -27,6 +27,7 @@ lm.ma.formula <- function(formula,
                           knots=FALSE,
                           ma.weights=NULL,
                           method=c("jma","mma"),
+                          parallel=FALSE,
                           rank.vec=NULL,
                           restrict.sum.ma.weights=TRUE,
                           S=2,
@@ -64,6 +65,7 @@ lm.ma.formula <- function(formula,
                        c.lambda=c.lambda,
                        ma.weights=ma.weights,
                        method=method,
+                       parallel=parallel,
                        rank.vec=rank.vec,
                        restrict.sum.ma.weights=restrict.sum.ma.weights,
                        S=S,
@@ -108,6 +110,7 @@ lm.ma.default <- function(y=NULL,
                           knots=FALSE,
                           ma.weights=NULL,
                           method=c("jma","mma"),
+                          parallel=FALSE,
                           rank.vec=NULL,
                           restrict.sum.ma.weights=TRUE,
                           S=2,
@@ -160,6 +163,7 @@ lm.ma.default <- function(y=NULL,
                      method=method,
                      ma.weights=ma.weights,
                      basis.vec=basis.vec,
+                     parallel=parallel,
                      rank.vec=rank.vec,
                      restrict.sum.ma.weights=restrict.sum.ma.weights,
                      K.mat=K.mat,
@@ -195,6 +199,7 @@ lm.ma.default <- function(y=NULL,
                          method=method,
                          ma.weights=Est$ma.weights,
                          basis.vec=Est$basis.vec,
+                         parallel=Est$parallel,
                          rank.vec=Est$rank.vec,
                          restrict.sum.ma.weights=restrict.sum.ma.weights,
                          K.mat=Est$DS,
@@ -227,38 +232,95 @@ lm.ma.default <- function(y=NULL,
 
         if(compute.deriv) boot.deriv.array <- array(NA,c(n.eval,B,num.deriv))
 
-        for(b in 1:B) {
-            if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
-            ii <- sample(1:n,replace=TRUE)
-            out.boot <- lm.ma.Est(y=y[ii],
-                                  X=X[ii,],
-                                  X.eval=if(is.null(X.eval)){X}else{X.eval},
-                                  basis=basis,
-                                  compute.deriv=compute.deriv,
-                                  compute.mean=compute.mean,
-                                  deriv.order=deriv.order,
-                                  degree.min=degree.min,
-                                  deriv.index=deriv.index,
-                                  degree.max=degree.max,
-                                  c.lambda=c.lambda,
-                                  segments.min=segments.min,
-                                  segments.max=segments.max,
-                                  knots=knots,
-                                  S=S,
-                                  method=method,
-                                  ma.weights=Est$ma.weights,
-                                  basis.vec=Est$basis.vec,
-                                  rank.vec=Est$rank.vec,
-                                  restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
-                                  K.mat=Est$DS,
-                                  weights=weights,
-                                  vc=vc,
-                                  verbose=FALSE,
-                                  ...)
-            boot.mat[,b] <- out.boot$fitted
-            if(compute.deriv) for(k in 1:num.deriv) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
-        }
+        if(!parallel) {
 
+            for(b in 1:B) {
+                if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
+                ii <- sample(1:n,replace=TRUE)
+                out.boot <- lm.ma.Est(y=y[ii],
+                                      X=X[ii,],
+                                      X.eval=if(is.null(X.eval)){X}else{X.eval},
+                                      basis=basis,
+                                      compute.deriv=compute.deriv,
+                                      compute.mean=compute.mean,
+                                      deriv.order=deriv.order,
+                                      degree.min=degree.min,
+                                      deriv.index=deriv.index,
+                                      degree.max=degree.max,
+                                      c.lambda=c.lambda,
+                                      segments.min=segments.min,
+                                      segments.max=segments.max,
+                                      knots=knots,
+                                      S=S,
+                                      method=method,
+                                      ma.weights=Est$ma.weights,
+                                      basis.vec=Est$basis.vec,
+                                      parallel=Est$parallel,
+                                      rank.vec=Est$rank.vec,
+                                      restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
+                                      K.mat=Est$DS,
+                                      weights=weights,
+                                      vc=vc,
+                                      verbose=FALSE,
+                                      ...)
+                boot.mat[,b] <- out.boot$fitted
+                if(compute.deriv) for(k in 1:num.deriv) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
+            }
+
+        } else {
+
+            ## parallel
+
+            cl<-makeCluster(detectCores())
+            registerDoParallel(cl)
+
+            output <- foreach(b=1:B) %dopar% {
+                if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
+                ii <- sample(1:n,replace=TRUE)
+                out.boot <- lm.ma.Est(y=y[ii],
+                                      X=X[ii,],
+                                      X.eval=if(is.null(X.eval)){X}else{X.eval},
+                                      basis=basis,
+                                      compute.deriv=compute.deriv,
+                                      compute.mean=compute.mean,
+                                      deriv.order=deriv.order,
+                                      degree.min=degree.min,
+                                      deriv.index=deriv.index,
+                                      degree.max=degree.max,
+                                      c.lambda=c.lambda,
+                                      segments.min=segments.min,
+                                      segments.max=segments.max,
+                                      knots=knots,
+                                      S=S,
+                                      method=method,
+                                      ma.weights=Est$ma.weights,
+                                      basis.vec=Est$basis.vec,
+                                      parallel=Est$parallel,
+                                      rank.vec=Est$rank.vec,
+                                      restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
+                                      K.mat=Est$DS,
+                                      weights=weights,
+                                      vc=vc,
+                                      verbose=FALSE,
+                                      ...)
+                if(compute.deriv) {
+                    for(k in 1:num.deriv) boot.deriv.array[,b,k] <- out.boot$deriv[,k]
+                    list(boot.mat=out.boot$fitted,
+                         boot.deriv.array=boot.deriv.array[,b,])
+                } else {
+                    list(boot.mat=out.boot$fitted)
+                }
+            }
+            
+            for(b in 1:B) {
+                boot.mat[,b] <- output[[b]]$boot.mat
+                if(compute.deriv) boot.deriv.array[,b,] <- output[[b]]$boot.deriv.array
+            }
+
+            stopCluster(cl)
+            
+        }
+        
         if(verbose) cat("\r                                     ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing quantiles...")
@@ -317,6 +379,7 @@ lm.ma.default <- function(y=NULL,
                                  method=method,
                                  ma.weights=Est$ma.weights,
                                  basis.vec=Est$basis.vec,
+                                 parallel=Est$parallel,
                                  rank.vec=Est$rank.vec,
                                  restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
                                  K.mat=Est$DS,
@@ -360,6 +423,7 @@ lm.ma.default <- function(y=NULL,
                                      method=method,
                                      ma.weights=Est.ssu$ma.weights,
                                      basis.vec=Est.ssu$basis.vec,
+                                     parallel=Est.ssu$parallel,
                                      rank.vec=Est.ssu$rank.vec,
                                      restrict.sum.ma.weights=Est.ssu$restrict.sum.ma.weights,
                                      K.mat=if(is.numeric.X.k){Est.ssu$DS[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu$num.x)),drop=FALSE]}else{Est.ssu$DS},
@@ -429,6 +493,7 @@ lm.ma.default <- function(y=NULL,
                                           method=method,
                                           ma.weights=ma.weights,
                                           basis.vec=basis.vec,
+                                          parallel=parallel,
                                           rank.vec=rank.vec,
                                           restrict.sum.ma.weights=restrict.sum.ma.weights,
                                           K.mat=K.mat,
@@ -455,6 +520,7 @@ lm.ma.default <- function(y=NULL,
                                           method=method,
                                           ma.weights=Est.ssu.boot$ma.weights,
                                           basis.vec=Est.ssu.boot$basis.vec,
+                                          parallel=Est.ssu.boot$parallel,
                                           rank.vec=Est.ssu.boot$rank.vec,
                                           restrict.sum.ma.weights=Est.ssu$restrict.sum.ma.weights,
                                           K.mat=Est.ssu.boot$DS,
@@ -485,6 +551,7 @@ lm.ma.default <- function(y=NULL,
                                               method=method,
                                               ma.weights=Est.ssu.boot$ma.weights,
                                               basis.vec=Est.ssu.boot$basis.vec,
+                                              parallel=Est.ssu.boot$parallel,
                                               rank.vec=Est.ssu.boot$rank.vec,
                                               restrict.sum.ma.weights=Est.ssu.boot$restrict.sum.ma.weights,
                                               K.mat=if(is.numeric.X.k){Est.ssu.boot$DS[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu.boot$num.x)),drop=FALSE]}else{Est.ssu.boot$DS},
@@ -651,6 +718,7 @@ predict.lm.ma <- function(object,
                              knots=object$knots,
                              method=object$method,
                              ma.weights=object$ma.weights,
+                             parallel=object$parallel,
                              rank.vec=object$rank.vec,
                              restrict.sum.ma.weights=object$restrict.sum.ma.weights,
                              S=object$S,
@@ -857,6 +925,7 @@ lm.ma.Est <- function(y=NULL,
                       knots=FALSE,
                       ma.weights=NULL,
                       method=c("jma","mma"),
+                      parallel=FALSE,
                       rank.vec=NULL,
                       restrict.sum.ma.weights=TRUE,
                       S=2,
@@ -1009,23 +1078,71 @@ lm.ma.Est <- function(y=NULL,
 
         y <- scale(y)
 
-        for(p in P.num:1) {
+        if(!parallel) {
 
-            DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
-
-            if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
-
-            ## This function is a bit odd, but when called with
-            ## weights this part is not evaluated, otherwise it is.
-            
-            if(vc & !is.null(num.z)) {
-
-                ## Varying coefficient regression spline formulation -
-                ## must have categorical predictors
+            for(p in P.num:1) {
+	
+                DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
+                
+                if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+                
+                ## This function is a bit odd, but when called with
+                ## weights this part is not evaluated, otherwise it is.
+                
+                if(vc & !is.null(num.z)) {
                     
-                if(basis=="auto") {
-                    cv.min <- Inf
-                    for(b.basis in c("tensor","taylor","additive")) {
+                    ## Varying coefficient regression spline formulation -
+                    ## must have categorical predictors
+                    
+                    if(basis=="auto") {
+                        cv.min <- Inf
+                        for(b.basis in c("tensor","taylor","additive")) {
+                            
+                            fit.spline <- numeric(length=num.obs)
+                            htt <- numeric(length=num.obs)
+                            basis.singular <- logical(length=nrow.z.unique)
+                            for(i in 1:nrow.z.unique) {
+                                zz <- ind == ind.vals[i]
+                                L <- prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
+                                if(!is.null(weights)) L <- weights*L
+                                P <- prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
+                                if(attr(P,"relevant")) {
+                                    if(!is.fullrank(P)) basis.singular[i] <- TRUE
+                                    if(b.basis=="additive" || b.basis=="taylor") {
+                                        model.z.unique <- lm(y~P,weights=L)
+                                    } else {
+                                        model.z.unique <- lm(y~P-1,weights=L)
+                                    }
+                                    P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=b.basis))
+                                    fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
+                                } else {
+                                    model.z.unique <- lm(y~1,weights=L)
+                                    fit.spline[zz] <- fitted(model.z.unique)[zz]
+                                }
+                                htt[zz] <- hatvalues(model.z.unique)[zz]
+                            }
+                            
+                            htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
+                            cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
+                            
+                            if(cv.val < cv.min) {
+                                cv.min <- cv.val
+                                fit.spline.min <- fit.spline
+                                htt.min <- htt
+                                rank.min <- model.z.unique$rank
+                                basis.singular.min <- any(basis.singular==TRUE)
+                                basis.vec[p] <- b.basis
+                            }
+                            
+                        }
+                        
+                        if(basis.singular.min & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
+                        
+                        fit.spline <- fit.spline.min
+                        htt.min <- htt
+                        model.z.unique$rank <- rank.min
+                        
+                    } else {
                         
                         fit.spline <- numeric(length=num.obs)
                         htt <- numeric(length=num.obs)
@@ -1034,15 +1151,15 @@ lm.ma.Est <- function(y=NULL,
                             zz <- ind == ind.vals[i]
                             L <- prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
                             if(!is.null(weights)) L <- weights*L
-                            P <- prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
+                            P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                             if(attr(P,"relevant")) {
                                 if(!is.fullrank(P)) basis.singular[i] <- TRUE
-                                if(b.basis=="additive" || b.basis=="taylor") {
+                                if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
                                     model.z.unique <- lm(y~P,weights=L)
                                 } else {
                                     model.z.unique <- lm(y~P-1,weights=L)
                                 }
-                                P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=b.basis))
+                                P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
                                 fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                             } else {
                                 model.z.unique <- lm(y~1,weights=L)
@@ -1050,80 +1167,64 @@ lm.ma.Est <- function(y=NULL,
                             }
                             htt[zz] <- hatvalues(model.z.unique)[zz]
                         }
-                        
+                        if(any(basis.singular==TRUE) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
+                    }
+                    
+                    fitted.mat[,p] <- fit.spline
+                    
+                    if(method=="mma") {
+                        ma.mat[,p] <- y - fit.spline
+                    } else {
                         htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
-                        cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
-                        
-                        if(cv.val < cv.min) {
-                            cv.min <- cv.val
-                            fit.spline.min <- fit.spline
-                            htt.min <- htt
-                            rank.min <- model.z.unique$rank
-                            basis.singular.min <- any(basis.singular==TRUE)
-                            basis.vec[p] <- b.basis
-                        }
- 
+                        ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                     }
-
-                    if(basis.singular.min & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
-
-                    fit.spline <- fit.spline.min
-                    htt.min <- htt
-                    model.z.unique$rank <- rank.min
-
+                    
+                    rank.vec[p] <- model.z.unique$rank
+                    sigsq[p] <- sqrt(sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank))
+                    
                 } else {
-
-                    fit.spline <- numeric(length=num.obs)
-                    htt <- numeric(length=num.obs)
-                    basis.singular <- logical(length=nrow.z.unique)
-                    for(i in 1:nrow.z.unique) {
-                        zz <- ind == ind.vals[i]
-                        L <- prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
-                        if(!is.null(weights)) L <- weights*L
-                        P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
-                        if(attr(P,"relevant")) {
-                            if(!is.fullrank(P)) basis.singular[i] <- TRUE
-                            if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
-                                model.z.unique <- lm(y~P,weights=L)
+                    
+                    ## Regression spline formulation (no categorical
+                    ## predictors)
+                    
+                    if(basis=="auto") {
+                        cv.min <- Inf
+                        basis.singular <- logical(1)
+                        for(b.basis in c("tensor","taylor","additive")) {
+                            P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=b.basis)
+                            if(!is.fullrank(P)) basis.singular <- TRUE
+                            if(attr(P,"relevant")) {
+                                if(b.basis=="additive" || b.basis=="taylor") {
+                                    model.ma <- lm(y~P,weights=weights)
+                                } else {
+                                    model.ma <- lm(y~P-1,weights=weights)
+                                }
                             } else {
-                                model.z.unique <- lm(y~P-1,weights=L)
+                                model.ma <- lm(y~1,weights=weights)
                             }
-                            P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
-                            fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
-                        } else {
-                            model.z.unique <- lm(y~1,weights=L)
-                            fit.spline[zz] <- fitted(model.z.unique)[zz]
+                            htt <- hatvalues(model.ma)
+                            htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
+                            cv.val <- mean((y - fitted(model.ma))^2/(1-htt)^2)
+                            if(cv.val < cv.min) {
+                                cv.min <- cv.val
+                                fit.spline.min <- fitted(model.ma)
+                                model.ma.min <- model.ma
+                                basis.vec[p] <- b.basis
+                                basis.singular.min <- basis.singular
+                            }
                         }
-                        htt[zz] <- hatvalues(model.z.unique)[zz]
-                    }
-                    if(any(basis.singular==TRUE) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
-                 }
-
-                fitted.mat[,p] <- fit.spline
-                    
-                if(method=="mma") {
-                    ma.mat[,p] <- y - fit.spline
-                } else {
-                    htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
-                    ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
-                }
-                
-                rank.vec[p] <- model.z.unique$rank
-                sigsq[p] <- sqrt(sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank))
-
-            } else {
-
-                ## Regression spline formulation (no categorical
-                ## predictors)
-                    
-                if(basis=="auto") {
-                    cv.min <- Inf
-                    basis.singular <- logical(1)
-                    for(b.basis in c("tensor","taylor","additive")) {
-                        P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=b.basis)
-                        if(!is.fullrank(P)) basis.singular <- TRUE
+                        
+                        if(basis.singular.min & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
+                        
+                        model.ma <- model.ma.min
+                        fit.spline <- fitted(model.ma)
+                        
+                    } else {
+                        
+                        P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
                         if(attr(P,"relevant")) {
-                            if(b.basis=="additive" || b.basis=="taylor") {
+                            if(!is.fullrank(P) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
+                            if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
                                 model.ma <- lm(y~P,weights=weights)
                             } else {
                                 model.ma <- lm(y~P-1,weights=weights)
@@ -1131,55 +1232,223 @@ lm.ma.Est <- function(y=NULL,
                         } else {
                             model.ma <- lm(y~1,weights=weights)
                         }
+                        fit.spline <- fitted(model.ma)
+                    }
+                    
+                    fitted.mat[,p] <- fit.spline
+                    
+                    if(method=="mma") {
+                        ma.mat[,p] <- y - fit.spline
+                    } else {
                         htt <- hatvalues(model.ma)
                         htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
-                        cv.val <- mean((y - fitted(model.ma))^2/(1-htt)^2)
-                        if(cv.val < cv.min) {
-                            cv.min <- cv.val
-                            fit.spline.min <- fitted(model.ma)
-                            model.ma.min <- model.ma
-                            basis.vec[p] <- b.basis
-                            basis.singular.min <- basis.singular
-                        }
+                        ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                     }
                     
-                    if(basis.singular.min & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
+                    rank.vec[p] <- model.ma$rank
                     
-                    model.ma <- model.ma.min
-                    fit.spline <- fitted(model.ma)
-
-                } else {
-
-                    P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
-                    if(attr(P,"relevant")) {
-                        if(!is.fullrank(P) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
-                        if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
-                            model.ma <- lm(y~P,weights=weights)
-                        } else {
-                            model.ma <- lm(y~P-1,weights=weights)
-                        }
-                    } else {
-                        model.ma <- lm(y~1,weights=weights)
-                    }
-                    fit.spline <- fitted(model.ma)
+                    sigsq[p] <- sqrt(sum(residuals(model.ma)^2)/(num.obs-model.ma$rank))
+                    
                 }
                 
-                fitted.mat[,p] <- fit.spline
-
-                if(method=="mma") {
-                    ma.mat[,p] <- y - fit.spline
-                } else {
-                    htt <- hatvalues(model.ma)
-                    htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
-                    ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
-                }
-
-                rank.vec[p] <- model.ma$rank
-
-                sigsq[p] <- sqrt(sum(residuals(model.ma)^2)/(num.obs-model.ma$rank))
-
             }
             
+        } else {
+            
+            ## Parallel
+            
+            cl<-makeCluster(detectCores())
+            registerDoParallel(cl)
+
+		        output <- foreach(p=P.num:1) %dopar% {
+		
+		            DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
+		
+		            if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+		
+		            ## This function is a bit odd, but when called with
+		            ## weights this part is not evaluated, otherwise it is.
+		            
+		            if(vc & !is.null(num.z)) {
+		
+		                ## Varying coefficient regression spline formulation -
+		                ## must have categorical predictors
+		                    
+		                if(basis=="auto") {
+		                    cv.min <- Inf
+		                    for(b.basis in c("tensor","taylor","additive")) {
+		                        
+		                        fit.spline <- numeric(length=num.obs)
+		                        htt <- numeric(length=num.obs)
+		                        basis.singular <- logical(length=nrow.z.unique)
+		                        for(i in 1:nrow.z.unique) {
+		                            zz <- ind == ind.vals[i]
+		                            L <- prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
+		                            if(!is.null(weights)) L <- weights*L
+		                            P <- prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
+		                            if(attr(P,"relevant")) {
+		                                if(!is.fullrank(P)) basis.singular[i] <- TRUE
+		                                if(b.basis=="additive" || b.basis=="taylor") {
+		                                    model.z.unique <- lm(y~P,weights=L)
+		                                } else {
+		                                    model.z.unique <- lm(y~P-1,weights=L)
+		                                }
+		                                P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=b.basis))
+		                                fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
+		                            } else {
+		                                model.z.unique <- lm(y~1,weights=L)
+		                                fit.spline[zz] <- fitted(model.z.unique)[zz]
+		                            }
+		                            htt[zz] <- hatvalues(model.z.unique)[zz]
+		                        }
+		                        
+		                        htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
+		                        cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
+		                        
+		                        if(cv.val < cv.min) {
+		                            cv.min <- cv.val
+		                            fit.spline.min <- fit.spline
+		                            htt.min <- htt
+		                            rank.min <- model.z.unique$rank
+		                            basis.singular.min <- any(basis.singular==TRUE)
+		                            basis.vec[p] <- b.basis
+		                        }
+		 
+		                    }
+		
+		                    if(basis.singular.min & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
+		
+		                    fit.spline <- fit.spline.min
+		                    htt.min <- htt
+		                    model.z.unique$rank <- rank.min
+		
+		                } else {
+		
+		                    fit.spline <- numeric(length=num.obs)
+		                    htt <- numeric(length=num.obs)
+		                    basis.singular <- logical(length=nrow.z.unique)
+		                    for(i in 1:nrow.z.unique) {
+		                        zz <- ind == ind.vals[i]
+		                        L <- prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
+		                        if(!is.null(weights)) L <- weights*L
+		                        P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
+		                        if(attr(P,"relevant")) {
+		                            if(!is.fullrank(P)) basis.singular[i] <- TRUE
+		                            if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+		                                model.z.unique <- lm(y~P,weights=L)
+		                            } else {
+		                                model.z.unique <- lm(y~P-1,weights=L)
+		                            }
+		                            P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
+		                            fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
+		                        } else {
+		                            model.z.unique <- lm(y~1,weights=L)
+		                            fit.spline[zz] <- fitted(model.z.unique)[zz]
+		                        }
+		                        htt[zz] <- hatvalues(model.z.unique)[zz]
+		                    }
+		                    if(any(basis.singular==TRUE) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
+		                 }
+		
+		                fitted.mat[,p] <- fit.spline
+		                    
+		                if(method=="mma") {
+		                    ma.mat[,p] <- y - fit.spline
+		                } else {
+		                    htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
+		                    ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
+		                }
+		                
+		                rank.vec[p] <- model.z.unique$rank
+		                sigsq[p] <- sqrt(sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank))
+		
+		            } else {
+		
+		                ## Regression spline formulation (no categorical
+		                ## predictors)
+		                    
+		                if(basis=="auto") {
+		                    cv.min <- Inf
+		                    basis.singular <- logical(1)
+		                    for(b.basis in c("tensor","taylor","additive")) {
+		                        P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=b.basis)
+		                        if(!is.fullrank(P)) basis.singular <- TRUE
+		                        if(attr(P,"relevant")) {
+		                            if(b.basis=="additive" || b.basis=="taylor") {
+		                                model.ma <- lm(y~P,weights=weights)
+		                            } else {
+		                                model.ma <- lm(y~P-1,weights=weights)
+		                            }
+		                        } else {
+		                            model.ma <- lm(y~1,weights=weights)
+		                        }
+		                        htt <- hatvalues(model.ma)
+		                        htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
+		                        cv.val <- mean((y - fitted(model.ma))^2/(1-htt)^2)
+		                        if(cv.val < cv.min) {
+		                            cv.min <- cv.val
+		                            fit.spline.min <- fitted(model.ma)
+		                            model.ma.min <- model.ma
+		                            basis.vec[p] <- b.basis
+		                            basis.singular.min <- basis.singular
+		                        }
+		                    }
+		                    
+		                    if(basis.singular.min & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
+		                    
+		                    model.ma <- model.ma.min
+		                    fit.spline <- fitted(model.ma)
+		
+		                } else {
+		
+		                    P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
+		                    if(attr(P,"relevant")) {
+		                        if(!is.fullrank(P) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
+		                        if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+		                            model.ma <- lm(y~P,weights=weights)
+		                        } else {
+		                            model.ma <- lm(y~P-1,weights=weights)
+		                        }
+		                    } else {
+		                        model.ma <- lm(y~1,weights=weights)
+		                    }
+		                    fit.spline <- fitted(model.ma)
+		                }
+		                
+		                fitted.mat[,p] <- fit.spline
+		
+		                if(method=="mma") {
+		                    ma.mat[,p] <- y - fit.spline
+		                } else {
+		                    htt <- hatvalues(model.ma)
+		                    htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
+		                    ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
+		                }
+		
+		                rank.vec[p] <- model.ma$rank
+		
+		                sigsq[p] <- sqrt(sum(residuals(model.ma)^2)/(num.obs-model.ma$rank))
+		
+		            }
+		            
+		            list(fitted.mat=fitted.mat[,p],
+		                 ma.mat=ma.mat[,p],
+		                 rank.vec=rank.vec[p],
+		                 basis.vec=basis.vec[p],
+		                 sigsq=sigsq[p])
+		
+		        }
+		
+            for(p in P.num:1) {
+                fitted.mat[,p] <- output[[p]]$fitted.mat
+                ma.mat[,p] <- output[[p]]$ma.mat
+                rank.vec[p] <- output[[p]]$rank.vec
+                basis.vec[p] <- output[[p]]$basis.vec
+                sigsq[p] <- output[[p]]$sigsq
+            }
+
+            stopCluster(cl)
+
         }
 
         if(verbose) cat("\r                                                    ")
@@ -1547,6 +1816,7 @@ lm.ma.Est <- function(y=NULL,
                 num.x=num.x,
                 num.z=num.z,
                 numeric.logical=numeric.logical,
+                parallel=parallel,
                 rank.vec=rank.vec,
                 restrict.sum.ma.weights=restrict.sum.ma.weights,
                 ma.model.rank=sum(rank.vec*abs(b)),

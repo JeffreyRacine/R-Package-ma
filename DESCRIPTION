@@ -2,8 +2,8 @@ Package: ma
 Type: Package
 Title: Model Averaging
 Version: 1.0-2
-Date: 2017-04-14
-Imports: quadprog
+Date: 2017-04-15
+Imports: doParallel, foreach, parallel, quadprog
 Suggests: crs, np, rgl
 Author: Jeffrey S. Racine
 Maintainer: <racinej@mcmaster.ca>

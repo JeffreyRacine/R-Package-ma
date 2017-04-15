@@ -1,5 +1,5 @@
 useDynLib(ma)
-import(stats, quadprog)
+import(stats, doParallel, foreach, parallel, quadprog)
 importFrom("graphics", "lines", "par", "plot", "points", "rug", "abline")
 
 export(lm.ma)
