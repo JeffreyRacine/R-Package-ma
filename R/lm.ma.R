@@ -295,7 +295,7 @@ lm.ma.default <- function(y=NULL,
                                       method=method,
                                       ma.weights=Est$ma.weights,
                                       basis.vec=Est$basis.vec,
-                                      parallel=Est$parallel,
+                                      parallel=FALSE,
                                       rank.vec=Est$rank.vec,
                                       restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
                                       K.mat=Est$DS,
@@ -462,79 +462,50 @@ lm.ma.default <- function(y=NULL,
 
             F.stat[k] <- (nrow.X-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
 
-            for(b in 1:B) {
-                if(verbose) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests," (bootstrap replication ",b," of ",B,")",sep=""))
-                ## Residual bootstrap from the null model, use
-                ## original model configuration with bootstrap y
+            if(!parallel) {
 
-                if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
-                    y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(nrow.X/(nrow.X-ssr.rank)),size=nrow.X,replace=TRUE)
-                }  else if(ncol.X == 1) {
-                    y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
-                }  else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
-                    y.boot <- mv.mean + sample(y-mv.mean,replace=TRUE)                    
-                }
-
-                Est.ssu.boot <- lm.ma.Est(y=y.boot,
-                                          X=X,
-                                          X.eval=NULL,
-                                          basis=basis,
-                                          compute.deriv=FALSE,
-                                          compute.mean=TRUE,
-                                          deriv.order=deriv.order,
-                                          degree.min=degree.min,
-                                          deriv.index=NULL,
-                                          degree.max=degree.max,
-                                          c.lambda=c.lambda,
-                                          segments.min=segments.min,
-                                          segments.max=segments.max,
-                                          knots=knots,
-                                          S=S,
-                                          method=method,
-                                          ma.weights=ma.weights,
-                                          basis.vec=basis.vec,
-                                          parallel=parallel,
-                                          rank.vec=rank.vec,
-                                          restrict.sum.ma.weights=restrict.sum.ma.weights,
-                                          K.mat=K.mat,
-                                          weights=weights,
-                                          vc=vc,
-                                          verbose=FALSE,
-                                          ...)
-
-                Est.ssu.boot <- lm.ma.Est(y=y.boot,
-                                          X=X,
-                                          X.eval=NULL,
-                                          basis=basis,
-                                          compute.deriv=FALSE,
-                                          compute.mean=TRUE,
-                                          deriv.order=deriv.order,
-                                          degree.min=degree.min,
-                                          deriv.index=NULL,
-                                          degree.max=degree.max,
-                                          c.lambda=c.lambda,
-                                          segments.min=segments.min,
-                                          segments.max=segments.max,
-                                          knots=knots,
-                                          S=S,
-                                          method=method,
-                                          ma.weights=Est.ssu.boot$ma.weights,
-                                          basis.vec=Est.ssu.boot$basis.vec,
-                                          parallel=Est.ssu.boot$parallel,
-                                          rank.vec=Est.ssu.boot$rank.vec,
-                                          restrict.sum.ma.weights=Est.ssu$restrict.sum.ma.weights,
-                                          K.mat=Est.ssu.boot$DS,
-                                          weights=weights,
-                                          vc=vc,
-                                          verbose=FALSE,
-                                          ...)
-
-                ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)  
-                
-                if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
-
-                    Est.ssr.boot <- lm.ma.Est(y=y.boot,
-                                              X=X.res,
+                for(b in 1:B) {
+                    if(verbose) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests," (bootstrap replication ",b," of ",B,")",sep=""))
+                    ## Residual bootstrap from the null model, use
+                    ## original model configuration with bootstrap y
+                    
+                    if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
+                        y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(nrow.X/(nrow.X-ssr.rank)),size=nrow.X,replace=TRUE)
+                    }  else if(ncol.X == 1) {
+                        y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
+                    }  else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
+                        y.boot <- mv.mean + sample(y-mv.mean,replace=TRUE)                    
+                    }
+                    
+                    Est.ssu.boot <- lm.ma.Est(y=y.boot,
+                                              X=X,
+                                              X.eval=NULL,
+                                              basis=basis,
+                                              compute.deriv=FALSE,
+                                              compute.mean=TRUE,
+                                              deriv.order=deriv.order,
+                                              degree.min=degree.min,
+                                              deriv.index=NULL,
+                                              degree.max=degree.max,
+                                              c.lambda=c.lambda,
+                                              segments.min=segments.min,
+                                              segments.max=segments.max,
+                                              knots=knots,
+                                              S=S,
+                                              method=method,
+                                              ma.weights=ma.weights,
+                                              basis.vec=basis.vec,
+                                              parallel=parallel,
+                                              rank.vec=rank.vec,
+                                              restrict.sum.ma.weights=restrict.sum.ma.weights,
+                                              K.mat=K.mat,
+                                              weights=weights,
+                                              vc=vc,
+                                              verbose=FALSE,
+                                              ...)
+                    
+                    Est.ssu.boot <- lm.ma.Est(y=y.boot,
+                                              X=X,
                                               X.eval=NULL,
                                               basis=basis,
                                               compute.deriv=FALSE,
@@ -553,30 +524,189 @@ lm.ma.default <- function(y=NULL,
                                               basis.vec=Est.ssu.boot$basis.vec,
                                               parallel=Est.ssu.boot$parallel,
                                               rank.vec=Est.ssu.boot$rank.vec,
-                                              restrict.sum.ma.weights=Est.ssu.boot$restrict.sum.ma.weights,
-                                              K.mat=if(is.numeric.X.k){Est.ssu.boot$DS[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu.boot$num.x)),drop=FALSE]}else{Est.ssu.boot$DS},
+                                              restrict.sum.ma.weights=Est.ssu$restrict.sum.ma.weights,
+                                              K.mat=Est.ssu.boot$DS,
                                               weights=weights,
                                               vc=vc,
                                               verbose=FALSE,
                                               ...)
+                    
+                    ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)  
+                    
+                    if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
+                        
+                        Est.ssr.boot <- lm.ma.Est(y=y.boot,
+                                                  X=X.res,
+                                                  X.eval=NULL,
+                                                  basis=basis,
+                                                  compute.deriv=FALSE,
+                                                  compute.mean=TRUE,
+                                                  deriv.order=deriv.order,
+                                                  degree.min=degree.min,
+                                                  deriv.index=NULL,
+                                                  degree.max=degree.max,
+                                                  c.lambda=c.lambda,
+                                                  segments.min=segments.min,
+                                                  segments.max=segments.max,
+                                                  knots=knots,
+                                                  S=S,
+                                                  method=method,
+                                                  ma.weights=Est.ssu.boot$ma.weights,
+                                                  basis.vec=Est.ssu.boot$basis.vec,
+                                                  parallel=Est.ssu.boot$parallel,
+                                                  rank.vec=Est.ssu.boot$rank.vec,
+                                                  restrict.sum.ma.weights=Est.ssu.boot$restrict.sum.ma.weights,
+                                                  K.mat=if(is.numeric.X.k){Est.ssu.boot$DS[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu.boot$num.x)),drop=FALSE]}else{Est.ssu.boot$DS},
+                                                  weights=weights,
+                                                  vc=vc,
+                                                  verbose=FALSE,
+                                                  ...)
+                        
+                        ssr.boot <- sum((y.boot-Est.ssr.boot$fitted.values)^2)         
+                        
+                    } else if(ncol.X == 1) {
+                        ssr.boot <- sum((y.boot-mean(y.boot))^2)
+                    }   else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
+                        for(i in 1:nrow.z.unique) {
+                            zz <- ind == ind.vals[i]
+                            mv.mean[zz] <- mean(y.boot[zz])
+                        }     
+                        ssr.boot <- sum((y.boot-mv.mean)^2)
+                    }
+                    
+                    F.boot[b] <- (nrow.X-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot)
 
-                    ssr.boot <- sum((y.boot-Est.ssr.boot$fitted.values)^2)         
-
-                } else if(ncol.X == 1) {
-                    ssr.boot <- sum((y.boot-mean(y.boot))^2)
-                }   else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
-                    for(i in 1:nrow.z.unique) {
-                        zz <- ind == ind.vals[i]
-                        mv.mean[zz] <- mean(y.boot[zz])
-                    }     
-                    ssr.boot <- sum((y.boot-mv.mean)^2)
                 }
 
-                F.boot[b] <- (nrow.X-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot)
+            } else {
 
+                ## parallel
 
+                cl<-makeCluster(detectCores())
+                registerDoParallel(cl)
+                
+                output <- foreach(b=1:B) %dopar% {
+                
+                    if(verbose) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests," (bootstrap replication ",b," of ",B,")",sep=""))
+                    ## Residual bootstrap from the null model, use
+                    ## original model configuration with bootstrap y
+                    
+                    if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
+                        y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(nrow.X/(nrow.X-ssr.rank)),size=nrow.X,replace=TRUE)
+                    }  else if(ncol.X == 1) {
+                        y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
+                    }  else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
+                        y.boot <- mv.mean + sample(y-mv.mean,replace=TRUE)                    
+                    }
+                    
+                    Est.ssu.boot <- lm.ma.Est(y=y.boot,
+                                              X=X,
+                                              X.eval=NULL,
+                                              basis=basis,
+                                              compute.deriv=FALSE,
+                                              compute.mean=TRUE,
+                                              deriv.order=deriv.order,
+                                              degree.min=degree.min,
+                                              deriv.index=NULL,
+                                              degree.max=degree.max,
+                                              c.lambda=c.lambda,
+                                              segments.min=segments.min,
+                                              segments.max=segments.max,
+                                              knots=knots,
+                                              S=S,
+                                              method=method,
+                                              ma.weights=ma.weights,
+                                              basis.vec=basis.vec,
+                                              parallel=FALSE, ## override since already in parallel
+                                              rank.vec=rank.vec,
+                                              restrict.sum.ma.weights=restrict.sum.ma.weights,
+                                              K.mat=K.mat,
+                                              weights=weights,
+                                              vc=vc,
+                                              verbose=FALSE,
+                                              ...)
+                    
+                    Est.ssu.boot <- lm.ma.Est(y=y.boot,
+                                              X=X,
+                                              X.eval=NULL,
+                                              basis=basis,
+                                              compute.deriv=FALSE,
+                                              compute.mean=TRUE,
+                                              deriv.order=deriv.order,
+                                              degree.min=degree.min,
+                                              deriv.index=NULL,
+                                              degree.max=degree.max,
+                                              c.lambda=c.lambda,
+                                              segments.min=segments.min,
+                                              segments.max=segments.max,
+                                              knots=knots,
+                                              S=S,
+                                              method=method,
+                                              ma.weights=Est.ssu.boot$ma.weights,
+                                              basis.vec=Est.ssu.boot$basis.vec,
+                                              parallel=FALSE,
+                                              rank.vec=Est.ssu.boot$rank.vec,
+                                              restrict.sum.ma.weights=Est.ssu$restrict.sum.ma.weights,
+                                              K.mat=Est.ssu.boot$DS,
+                                              weights=weights,
+                                              vc=vc,
+                                              verbose=FALSE,
+                                              ...)
+                    
+                    ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)  
+                    
+                    if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
+                        
+                        Est.ssr.boot <- lm.ma.Est(y=y.boot,
+                                                  X=X.res,
+                                                  X.eval=NULL,
+                                                  basis=basis,
+                                                  compute.deriv=FALSE,
+                                                  compute.mean=TRUE,
+                                                  deriv.order=deriv.order,
+                                                  degree.min=degree.min,
+                                                  deriv.index=NULL,
+                                                  degree.max=degree.max,
+                                                  c.lambda=c.lambda,
+                                                  segments.min=segments.min,
+                                                  segments.max=segments.max,
+                                                  knots=knots,
+                                                  S=S,
+                                                  method=method,
+                                                  ma.weights=Est.ssu.boot$ma.weights,
+                                                  basis.vec=Est.ssu.boot$basis.vec,
+                                                  parallel=FALSE,
+                                                  rank.vec=Est.ssu.boot$rank.vec,
+                                                  restrict.sum.ma.weights=Est.ssu.boot$restrict.sum.ma.weights,
+                                                  K.mat=if(is.numeric.X.k){Est.ssu.boot$DS[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu.boot$num.x)),drop=FALSE]}else{Est.ssu.boot$DS},
+                                                  weights=weights,
+                                                  vc=vc,
+                                                  verbose=FALSE,
+                                                  ...)
+                        
+                        ssr.boot <- sum((y.boot-Est.ssr.boot$fitted.values)^2)         
+                        
+                    } else if(ncol.X == 1) {
+                        ssr.boot <- sum((y.boot-mean(y.boot))^2)
+                    }   else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
+                        for(i in 1:nrow.z.unique) {
+                            zz <- ind == ind.vals[i]
+                            mv.mean[zz] <- mean(y.boot[zz])
+                        }     
+                        ssr.boot <- sum((y.boot-mv.mean)^2)
+                    }
+                    
+                    list(F.boot=(nrow.X-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot))
+                    
+                }
+
+                for(b in 1:B) {
+                    F.boot[b] <- output[[b]]$F.boot
+                }
+                
+                stopCluster(cl)
             }
-
+            
             P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
             
             if(verbose) cat("\r                                                                               ")

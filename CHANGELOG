@@ -1,5 +1,7 @@
 Changes from 1.01-1 to 1.0-2 [14-Apr-2017]
 
+- added parallel capabilities to intensive parts (generating candidate models, bootstrapping, anova)
+
 - best constant overall for lambda from extensive simulations and an application is 1e-01/n... now modified 1e-01*p/n where p is the number of categorical predictors (slightly more smoothing in small sample settings as you add more categorical predictors)
 
 Changes from 1.16 to 1.0-1 [11-Apr-2017]

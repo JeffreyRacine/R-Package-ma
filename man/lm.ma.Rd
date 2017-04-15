@@ -157,10 +157,11 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     model <- lm.ma(y~x1+x2,compute.deriv=TRUE)
     model <- lm.ma(y~x1+x2,bootstrap.ci=TRUE)  
     model <- lm.ma(y~x1+x2,compute.anova=TRUE)
+    model <- lm.ma(y~x1+x2,parallel=TRUE)
 
     plot(model)
     plot(model,plot.data=TRUE)
-    plot(model,plot.ci=TRUE,B=19)    
+    plot(model,plot.ci=TRUE,B=199)    
     plot(model,plot.data=TRUE,plot.ci=TRUE,B=199)
     plot(model,plot.deriv=TRUE)    
     plot(model,plot.deriv=TRUE,plot.ci=TRUE,B=399)        
@@ -230,7 +231,7 @@ Jeffrey S. Racine
 \note{
 This code is in beta status until further notice - proceed accordingly.
 
-The option \code{compute.anova} uses a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it will be fairly fast, but as the model complexity increases it may take some patience. Virtually all of the approaches required herein are parallel in nature and could be run on multiple cores. If there were enough demand for this feature I might be encouraged to add a parallel option.
+The option \code{compute.anova} uses a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it will be fairly fast, but as the model complexity increases it may take some patience.
 
 The option \code{compute.anova} cannot be used in the presence of one or more factors and exactly one numeric predictor since there is no numeric predictor present when testing for significance for the one numeric predictor.
 
