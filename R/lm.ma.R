@@ -1894,7 +1894,7 @@ lm.ma.Est <- function(y=NULL,
 
     }
 
-    ## Compute fitted values and derivatives if requestions
+    ## Compute fitted values and derivatives if requested
     
     if(verbose) cat("\r                                                    ")
     if(verbose) cat("\r")
