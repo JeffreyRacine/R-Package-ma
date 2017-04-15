@@ -6,6 +6,7 @@ Date: 2017-04-15
 Imports: doParallel, foreach, parallel, quadprog
 Suggests: crs, np, rgl
 Authors@R: person(given = "Jeffrey S.", family = "Racine", role = c("aut","cre"), email = "racinej@mcmaster.ca")
+Author: Jeffrey S. Racine [aut, cre]
 Maintainer: Jeffrey S. Racine <racinej@mcmaster.ca>
 Description: This package implements model averaging using a variety of multivariate bases.
 License: GPL-2
