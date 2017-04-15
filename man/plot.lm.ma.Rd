@@ -9,6 +9,7 @@
      plot.ci = FALSE,
      plot.data = FALSE,
      plot.num.eval = 250,
+     plot.rug = FALSE,
      plot.xtrim = 0.005,
      ...)
 }
@@ -20,6 +21,7 @@
   \item{plot.ci}{a logical value indicating whether to plot nonparametric confidence intervals or not}
   \item{plot.data}{a logical value indicating whether to plot the data or not}
   \item{plot.num.eval}{number of evaluation points}
+  \item{plot.rug}{a logical value indicating whether to plot the data with a rug or not}
   \item{plot.xtrim}{trimming parameter used to exclude tail values for the predictors that can obscure main features in the plot (trims the proportion \code{plot.xtrim} from each tail)}
   \item{\dots}{optional arguments to be passed to \code{plot}}
 }

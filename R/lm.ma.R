@@ -882,6 +882,7 @@ plot.lm.ma <- function(x,
                        plot.ci=FALSE,
                        plot.data=FALSE,
                        plot.num.eval=250,
+                       plot.rug=FALSE,
                        plot.xtrim=0.005,
                        ...) {
 
@@ -929,7 +930,7 @@ plot.lm.ma <- function(x,
                      cex=0.1,
                      col="grey",
                      ...)
-                if(is.numeric.X[i]) suppressWarnings(rug(x$X[x$X[,i] >= xlim[1] & x$X[,i] <= xlim[2] ,i]))
+                if(is.numeric.X[i] & plot.rug) suppressWarnings(rug(x$X[x$X[,i] >= xlim[1] & x$X[,i] <= xlim[2] ,i]))
                 cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))                
                 foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)    
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
