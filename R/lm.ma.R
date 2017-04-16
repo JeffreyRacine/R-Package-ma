@@ -1276,8 +1276,13 @@ lm.ma.Est <- function(y=NULL,
 
             for(p in P.num:1) {
 	
-                DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])   
-                if(!is.null(num.z)) lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
+                DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])
+                include.vec <- NULL
+                if(!is.null(num.z)) {
+                    lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
+                    include.vec <- include
+                    include.vec[lambda.vec==1] <- 0
+                }
                 
                 if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
                 
@@ -1386,7 +1391,7 @@ lm.ma.Est <- function(y=NULL,
                         cv.min <- Inf
                         basis.singular <- logical(1)
                         for(b.basis in c("tensor","taylor","additive")) {
-                            P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=b.basis)
+                            P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=b.basis)
                             if(!is.fullrank(P)) basis.singular <- TRUE
                             if(attr(P,"relevant")) {
                                 if(b.basis=="additive" || b.basis=="taylor") {
@@ -1416,7 +1421,7 @@ lm.ma.Est <- function(y=NULL,
                         
                     } else {
                         
-                        P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
+                        P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p])
                         if(attr(P,"relevant")) {
                             if(!is.fullrank(P) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
                             if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
@@ -1460,7 +1465,12 @@ lm.ma.Est <- function(y=NULL,
 		        output <- foreach(p=1:P.num,.verbose=verbose) %dopar% {
 		
                 DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])   
-                if(!is.null(num.z)) lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
+                include.vec <- NULL
+                if(!is.null(num.z)) {
+                    lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
+                    include.vec <- include
+                    include.vec[lambda.vec==1] <- 0
+                }
 		
 		            if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
 		
@@ -1569,7 +1579,7 @@ lm.ma.Est <- function(y=NULL,
 		                    cv.min <- Inf
 		                    basis.singular <- logical(1)
 		                    for(b.basis in c("tensor","taylor","additive")) {
-		                        P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=b.basis)
+		                        P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=b.basis)
 		                        if(!is.fullrank(P)) basis.singular <- TRUE
 		                        if(attr(P,"relevant")) {
 		                            if(b.basis=="additive" || b.basis=="taylor") {
@@ -1599,7 +1609,7 @@ lm.ma.Est <- function(y=NULL,
 		
 		                } else {
 		
-		                    P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
+		                    P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p])
 		                    if(attr(P,"relevant")) {
 		                        if(!is.fullrank(P) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
 		                        if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
@@ -1748,7 +1758,12 @@ lm.ma.Est <- function(y=NULL,
         for(p in P.num:1) {
 
             DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])   
-            if(!is.null(num.z)) lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
+            include.vec <- NULL
+            if(!is.null(num.z)) {
+                lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
+                include.vec <- include
+                include.vec[lambda.vec==1] <- 0
+            }
             
             if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
             
@@ -1790,14 +1805,14 @@ lm.ma.Est <- function(y=NULL,
                     ## Regression spline formulation (no categorical
                     ## predictors)
                     
-                    P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
+                    P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p])
                     if(attr(P,"relevant")) {
                         if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
                             model.ma <- lm(y~P,weights=weights)
                         } else {
                             model.ma <- lm(y~P-1,weights=weights)
                         }
-                        P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p]))
+                        P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p]))
                         fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                     } else {
                         model.ma <- lm(y~1,weights=weights)
@@ -1896,9 +1911,9 @@ lm.ma.Est <- function(y=NULL,
 
                             ## Compute numeric derivatives
 
-                            P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
+                            P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p])
                             if(attr(P,"relevant") & DS[xzindex[deriv.index[k]],1] > 0) {
-                                P.deriv <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p],deriv.index=xzindex[deriv.index[k]],deriv=deriv.order))
+                                P.deriv <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p],deriv.index=xzindex[deriv.index[k]],deriv=deriv.order))
                                 dim.P.tensor <- NCOL(P)
                                 deriv.ind.vec <- logical(length=NCOL(P))
                                 coef.vec.model <- numeric(length=NCOL(P))
@@ -1931,7 +1946,7 @@ lm.ma.Est <- function(y=NULL,
                             ## Compute factor `derivatives'
                             ## (differences), require base levels
 
-                            P <- prod.spline(x=x,z=z,K=DS,I=include,knots="quantiles",basis=basis.vec[p])
+                            P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p])
                             if(attr(P,"relevant")) {
                                 if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
                                     model.ma <- lm(y~P,weights=weights)
@@ -1942,7 +1957,7 @@ lm.ma.Est <- function(y=NULL,
                                 zeval.base.tmp <- zeval
                                 zeval.base.tmp[,xzindex[deriv.index[k]]] <- zeval.base[1,xzindex[deriv.index[k]]]
                                 
-                                P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include,xeval=xeval,zeval=zeval.base.tmp,knots="quantiles",basis=basis.vec[p]))
+                                P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval.base.tmp,knots="quantiles",basis=basis.vec[p]))
                                 
                                 fit.spline <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                             } else {
