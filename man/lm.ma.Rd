@@ -30,6 +30,7 @@ lm.ma(...)
       deriv.order = 1,
       K.mat = NULL,
       knots = FALSE,
+      lambda.grid.num = 1,
       ma.weights = NULL,
       method = c("jma","mma"),
       parallel = FALSE,
@@ -66,6 +67,7 @@ lm.ma(...)
       deriv.order = 1,
       K.mat = NULL,
       knots = FALSE,
+      lambda.grid.num = 1,
       ma.weights = NULL,
       method = c("jma","mma"),
       parallel = FALSE,
@@ -127,6 +129,8 @@ lm.ma(...)
   \item{K.mat}{matrix with degree and knots that could be passed to the basis routines}
 
   \item{knots}{a logical value indicating whether or not to include interior knots}
+
+  \item{lambda.grid.num}{grid for smoothing parameter lambda \code{seq(c.lambda*num.z/num.obs,1,length=lambda.grid.num)}}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
 
