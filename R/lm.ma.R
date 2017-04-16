@@ -23,9 +23,9 @@ lm.ma.formula <- function(formula,
                           degree.min=0,
                           deriv.index=NULL,
                           deriv.order=1,
-                          K.mat=NULL,
+                          DKL.mat=NULL,
                           knots=FALSE,
-                          lambda.grid.num=1,
+                          lambda.grid.num=2,
                           ma.weights=NULL,
                           method=c("jma","mma"),
                           parallel=FALSE,
@@ -73,7 +73,7 @@ lm.ma.formula <- function(formula,
                          degree.min=degree.min,
                          deriv.index=deriv.index,
                          deriv.order=deriv.order,
-                         K.mat=K.mat,
+                         DKL.mat=DKL.mat,
                          knots=knots,
                          c.lambda=c.lambda,
                          lambda.grid.num=lambda.grid.num,
@@ -125,9 +125,9 @@ lm.ma.default <- function(y=NULL,
                           degree.min=0,
                           deriv.index=NULL,
                           deriv.order=1,
-                          K.mat=NULL,
+                          DKL.mat=NULL,
                           knots=FALSE,
-                          lambda.grid.num=1,
+                          lambda.grid.num=2,
                           ma.weights=NULL,
                           method=c("jma","mma"),
                           parallel=FALSE,
@@ -192,7 +192,7 @@ lm.ma.default <- function(y=NULL,
                      parallel.cores=parallel.cores,
                      rank.vec=rank.vec,
                      restrict.sum.ma.weights=restrict.sum.ma.weights,
-                     K.mat=K.mat,
+                     DKL.mat=DKL.mat,
                      weights=weights,
                      vc=vc,
                      verbose=verbose,
@@ -204,7 +204,7 @@ lm.ma.default <- function(y=NULL,
 
     if(compute.deriv | !is.null(X.eval)) {
         rank.vec <- Est$rank.vec
-        DS <- Est$DS
+        DKL.mat <- Est$DKL.mat
         basis.vec <- Est$basis.vec
 
         Est <- lm.ma.Est(y=y,
@@ -230,14 +230,14 @@ lm.ma.default <- function(y=NULL,
                          parallel.cores=Est$parallel.cores,
                          rank.vec=Est$rank.vec,
                          restrict.sum.ma.weights=restrict.sum.ma.weights,
-                         K.mat=Est$DS,
+                         DKL.mat=Est$DKL.mat,
                          weights=weights,
                          vc=vc,
                          verbose=verbose,
                          ...)
         
         Est$rank.vec <- rank.vec
-        Est$DS <- DS
+        Est$DKL.mat <- DKL.mat
         Est$basis.vec <- basis.vec
 
     }
@@ -288,7 +288,7 @@ lm.ma.default <- function(y=NULL,
                                       parallel.cores=Est$parallel.cores,
                                       rank.vec=Est$rank.vec,
                                       restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
-                                      K.mat=Est$DS,
+                                      DKL.mat=Est$DKL.mat,
                                       weights=weights,
                                       vc=vc,
                                       verbose=FALSE,
@@ -330,7 +330,7 @@ lm.ma.default <- function(y=NULL,
                                       parallel.cores=Est$parallel.cores,
                                       rank.vec=Est$rank.vec,
                                       restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
-                                      K.mat=Est$DS,
+                                      DKL.mat=Est$DKL.mat,
                                       weights=weights,
                                       vc=vc,
                                       verbose=FALSE,
@@ -416,7 +416,7 @@ lm.ma.default <- function(y=NULL,
                                  parallel.cores=Est$parallel.cores,
                                  rank.vec=Est$rank.vec,
                                  restrict.sum.ma.weights=Est$restrict.sum.ma.weights,
-                                 K.mat=Est$DS,
+                                 DKL.mat=Est$DKL.mat,
                                  weights=weights,
                                  vc=vc,
                                  verbose=FALSE,
@@ -462,7 +462,7 @@ lm.ma.default <- function(y=NULL,
                                      parallel.cores=Est.ssu$parallel.cores,
                                      rank.vec=Est.ssu$rank.vec,
                                      restrict.sum.ma.weights=Est.ssu$restrict.sum.ma.weights,
-                                     K.mat=if(is.numeric.X.k){Est.ssu$DS[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu$num.x)),drop=FALSE]}else{Est.ssu$DS},
+                                     DKL.mat=if(is.numeric.X.k){Est.ssu$DKL.mat[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu$num.x)),drop=FALSE]}else{Est.ssu$DKL.mat},
                                      weights=weights,
                                      vc=vc,
                                      verbose=FALSE,
@@ -536,7 +536,7 @@ lm.ma.default <- function(y=NULL,
                                               parallel.cores=parallel.cores,
                                               rank.vec=rank.vec,
                                               restrict.sum.ma.weights=restrict.sum.ma.weights,
-                                              K.mat=K.mat,
+                                              DKL.mat=DKL.mat,
                                               weights=weights,
                                               vc=vc,
                                               verbose=FALSE,
@@ -565,7 +565,7 @@ lm.ma.default <- function(y=NULL,
                                               parallel.cores=Est.ssu.boot$parallel.cores,
                                               rank.vec=Est.ssu.boot$rank.vec,
                                               restrict.sum.ma.weights=Est.ssu$restrict.sum.ma.weights,
-                                              K.mat=Est.ssu.boot$DS,
+                                              DKL.mat=Est.ssu.boot$DKL.mat,
                                               weights=weights,
                                               vc=vc,
                                               verbose=FALSE,
@@ -598,7 +598,7 @@ lm.ma.default <- function(y=NULL,
                                                   parallel.cores=Est.ssu.boot$parallel.cores,
                                                   rank.vec=Est.ssu.boot$rank.vec,
                                                   restrict.sum.ma.weights=Est.ssu.boot$restrict.sum.ma.weights,
-                                                  K.mat=if(is.numeric.X.k){Est.ssu.boot$DS[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu.boot$num.x)),drop=FALSE]}else{Est.ssu.boot$DS},
+                                                  DKL.mat=if(is.numeric.X.k){Est.ssu.boot$DKL.mat[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu.boot$num.x)),drop=FALSE]}else{Est.ssu.boot$DKL.mat},
                                                   weights=weights,
                                                   vc=vc,
                                                   verbose=FALSE,
@@ -664,7 +664,7 @@ lm.ma.default <- function(y=NULL,
                                               parallel.cores=parallel.cores,
                                               rank.vec=rank.vec,
                                               restrict.sum.ma.weights=restrict.sum.ma.weights,
-                                              K.mat=K.mat,
+                                              DKL.mat=DKL.mat,
                                               weights=weights,
                                               vc=vc,
                                               verbose=FALSE,
@@ -693,7 +693,7 @@ lm.ma.default <- function(y=NULL,
                                               parallel.cores=Est.ssu.boot$parallel.cores,
                                               rank.vec=Est.ssu.boot$rank.vec,
                                               restrict.sum.ma.weights=Est.ssu$restrict.sum.ma.weights,
-                                              K.mat=Est.ssu.boot$DS,
+                                              DKL.mat=Est.ssu.boot$DKL.mat,
                                               weights=weights,
                                               vc=vc,
                                               verbose=FALSE,
@@ -726,7 +726,7 @@ lm.ma.default <- function(y=NULL,
                                                   parallel.cores=Est.ssu.boot$parallel.cores,
                                                   rank.vec=Est.ssu.boot$rank.vec,
                                                   restrict.sum.ma.weights=Est.ssu.boot$restrict.sum.ma.weights,
-                                                  K.mat=if(is.numeric.X.k){Est.ssu.boot$DS[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu.boot$num.x)),drop=FALSE]}else{Est.ssu.boot$DS},
+                                                  DKL.mat=if(is.numeric.X.k){Est.ssu.boot$DKL.mat[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu.boot$num.x)),drop=FALSE]}else{Est.ssu.boot$DKL.mat},
                                                   weights=weights,
                                                   vc=vc,
                                                   verbose=FALSE,
@@ -959,7 +959,7 @@ plot.lm.ma <- function(x,
         for(i in 1:ncol.X) {
             xeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
         }
-        if(ncol.X > 1) par(mfrow=c(2,ifelse(ncol.X %%2 == 0, ncol.X/2, (ncol.X+1)/2)))
+        if(ncol.X > 1) par(mfrow=c(ifelse(ncol.X %%2 == 0, ncol.X/2, (ncol.X+1)/2),2))
         for(i in 1:ncol.X) {
             xeval <- xeval.median
             if(is.numeric.X[i]) {
@@ -1105,9 +1105,9 @@ lm.ma.Est <- function(y=NULL,
                       degree.min=0,
                       deriv.index=NULL,
                       deriv.order=1,
-                      K.mat=NULL,
+                      DKL.mat=NULL,
                       knots=FALSE,
-                      lambda.grid.num=1,
+                      lambda.grid.num=2,
                       ma.weights=NULL,
                       method=c("jma","mma"),
                       parallel=FALSE,
@@ -1208,39 +1208,39 @@ lm.ma.Est <- function(y=NULL,
     basis.vec.orig <- basis.vec
     rank.vec.orig <- rank.vec
 
-    if(is.null(K.mat)) {
+    if(is.null(DKL.mat)) {
         if(is.null(num.z)) {
             if(knots) {
-                K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=segments.min:segments.max,num.x=num.x)
+                DKL.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=segments.min:segments.max,num.x=num.x)
             } else {
-                K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1,num.x=num.x)
+                DKL.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1,num.x=num.x)
             }
         } else {
             if(knots) {
-                K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=segments.min:segments.max,K.vec3=lambda.vec,num.x=num.x,num.z=num.z)
+                DKL.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=segments.min:segments.max,K.vec3=lambda.vec,num.x=num.x,num.z=num.z)
             } else {
-                K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1,K.vec3=lambda.vec,num.x=num.x,num.z=num.z)
+                DKL.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1,K.vec3=lambda.vec,num.x=num.x,num.z=num.z)
             }
         }
             
     }
 
-    K.mat.orig <- K.mat
+    DKL.mat.orig <- DKL.mat
     
     if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
         basis.vec <- character()
     } else if(basis=="auto" & !is.null(basis.vec) & !is.null(ma.weights)) {
         basis.vec <- basis.vec[ma.weights>1e-05]
     }  else if(basis!="auto") {
-        basis.vec <- rep(basis,nrow(K.mat))
+        basis.vec <- rep(basis,nrow(DKL.mat))
     }
     if(!is.null(ma.weights)) {
         rank.vec <- rank.vec[ma.weights>1e-05]
-        K.mat <- K.mat[ma.weights>1e-05,,drop=FALSE]
+        DKL.mat <- DKL.mat[ma.weights>1e-05,,drop=FALSE]
         ma.weights <- ma.weights[ma.weights>1e-05]/sum(ma.weights[ma.weights>1e-05])
     }
 
-    P.num <- NROW(K.mat)
+    P.num <- NROW(DKL.mat)
 
     if(is.null(deriv.index)) deriv.index <- 1:ncol.X
     num.deriv <- length(deriv.index)
@@ -1276,8 +1276,8 @@ lm.ma.Est <- function(y=NULL,
 
             for(p in P.num:1) {
 	
-                DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
-                if(!is.null(num.z)) lambda.vec <- K.mat[p,(2*num.x+1):(2*num.x+num.z)]
+                DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])   
+                if(!is.null(num.z)) lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
                 
                 if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
                 
@@ -1459,8 +1459,8 @@ lm.ma.Est <- function(y=NULL,
 
 		        output <- foreach(p=1:P.num,.verbose=verbose) %dopar% {
 		
-                DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
-                if(!is.null(num.z)) lambda.vec <- K.mat[p,(2*num.x+1):(2*num.x+num.z)]
+                DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])   
+                if(!is.null(num.z)) lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
 		
 		            if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
 		
@@ -1747,8 +1747,8 @@ lm.ma.Est <- function(y=NULL,
 
         for(p in P.num:1) {
 
-            DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
-            if(!is.null(num.z)) lambda.vec <- K.mat[p,(2*num.x+1):(2*num.x+num.z)]
+            DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])   
+            if(!is.null(num.z)) lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
             
             if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
             
@@ -2022,7 +2022,7 @@ lm.ma.Est <- function(y=NULL,
                 restrict.sum.ma.weights=restrict.sum.ma.weights,
                 ma.model.rank=sum(rank.vec*abs(b)),
                 nobs=num.obs,
-                DS=K.mat.orig,
+                DKL.mat=DKL.mat.orig,
                 vc=vc,
                 verbose=verbose,
                 xnames=xnames,

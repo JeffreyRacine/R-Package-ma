@@ -28,9 +28,9 @@ lm.ma(...)
       degree.min = 0,
       deriv.index = NULL,
       deriv.order = 1,
-      K.mat = NULL,
+      DKL.mat = NULL,
       knots = FALSE,
-      lambda.grid.num = 1,
+      lambda.grid.num = 2,
       ma.weights = NULL,
       method = c("jma","mma"),
       parallel = FALSE,
@@ -65,9 +65,9 @@ lm.ma(...)
       degree.min = 0,
       deriv.index = NULL,
       deriv.order = 1,
-      K.mat = NULL,
+      DKL.mat = NULL,
       knots = FALSE,
-      lambda.grid.num = 1,
+      lambda.grid.num = 2,
       ma.weights = NULL,
       method = c("jma","mma"),
       parallel = FALSE,
@@ -126,7 +126,7 @@ lm.ma(...)
   
   \item{deriv.order}{integer indicating order of derivative desired}
 
-  \item{K.mat}{matrix with degree and knots that could be passed to the basis routines}
+  \item{DKL.mat}{matrix with degree, knots, and lambda values that could optionally be passed to the basis routines}
 
   \item{knots}{a logical value indicating whether or not to include interior knots}
 
@@ -171,6 +171,7 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     model <- lm.ma(y~x1+x2,compute.anova=TRUE)
     model <- lm.ma(y~x1+x2,parallel=TRUE)
     model <- lm.ma(y~x1+x2,parallel=TRUE,parallel.cores=2)    
+    model <- lm.ma(y~x+z,lambda.grid.num=5)
 
     plot(model)
     plot(model,plot.data=TRUE)
