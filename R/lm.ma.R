@@ -295,7 +295,7 @@ lm.ma.default <- function(y=NULL,
             cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
             registerDoParallel(cl)
 
-            output <- foreach(b=1:B) %dopar% {
+            output <- foreach(b=1:B,.verbose=verbose) %dopar% {
                 if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
                 ii <- sample(1:n,replace=TRUE)
                 out.boot <- lm.ma.Est(y=y[ii],
@@ -612,7 +612,7 @@ lm.ma.default <- function(y=NULL,
                 cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
                 registerDoParallel(cl)
                 
-                output <- foreach(b=1:B) %dopar% {
+                output <- foreach(b=1:B,.verbose=verbose) %dopar% {
                 
                     if(verbose) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests," (bootstrap replication ",b," of ",B,")",sep=""))
                     ## Residual bootstrap from the null model, use
@@ -1179,7 +1179,7 @@ lm.ma.Est <- function(y=NULL,
         include <- NULL
     } else {
         include <- rep(1,num.z)
-        lambda.vec <- rep(c.lambda*num.z/num.obs,num.z)
+    #    lambda.vec <- rep(c.lambda*num.z/num.obs,num.z)
     }
 
     if(is.null(degree.max)) {
@@ -1192,14 +1192,22 @@ lm.ma.Est <- function(y=NULL,
     rank.vec.orig <- rank.vec
 
     if(is.null(K.mat)) {
-        if(knots) {
-            K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=segments.min:segments.max,num.x=num.x)
+        if(is.null(num.z)) {
+            if(knots) {
+                K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=segments.min:segments.max,num.x=num.x)
+            } else {
+                K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1,num.x=num.x)
+            }
         } else {
-            K.mat <- matrix.combn(K.vec1=degree.min:degree.max,num.x=num.x)
-            K.mat <- cbind(K.mat[,1:num.x],matrix(1,nrow(K.mat),num.x,byrow=TRUE))
+            if(knots) {
+                K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=segments.min:segments.max,K.vec3=c(c.lambda,1),num.x=num.x,num.z=num.z)
+            } else {
+                K.mat <- matrix.combn(K.vec1=degree.min:degree.max,K.vec2=1,K.vec3=c(c.lambda/num.obs,1),num.x=num.x,num.z=num.z)
+            }
         }
+            
     }
-    
+
     K.mat.orig <- K.mat
     
     if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
@@ -1252,6 +1260,7 @@ lm.ma.Est <- function(y=NULL,
             for(p in P.num:1) {
 	
                 DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
+                if(!is.null(num.z)) lambda.vec <- K.mat[p,(2*num.x+1):(2*num.x+num.z)]
                 
                 if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
                 
@@ -1431,9 +1440,10 @@ lm.ma.Est <- function(y=NULL,
 
             ## Need p to be ascending in order for dopar inorder to function
 
-		        output <- foreach(p=1:P.num) %dopar% {
+		        output <- foreach(p=1:P.num,.verbose=verbose) %dopar% {
 		
-		            DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
+                DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
+                if(!is.null(num.z)) lambda.vec <- K.mat[p,(2*num.x+1):(2*num.x+num.z)]
 		
 		            if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
 		
@@ -1718,16 +1728,17 @@ lm.ma.Est <- function(y=NULL,
         ## computing the fitted values UNLESS derivatives are for
         ## categorical predictors.
 
-         for(p in P.num:1) {
+        for(p in P.num:1) {
 
             DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
+            if(!is.null(num.z)) lambda.vec <- K.mat[p,(2*num.x+1):(2*num.x+num.z)]
             
             if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
-
+            
             if(compute.mean) {
 
                 ## Compute fitted values
-                
+                 
                 if(vc & !is.null(num.z)) {
                     
                     ## Varying coefficient regression spline formulation -

@@ -2,7 +2,21 @@
 ## (containing degrees) and vector I (0/1 for exclude/include for
 ## factors).
 
-matrix.combn <- function(K.vec1,K.vec2=NULL, num.x=0,num.z=NULL) {
+## Always must have knots and segments
+
+matrix.combn <- function(K.vec1,K.vec2=NULL,K.vec3=NULL,num.x=0,num.z=0) {
+
+  if(num.x==0 & num.z==0) stop(" must provide at least one variable")
+
+  ls <- list()
+  for(i in 1:num.x) ls[[i]] <- K.vec1
+  if(!is.null(K.vec2)) for(i in 1:num.x) ls[[num.x+i]] <- K.vec2
+  if(!is.null(K.vec3)) for(i in 1:num.z) ls[[2*num.x+i]] <- K.vec3
+  return(as.matrix(do.call(expand.grid,ls)))
+
+}
+
+matrix.combn.bak <- function(K.vec1,K.vec2=NULL, num.x=0,num.z=NULL) {
 
   if(num.x==0 && num.z==0) stop(" must provide at least one variable")
 
