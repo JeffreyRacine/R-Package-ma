@@ -1,4 +1,4 @@
-# np
+# ma
 
 This is the R package `ma' (Model Averaging) written and maintained by Jeffrey S. Racine (racinej@mcmaster.ca).
 
