@@ -31,6 +31,7 @@ lm.ma.formula <- function(formula,
                           parallel.cores=NULL,
                           rank.vec=NULL,
                           restrict.sum.ma.weights=TRUE,
+                          rng.seed=42,
                           S=2,
                           segments.min=1,
                           segments.max=3,
@@ -70,6 +71,7 @@ lm.ma.formula <- function(formula,
                        parallel.cores=parallel.cores,
                        rank.vec=rank.vec,
                        restrict.sum.ma.weights=restrict.sum.ma.weights,
+                       rng.seed=rng.seed,
                        S=S,
                        segments.min=segments.min,
                        segments.max=segments.max,
@@ -116,6 +118,7 @@ lm.ma.default <- function(y=NULL,
                           parallel.cores=NULL,
                           rank.vec=NULL,
                           restrict.sum.ma.weights=TRUE,
+                          rng.seed=42,
                           S=2,
                           segments.min=1,
                           segments.max=3,
@@ -145,6 +148,17 @@ lm.ma.default <- function(y=NULL,
     if(degree.min < 0) stop("Minimum degree (degree.min) must be non-negative")
     if(!is.null(deriv.index)) if(any(deriv.index < 1) | any(deriv.index > NCOL(X))) stop("Derivative indices must correspond to columns of X")
     if(!is.null(compute.anova.index)) if(any(compute.anova.index < 1) | any(compute.anova.index > NCOL(X))) stop("anova indices must correspond to columns of X")
+
+    if(exists(".Random.seed", .GlobalEnv)) {
+        save.seed <- get(".Random.seed", .GlobalEnv)
+        exists.seed = TRUE
+    } else {
+        exists.seed = FALSE
+    }
+
+    set.seed(rng.seed)
+
+    elapsed.time <- Sys.time()    
 
     ## First obtain weights, then in subsequent call computes fits and
     ## derivatives
@@ -278,7 +292,7 @@ lm.ma.default <- function(y=NULL,
 
             ## parallel
 
-            cl<-makeCluster(if(is.null(parallel.cores)){detectCores()}else{parallel.cores})
+            cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
             registerDoParallel(cl)
 
             output <- foreach(b=1:B) %dopar% {
@@ -595,7 +609,7 @@ lm.ma.default <- function(y=NULL,
 
                 ## parallel
 
-                cl<-makeCluster(if(is.null(parallel.cores)){detectCores()}else{parallel.cores})
+                cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
                 registerDoParallel(cl)
                 
                 output <- foreach(b=1:B) %dopar% {
@@ -733,14 +747,17 @@ lm.ma.default <- function(y=NULL,
         Est$P.vec <- P.vec
         Est$F.stat <- F.stat
     }
-    
+
     Est$compute.anova <- compute.anova
     Est$compute.anova.index <- compute.anova.index
     Est$bootstrap.ci <- bootstrap.ci
+    Est$elapsed.time <- Sys.time() - elapsed.time
     
     if(verbose) cat("\r                                                                               ")
     if(verbose) cat("\r")
 
+    if(exists.seed) assign(".Random.seed", save.seed, .GlobalEnv)
+    
     class(Est) <- "lm.ma"
     return(Est)
 
@@ -788,6 +805,7 @@ summary.lm.ma <- function(object,
     cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
               " on ", formatC(object$nobs-sum(object$rank.vec*object$ma.weights),format="f",digits=2)," degrees of freedom",sep=""))
     cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
+    cat(paste("\nEstimation time: ", suppressWarnings(formatC(object$elapsed.time,digits=1,format="f")), " seconds",sep=""))
 
     ma.weights <- object$ma.weights[object$ma.weights>1e-05]
     rank.vec <- object$rank.vec[object$ma.weights>1e-05]
@@ -832,6 +850,7 @@ summary.lm.ma <- function(object,
         cat("\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
         
     }
+
     cat("\n\n")
     
 }
@@ -868,6 +887,7 @@ predict.lm.ma <- function(object,
                              parallel.cores=object$parallel.cores,
                              rank.vec=object$rank.vec,
                              restrict.sum.ma.weights=object$restrict.sum.ma.weights,
+                             rng.seed=object$rng.seed,
                              S=object$S,
                              segments.min=object$segments.min,
                              segments.max=object$segments.max,
@@ -1406,10 +1426,12 @@ lm.ma.Est <- function(y=NULL,
             
             ## Parallel
             
-            cl<-makeCluster(if(is.null(parallel.cores)){detectCores()}else{parallel.cores})
+            cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
             registerDoParallel(cl)
 
-		        output <- foreach(p=P.num:1) %dopar% {
+            ## Need p to be ascending in order for dopar inorder to function
+
+		        output <- foreach(p=1:P.num) %dopar% {
 		
 		            DS <- cbind(K.mat[p,1:num.x],K.mat[p,(num.x+1):(2*num.x)])   
 		
@@ -1588,7 +1610,7 @@ lm.ma.Est <- function(y=NULL,
 		
 		        }
 		
-            for(p in P.num:1) {
+            for(p in 1:P.num) {
                 fitted.mat[,p] <- output[[p]]$fitted.mat
                 ma.mat[,p] <- output[[p]]$ma.mat
                 rank.vec[p] <- output[[p]]$rank.vec

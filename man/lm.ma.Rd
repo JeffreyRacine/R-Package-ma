@@ -36,6 +36,7 @@ lm.ma(...)
       parallel.cores = NULL,
       rank.vec = NULL,
       restrict.sum.ma.weights = TRUE,
+      rng.seed = 42,
       S = 2,
       segments.min = 1,
       segments.max = 3,
@@ -71,6 +72,7 @@ lm.ma(...)
       parallel.cores = NULL,
       rank.vec = NULL,
       restrict.sum.ma.weights = TRUE,
+      rng.seed = 42,
       S = 2,
       segments.min = 1,
       segments.max = 3,
@@ -138,6 +140,8 @@ lm.ma(...)
 
   \item{restrict.sum.ma.weights}{a logical value indicating whether or not to restrict the sum of the model average weights to one when solving the quadratic program (they are normalized afterwards when \code{restrict.sum.ma.weights=FALSE})}
   
+  \item{rng.seed}{an integer used to seed R's random number generator. This is to ensure replicability}
+
   \item{S}{the constant in the data-driven rule for determining degree.max}
 
   \item{segments.min}{when \code{knots=TRUE} the minimum number of segments (i.e., number of knots minus 1 - there always exist two knots, the endpoints) to allow for the B-spline basis}
