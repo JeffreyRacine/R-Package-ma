@@ -252,6 +252,8 @@ Averaging over models with ill-conditioned bases is not advised. Pay attention t
 
 If you wish to plot the object with the option \code{plot.ci=TRUE}, it is not necessary to use the option \code{bootstrap.ci=TRUE} in the call to \code{lm.ma()} (this will simply add to overhead)
 
+When multivariate predictors are present, the number of candidate models can be quite large. When building the final model each candidate model must be constructed and evaluated. However, after solving for the model average weights many candidate models will receive zero weight. Subsequently, only the non-zero weight models need be evaluated (e.g. when constructing derivative estimates, predictions, confidence intervals and the like).
+
 }
 
 \seealso{

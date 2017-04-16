@@ -40,57 +40,70 @@ lm.ma.formula <- function(formula,
                           verbose=TRUE,
                           weights=NULL,
                           ...) {
-
-
-  mf <- model.frame(formula=formula, data=data)
-  mt <- attr(mf, "terms")
-  tydat <- model.response(mf)
-  txdat <- mf[, attr(attr(mf, "terms"),"term.labels"), drop = FALSE]
-
-  Est <- lm.ma.default(y=tydat,
-                       X=txdat,
-                       X.eval=NULL,
-                       alpha=alpha,
-                       B=B,
-                       basis.vec=basis.vec,
-                       basis=basis,
-                       bootstrap.ci=bootstrap.ci,
-                       compute.anova=compute.anova,
-                       compute.anova.index=compute.anova.index,
-                       compute.deriv=compute.deriv,
-                       compute.mean=compute.mean,
-                       degree.max=degree.max,
-                       degree.min=degree.min,
-                       deriv.index=deriv.index,
-                       deriv.order=deriv.order,
-                       K.mat=K.mat,
-                       knots=knots,
-                       c.lambda=c.lambda,
-                       lambda.grid.num=lambda.grid.num,
-                       ma.weights=ma.weights,
-                       method=method,
-                       parallel=parallel,
-                       parallel.cores=parallel.cores,
-                       rank.vec=rank.vec,
-                       restrict.sum.ma.weights=restrict.sum.ma.weights,
-                       rng.seed=rng.seed,
-                       S=S,
-                       segments.min=segments.min,
-                       segments.max=segments.max,
-                       vc=vc,
-                       verbose=verbose,
-                       weights=weights,
-                       ...)
-  
-  Est$r.squared <- RSQfunc(tydat,Est$fitted.values)
-  Est$residuals <- tydat - Est$fitted.values
-
-  Est$call <- match.call()
-  Est$formula <- formula
-  Est$terms <- mt
-
-  return(Est)
-
+    
+    if(exists(".Random.seed", .GlobalEnv)) {
+        save.seed <- get(".Random.seed", .GlobalEnv)
+        exists.seed = TRUE
+    } else {
+        exists.seed = FALSE
+    }
+    
+    set.seed(rng.seed)
+    
+    ptm <- proc.time()
+    
+    mf <- model.frame(formula=formula, data=data)
+    mt <- attr(mf, "terms")
+    tydat <- model.response(mf)
+    txdat <- mf[, attr(attr(mf, "terms"),"term.labels"), drop = FALSE]
+    
+    Est <- lm.ma.default(y=tydat,
+                         X=txdat,
+                         X.eval=NULL,
+                         alpha=alpha,
+                         B=B,
+                         basis.vec=basis.vec,
+                         basis=basis,
+                         bootstrap.ci=bootstrap.ci,
+                         compute.anova=compute.anova,
+                         compute.anova.index=compute.anova.index,
+                         compute.deriv=compute.deriv,
+                         compute.mean=compute.mean,
+                         degree.max=degree.max,
+                         degree.min=degree.min,
+                         deriv.index=deriv.index,
+                         deriv.order=deriv.order,
+                         K.mat=K.mat,
+                         knots=knots,
+                         c.lambda=c.lambda,
+                         lambda.grid.num=lambda.grid.num,
+                         ma.weights=ma.weights,
+                         method=method,
+                         parallel=parallel,
+                         parallel.cores=parallel.cores,
+                         rank.vec=rank.vec,
+                         restrict.sum.ma.weights=restrict.sum.ma.weights,
+                         rng.seed=rng.seed,
+                         S=S,
+                         segments.min=segments.min,
+                         segments.max=segments.max,
+                         vc=vc,
+                         verbose=verbose,
+                         weights=weights,
+                         ...)
+    
+    Est$r.squared <- RSQfunc(tydat,Est$fitted.values)
+    Est$residuals <- tydat - Est$fitted.values
+    
+    Est$call <- match.call()
+    Est$formula <- formula
+    Est$terms <- mt
+    
+    Est$ptm <- (proc.time() - ptm)[3]
+    if(exists.seed) assign(".Random.seed", save.seed, .GlobalEnv)
+    
+    return(Est)
+    
 }
 
 ## Default function.
@@ -152,17 +165,6 @@ lm.ma.default <- function(y=NULL,
     if(degree.min < 0) stop("Minimum degree (degree.min) must be non-negative")
     if(!is.null(deriv.index)) if(any(deriv.index < 1) | any(deriv.index > NCOL(X))) stop("Derivative indices must correspond to columns of X")
     if(!is.null(compute.anova.index)) if(any(compute.anova.index < 1) | any(compute.anova.index > NCOL(X))) stop("anova indices must correspond to columns of X")
-
-    if(exists(".Random.seed", .GlobalEnv)) {
-        save.seed <- get(".Random.seed", .GlobalEnv)
-        exists.seed = TRUE
-    } else {
-        exists.seed = FALSE
-    }
-
-    set.seed(rng.seed)
-
-    elapsed.time <- Sys.time()    
 
     ## First obtain weights, then in subsequent call computes fits and
     ## derivatives
@@ -767,13 +769,10 @@ lm.ma.default <- function(y=NULL,
     Est$compute.anova <- compute.anova
     Est$compute.anova.index <- compute.anova.index
     Est$bootstrap.ci <- bootstrap.ci
-    Est$elapsed.time <- Sys.time() - elapsed.time
     
     if(verbose) cat("\r                                                                               ")
     if(verbose) cat("\r")
 
-    if(exists.seed) assign(".Random.seed", save.seed, .GlobalEnv)
-    
     class(Est) <- "lm.ma"
     return(Est)
 
@@ -821,7 +820,7 @@ summary.lm.ma <- function(object,
     cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
               " on ", formatC(object$nobs-sum(object$rank.vec*object$ma.weights),format="f",digits=2)," degrees of freedom",sep=""))
     cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
-    cat(paste("\nEstimation time: ", suppressWarnings(formatC(object$elapsed.time,digits=1,format="f")), " seconds",sep=""))
+    cat(paste("\nEstimation time: ", formatC(object$ptm,digits=1,format="f")), " seconds",sep="")
 
     ma.weights <- object$ma.weights[object$ma.weights>1e-05]
     rank.vec <- object$rank.vec[object$ma.weights>1e-05]
