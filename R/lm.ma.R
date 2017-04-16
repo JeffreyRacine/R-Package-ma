@@ -133,6 +133,8 @@ lm.ma.default <- function(y=NULL,
     basis <- match.arg(basis)
     method <- match.arg(method)
 
+    if(c.lambda < 0) stop("c.lambda must be non-negative")
+    if(lambda.grid.num < 1) stop("lambda.grid.num must be a positive integer")
     if(!is.null(parallel.cores)) if(parallel.cores < 1) stop("the number of cores requested must be a positive integer")
     if(!is.logical(parallel)) stop("parallel must be either TRUE or FALSE")
     if(!is.logical(compute.deriv)) stop("compute.deriv must be either TRUE or FALSE")
@@ -140,7 +142,6 @@ lm.ma.default <- function(y=NULL,
     if(!is.logical(knots)) stop("knots must be either TRUE or FALSE")
     if(!is.logical(vc)) stop("vc must be either TRUE or FALSE")
     if(!is.logical(verbose)) stop("verbose must be either TRUE or FALSE")
-
     if(!is.null(degree.max)) if(degree.max < 0) stop("degree.max cannot be negative")
     if(segments.max < 1) stop("segments.max must be a positive integer")
     if(segments.min < 1) stop("segments.min must be a positive integer")
