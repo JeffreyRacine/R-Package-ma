@@ -56,7 +56,7 @@ lm.ma.formula <- function(formula,
     mt <- attr(mf, "terms")
     tydat <- model.response(mf)
     txdat <- mf[, attr(attr(mf, "terms"),"term.labels"), drop = FALSE]
-    
+
     Est <- lm.ma.default(y=tydat,
                          X=txdat,
                          X.eval=NULL,
@@ -197,7 +197,7 @@ lm.ma.default <- function(y=NULL,
                      vc=vc,
                      verbose=verbose,
                      ...)
-    
+
     ## Save rank vector and matrix of degrees and segments (not
     ## computed in next call since ma.weights is passed, but needed
     ## for summary)
@@ -886,19 +886,21 @@ predict.lm.ma <- function(object,
         Est <- lm.ma.default(y=object$y,
                              X=object$X,
                              X.eval=exdat,
+                             alpha=object$alpha,
                              basis.vec=object$basis.vec,
                              basis=object$basis,
                              c.lambda=object$c.lambda,
-                             lambda.S=object$lambda.S,
                              compute.deriv=object$compute.deriv,
                              compute.mean=object$compute.mean,
-                             deriv.index=object$deriv.index,
-                             deriv.order=object$deriv.order,
                              degree.min=object$degree.min,
                              degree.max=object$degree.max,
+                             deriv.index=object$deriv.index,
+                             deriv.order=object$deriv.order,
                              knots=object$knots,
-                             method=object$method,
+                             DKL.mat=object$DKL.mat,
+                             lambda.S=object$lambda.S,
                              ma.weights=object$ma.weights,
+                             method=object$method,
                              parallel=object$parallel,
                              parallel.cores=object$parallel.cores,
                              rank.vec=object$rank.vec,
@@ -1122,6 +1124,11 @@ lm.ma.Est <- function(y=NULL,
                       weights=NULL,                      
                       ...) {
 
+    ma.weights.orig <- ma.weights
+    basis.vec.orig <- basis.vec
+    rank.vec.orig <- rank.vec
+    DKL.mat.orig <- DKL.mat
+
     ## Take the input data frame and split into factors and numeric,
     ## get certain quantities (num.z, num.x, numeric.logical etc.)
 
@@ -1208,11 +1215,6 @@ lm.ma.Est <- function(y=NULL,
         degree.max <- max(2,floor(S*log(num.obs)/num.x))
     }
     
-    P <- degree.max
-    ma.weights.orig <- ma.weights
-    basis.vec.orig <- basis.vec
-    rank.vec.orig <- rank.vec
-
     if(is.null(DKL.mat)) {
         if(is.null(num.z)) {
             if(knots) {
@@ -1230,15 +1232,16 @@ lm.ma.Est <- function(y=NULL,
             
     }
 
-    DKL.mat.orig <- DKL.mat
+    ## Could it be here? Changing order could result in different basis ordering?
     
-    if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
-        basis.vec <- character()
-    } else if(basis=="auto" & !is.null(basis.vec) & !is.null(ma.weights)) {
-        basis.vec <- basis.vec[ma.weights>1e-05]
-    }  else if(basis!="auto") {
-        basis.vec <- rep(basis,nrow(DKL.mat))
-    }
+#    if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
+#        basis.vec <- character()
+#    } else if(basis=="auto" & !is.null(basis.vec) & !is.null(ma.weights)) {
+#        basis.vec <- basis.vec[ma.weights>1e-05]
+#    }  else if(basis!="auto") {
+#        basis.vec <- rep(basis,NROW(DKL.mat))
+#    }
+
     if(!is.null(ma.weights)) {
         rank.vec <- rank.vec[ma.weights>1e-05]
         DKL.mat <- DKL.mat[ma.weights>1e-05,,drop=FALSE]
@@ -1247,6 +1250,11 @@ lm.ma.Est <- function(y=NULL,
 
     P.num <- NROW(DKL.mat)
     basis.singular.vec <- logical(length=P.num)
+    if(!is.null(basis.vec)) {
+        basis.vec <- basis.vec[ma.weights>1e-05]
+    } else {
+        basis.vec <- rep(basis,P.num)
+    }
 
     if(is.null(deriv.index)) deriv.index <- 1:ncol.X
     num.deriv <- length(deriv.index)
@@ -1287,7 +1295,7 @@ lm.ma.Est <- function(y=NULL,
                 if(!is.null(num.z)) {
                     lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
                     include.vec <- include
-                    include.vec[lambda.vec==1] <- 0
+#                    include.vec[lambda.vec==1] <- 0
                 }
                 
                 if(verbose) {
@@ -1320,7 +1328,7 @@ lm.ma.Est <- function(y=NULL,
                                 P <- prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
                                 if(attr(P,"relevant")) {
                                     if(!is.fullrank(P)) basis.singular[i] <- TRUE
-                                    if(b.basis=="additive" || b.basis=="taylor") {
+                                    if(b.basis=="additive" | b.basis=="taylor") {
                                         model.z.unique <- lm(y~P,weights=L)
                                     } else {
                                         model.z.unique <- lm(y~P-1,weights=L)
@@ -1364,7 +1372,7 @@ lm.ma.Est <- function(y=NULL,
                             P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                             if(attr(P,"relevant")) {
                                 if(!is.fullrank(P)) basis.singular[i] <- TRUE
-                                if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+                                if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                                     model.z.unique <- lm(y~P,weights=L)
                                 } else {
                                     model.z.unique <- lm(y~P-1,weights=L)
@@ -1404,7 +1412,7 @@ lm.ma.Est <- function(y=NULL,
                             P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=b.basis)
                             if(!is.fullrank(P)) basis.singular <- TRUE
                             if(attr(P,"relevant")) {
-                                if(b.basis=="additive" || b.basis=="taylor") {
+                                if(b.basis=="additive" | b.basis=="taylor") {
                                     model.ma <- lm(y~P,weights=weights)
                                 } else {
                                     model.ma <- lm(y~P-1,weights=weights)
@@ -1432,7 +1440,7 @@ lm.ma.Est <- function(y=NULL,
                         P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p])
                         if(attr(P,"relevant")) {
                             basis.singular.vec[p] <- !is.fullrank(P)
-                            if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+                            if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                                 model.ma <- lm(y~P,weights=weights)
                             } else {
                                 model.ma <- lm(y~P-1,weights=weights)
@@ -1510,7 +1518,7 @@ lm.ma.Est <- function(y=NULL,
 		                            P <- prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis)
 		                            if(attr(P,"relevant")) {
 		                                if(!is.fullrank(P)) basis.singular[i] <- TRUE
-		                                if(b.basis=="additive" || b.basis=="taylor") {
+		                                if(b.basis=="additive" | b.basis=="taylor") {
 		                                    model.z.unique <- lm(y~P,weights=L)
 		                                } else {
 		                                    model.z.unique <- lm(y~P-1,weights=L)
@@ -1554,7 +1562,7 @@ lm.ma.Est <- function(y=NULL,
 		                        P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
 		                        if(attr(P,"relevant")) {
 		                            if(!is.fullrank(P)) basis.singular[i] <- TRUE
-		                            if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+		                            if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
 		                                model.z.unique <- lm(y~P,weights=L)
 		                            } else {
 		                                model.z.unique <- lm(y~P-1,weights=L)
@@ -1594,7 +1602,7 @@ lm.ma.Est <- function(y=NULL,
 		                        P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=b.basis)
 		                        if(!is.fullrank(P)) basis.singular <- TRUE
 		                        if(attr(P,"relevant")) {
-		                            if(b.basis=="additive" || b.basis=="taylor") {
+		                            if(b.basis=="additive" | b.basis=="taylor") {
 		                                model.ma <- lm(y~P,weights=weights)
 		                            } else {
 		                                model.ma <- lm(y~P-1,weights=weights)
@@ -1622,7 +1630,7 @@ lm.ma.Est <- function(y=NULL,
 		                    P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p])
 		                    if(attr(P,"relevant")) {
 		                        basis.singular.vec[p] <- !is.fullrank(P)
-		                        if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+		                        if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
 		                            model.ma <- lm(y~P,weights=weights)
 		                        } else {
 		                            model.ma <- lm(y~P-1,weights=weights)
@@ -1801,7 +1809,7 @@ lm.ma.Est <- function(y=NULL,
                         if(!is.null(weights)) L <- weights*L
                         P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                         if(attr(P,"relevant")) {
-                            if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+                            if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                                 model.z.unique <- lm(y~P,weights=L)
                             } else {
                                 model.z.unique <- lm(y~P-1,weights=L)
@@ -1825,7 +1833,7 @@ lm.ma.Est <- function(y=NULL,
                     
                     P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p])
                     if(attr(P,"relevant")) {
-                        if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+                        if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                             model.ma <- lm(y~P,weights=weights)
                         } else {
                             model.ma <- lm(y~P-1,weights=weights)
@@ -1846,7 +1854,7 @@ lm.ma.Est <- function(y=NULL,
 
              if(compute.deriv) {
 
-                if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+                if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                     K.additive <- DS
                     K.additive[,2] <- ifelse(DS[,1]==0,0,DS[,2])
                     K.additive[,1] <- ifelse(DS[,1]>0,DS[,1]-1,DS[,1])
@@ -1910,7 +1918,7 @@ lm.ma.Est <- function(y=NULL,
                                 if(!is.null(weights)) L <- weights*L
                                 P <- prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p])
                                 if(attr(P,"relevant")) {
-                                    if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+                                    if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                                         model.z.unique <- lm(y~P,weights=L)
                                     } else {
                                         model.z.unique <- lm(y~P-1,weights=L)
@@ -1966,7 +1974,7 @@ lm.ma.Est <- function(y=NULL,
 
                             P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p])
                             if(attr(P,"relevant")) {
-                                if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
+                                if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                                     model.ma <- lm(y~P,weights=weights)
                                 } else {
                                     model.ma <- lm(y~P-1,weights=weights)
@@ -2019,7 +2027,7 @@ lm.ma.Est <- function(y=NULL,
             }
         }
     }
-
+    
     if(any(basis.singular.vec[b[b>1e-05]]) & verbose) warning("Non-zero weight candidate model basis is ill-conditioned - reduce degree.max")
 
     if(verbose) {
@@ -2027,7 +2035,7 @@ lm.ma.Est <- function(y=NULL,
         cat("\r")
     }
 
-    return(list(DKL.mat=DKL.mat.orig,
+    return(list(DKL.mat=if(is.null(ma.weights)){DKL.mat}else{DKL.mat.orig},
                 S=S,
                 X=X,
                 basis.singular.vec=basis.singular.vec,
@@ -2053,7 +2061,7 @@ lm.ma.Est <- function(y=NULL,
                 numeric.logical=numeric.logical,
                 parallel.cores=parallel.cores,
                 parallel=parallel,
-                rank.vec=rank.vec,
+                rank.vec=if(is.null(ma.weights)){rank.vec}else{rank.vec.orig},
                 restrict.sum.ma.weights=restrict.sum.ma.weights,
                 segments.max=segments.max,
                 segments.min=segments.min,
