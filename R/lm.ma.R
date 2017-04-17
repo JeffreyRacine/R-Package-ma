@@ -14,7 +14,7 @@ lm.ma.formula <- function(formula,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
-                          c.lambda=1,
+                          c.lambda=NULL,
                           compute.anova=FALSE,
                           compute.anova.index=NULL,
                           compute.deriv=FALSE,
@@ -25,7 +25,7 @@ lm.ma.formula <- function(formula,
                           deriv.order=1,
                           DKL.mat=NULL,
                           knots=FALSE,
-                          lambda.grid.num=2,
+                          lambda.S=1,
                           ma.weights=NULL,
                           method=c("jma","mma"),
                           parallel=FALSE,
@@ -76,7 +76,7 @@ lm.ma.formula <- function(formula,
                          DKL.mat=DKL.mat,
                          knots=knots,
                          c.lambda=c.lambda,
-                         lambda.grid.num=lambda.grid.num,
+                         lambda.S=lambda.S,
                          ma.weights=ma.weights,
                          method=method,
                          parallel=parallel,
@@ -116,7 +116,7 @@ lm.ma.default <- function(y=NULL,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
-                          c.lambda=1,
+                          c.lambda=NULL,
                           compute.anova=FALSE,
                           compute.anova.index=NULL,
                           compute.deriv=FALSE,
@@ -127,7 +127,7 @@ lm.ma.default <- function(y=NULL,
                           deriv.order=1,
                           DKL.mat=NULL,
                           knots=FALSE,
-                          lambda.grid.num=2,
+                          lambda.S=1,
                           ma.weights=NULL,
                           method=c("jma","mma"),
                           parallel=FALSE,
@@ -146,8 +146,8 @@ lm.ma.default <- function(y=NULL,
     basis <- match.arg(basis)
     method <- match.arg(method)
 
-    if(c.lambda < 0) stop("c.lambda must be non-negative")
-    if(lambda.grid.num < 1) stop("lambda.grid.num must be a positive integer")
+    if(!is.null(c.lambda)) if(c.lambda < 0) stop("c.lambda must be non-negative")
+    if(lambda.S < 1) stop("lambda.S must be a positive integer")
     if(!is.null(parallel.cores)) if(parallel.cores < 1) stop("the number of cores requested must be a positive integer")
     if(!is.logical(parallel)) stop("parallel must be either TRUE or FALSE")
     if(!is.logical(compute.deriv)) stop("compute.deriv must be either TRUE or FALSE")
@@ -180,7 +180,7 @@ lm.ma.default <- function(y=NULL,
                      deriv.index=deriv.index,
                      degree.max=degree.max,
                      c.lambda=c.lambda,
-                     lambda.grid.num=lambda.grid.num,
+                     lambda.S=lambda.S,
                      segments.min=segments.min,
                      segments.max=segments.max,
                      knots=knots,
@@ -218,7 +218,7 @@ lm.ma.default <- function(y=NULL,
                          deriv.index=deriv.index,
                          degree.max=degree.max,
                          c.lambda=c.lambda,
-                         lambda.grid.num=lambda.grid.num,
+                         lambda.S=lambda.S,
                          segments.min=segments.min,
                          segments.max=segments.max,
                          knots=knots,
@@ -276,7 +276,7 @@ lm.ma.default <- function(y=NULL,
                                       deriv.index=deriv.index,
                                       degree.max=degree.max,
                                       c.lambda=c.lambda,
-                                      lambda.grid.num=lambda.grid.num,
+                                      lambda.S=lambda.S,
                                       segments.min=segments.min,
                                       segments.max=segments.max,
                                       knots=knots,
@@ -318,7 +318,7 @@ lm.ma.default <- function(y=NULL,
                                       deriv.index=deriv.index,
                                       degree.max=degree.max,
                                       c.lambda=c.lambda,
-                                      lambda.grid.num=lambda.grid.num,
+                                      lambda.S=lambda.S,
                                       segments.min=segments.min,
                                       segments.max=segments.max,
                                       knots=knots,
@@ -404,7 +404,7 @@ lm.ma.default <- function(y=NULL,
                                  deriv.index=deriv.index,
                                  degree.max=degree.max,
                                  c.lambda=c.lambda,
-                                 lambda.grid.num=lambda.grid.num,
+                                 lambda.S=lambda.S,
                                  segments.min=segments.min,
                                  segments.max=segments.max,
                                  knots=knots,
@@ -450,7 +450,7 @@ lm.ma.default <- function(y=NULL,
                                      deriv.index=NULL,
                                      degree.max=degree.max,
                                      c.lambda=c.lambda,
-                                     lambda.grid.num=lambda.grid.num,
+                                     lambda.S=lambda.S,
                                      segments.min=segments.min,
                                      segments.max=segments.max,
                                      knots=knots,
@@ -524,7 +524,7 @@ lm.ma.default <- function(y=NULL,
                                               deriv.index=NULL,
                                               degree.max=degree.max,
                                               c.lambda=c.lambda,
-                                              lambda.grid.num=lambda.grid.num,
+                                              lambda.S=lambda.S,
                                               segments.min=segments.min,
                                               segments.max=segments.max,
                                               knots=knots,
@@ -553,7 +553,7 @@ lm.ma.default <- function(y=NULL,
                                               deriv.index=NULL,
                                               degree.max=degree.max,
                                               c.lambda=c.lambda,
-                                              lambda.grid.num=lambda.grid.num,
+                                              lambda.S=lambda.S,
                                               segments.min=segments.min,
                                               segments.max=segments.max,
                                               knots=knots,
@@ -586,7 +586,7 @@ lm.ma.default <- function(y=NULL,
                                                   deriv.index=NULL,
                                                   degree.max=degree.max,
                                                   c.lambda=c.lambda,
-                                                  lambda.grid.num=lambda.grid.num,
+                                                  lambda.S=lambda.S,
                                                   segments.min=segments.min,
                                                   segments.max=segments.max,
                                                   knots=knots,
@@ -652,7 +652,7 @@ lm.ma.default <- function(y=NULL,
                                               deriv.index=NULL,
                                               degree.max=degree.max,
                                               c.lambda=c.lambda,
-                                              lambda.grid.num=lambda.grid.num,
+                                              lambda.S=lambda.S,
                                               segments.min=segments.min,
                                               segments.max=segments.max,
                                               knots=knots,
@@ -681,7 +681,7 @@ lm.ma.default <- function(y=NULL,
                                               deriv.index=NULL,
                                               degree.max=degree.max,
                                               c.lambda=c.lambda,
-                                              lambda.grid.num=lambda.grid.num,
+                                              lambda.S=lambda.S,
                                               segments.min=segments.min,
                                               segments.max=segments.max,
                                               knots=knots,
@@ -714,7 +714,7 @@ lm.ma.default <- function(y=NULL,
                                                   deriv.index=NULL,
                                                   degree.max=degree.max,
                                                   c.lambda=c.lambda,
-                                                  lambda.grid.num=lambda.grid.num,
+                                                  lambda.S=lambda.S,
                                                   segments.min=segments.min,
                                                   segments.max=segments.max,
                                                   knots=knots,
@@ -889,7 +889,7 @@ predict.lm.ma <- function(object,
                              basis.vec=object$basis.vec,
                              basis=object$basis,
                              c.lambda=object$c.lambda,
-                             lambda.grid.num=object$lambda.grid.num,
+                             lambda.S=object$lambda.S,
                              compute.deriv=object$compute.deriv,
                              compute.mean=object$compute.mean,
                              deriv.index=object$deriv.index,
@@ -1098,7 +1098,7 @@ lm.ma.Est <- function(y=NULL,
                       X.eval=NULL,
                       basis.vec=NULL,
                       basis=c("tensor","taylor","additive","auto"),
-                      c.lambda=1,
+                      c.lambda=NULL,
                       compute.deriv=FALSE,
                       compute.mean=TRUE,
                       degree.max=NULL,
@@ -1107,7 +1107,7 @@ lm.ma.Est <- function(y=NULL,
                       deriv.order=1,
                       DKL.mat=NULL,
                       knots=FALSE,
-                      lambda.grid.num=2,
+                      lambda.S=1,
                       ma.weights=NULL,
                       method=c("jma","mma"),
                       parallel=FALSE,
@@ -1174,7 +1174,7 @@ lm.ma.Est <- function(y=NULL,
     ## If there is only one numeric predictor, use additive basis
     ## (waste to use auto in this case as all bases coincide)
 
-    if(num.x == 1 & is.null(num.z) & (basis != "additive")) {
+    if(num.x == 1 & (basis != "additive")) {
         basis <- "additive"
     }
 
@@ -1196,15 +1196,16 @@ lm.ma.Est <- function(y=NULL,
         include <- NULL
     } else {
         include <- rep(1,num.z)
-        if(lambda.grid.num==1) {
+        if(!is.null(c.lambda)) {
             lambda.vec <- c.lambda*num.z/num.obs
         } else {
-            lambda.vec <- seq(.Machine$double.eps,1,length=lambda.grid.num)
+            lambda.vec <- seq(.Machine$double.eps**0.25,1,length=max(2,floor(lambda.S*log(num.obs)/num.z)))**4
         }
+        n.lambda.vec <- length(lambda.vec)
     }
 
     if(is.null(degree.max)) {
-        degree.max <- max(2,ceiling(S*log(num.obs)/num.x))
+        degree.max <- max(2,floor(S*log(num.obs)/num.x))
     }
     
     P <- degree.max
@@ -1245,6 +1246,7 @@ lm.ma.Est <- function(y=NULL,
     }
 
     P.num <- NROW(DKL.mat)
+    basis.singular.vec <- logical(length=P.num)
 
     if(is.null(deriv.index)) deriv.index <- 1:ncol.X
     num.deriv <- length(deriv.index)
@@ -1288,7 +1290,13 @@ lm.ma.Est <- function(y=NULL,
                     include.vec[lambda.vec==1] <- 0
                 }
                 
-                if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+                if(verbose) {
+                    if(is.null(num.z)) {
+                        cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+                    } else {
+                        cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.vec,")...",sep=""))
+                    }
+                }
                 
                 ## This function is a bit odd, but when called with
                 ## weights this part is not evaluated, otherwise it is.
@@ -1334,13 +1342,11 @@ lm.ma.Est <- function(y=NULL,
                                 fit.spline.min <- fit.spline
                                 htt.min <- htt
                                 rank.min <- model.z.unique$rank
-                                basis.singular.min <- any(basis.singular==TRUE)
+                                basis.singular.vec[p] <- any(basis.singular==TRUE)
                                 basis.vec[p] <- b.basis
                             }
                             
                         }
-                        
-                        if(basis.singular.min & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
                         
                         fit.spline <- fit.spline.min
                         htt.min <- htt
@@ -1371,7 +1377,7 @@ lm.ma.Est <- function(y=NULL,
                             }
                             htt[zz] <- hatvalues(model.z.unique)[zz]
                         }
-                        if(any(basis.singular==TRUE) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
+                        basis.singular.vec[p] <- any(basis.singular==TRUE)
                     }
                     
                     fitted.mat[,p] <- fit.spline
@@ -1414,11 +1420,9 @@ lm.ma.Est <- function(y=NULL,
                                 fit.spline.min <- fitted(model.ma)
                                 model.ma.min <- model.ma
                                 basis.vec[p] <- b.basis
-                                basis.singular.min <- basis.singular
+                                basis.singular.vec[p] <- basis.singular
                             }
                         }
-                        
-                        if(basis.singular.min & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
                         
                         model.ma <- model.ma.min
                         fit.spline <- fitted(model.ma)
@@ -1427,7 +1431,7 @@ lm.ma.Est <- function(y=NULL,
                         
                         P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p])
                         if(attr(P,"relevant")) {
-                            if(!is.fullrank(P) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
+                            basis.singular.vec[p] <- !is.fullrank(P)
                             if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
                                 model.ma <- lm(y~P,weights=weights)
                             } else {
@@ -1476,8 +1480,14 @@ lm.ma.Est <- function(y=NULL,
                     include.vec[lambda.vec==1] <- 0
                 }
 		
-		            if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
-		
+                if(verbose) {
+                    if(is.null(num.z)) {
+                        cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+                    } else {
+                        cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.vec,")...",sep=""))
+                    }
+                }
+                
 		            ## This function is a bit odd, but when called with
 		            ## weights this part is not evaluated, otherwise it is.
 		            
@@ -1522,13 +1532,11 @@ lm.ma.Est <- function(y=NULL,
 		                            fit.spline.min <- fit.spline
 		                            htt.min <- htt
 		                            rank.min <- model.z.unique$rank
-		                            basis.singular.min <- any(basis.singular==TRUE)
+		                            basis.singular.vec[p] <- any(basis.singular==TRUE)
 		                            basis.vec[p] <- b.basis
 		                        }
 		 
 		                    }
-		
-		                    if(basis.singular.min & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
 		
 		                    fit.spline <- fit.spline.min
 		                    htt.min <- htt
@@ -1559,7 +1567,7 @@ lm.ma.Est <- function(y=NULL,
 		                        }
 		                        htt[zz] <- hatvalues(model.z.unique)[zz]
 		                    }
-		                    if(any(basis.singular==TRUE) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
+		                    basis.singular.vec[p] <- any(basis.singular==TRUE)
 		                 }
 		
 		                fitted.mat[,p] <- fit.spline
@@ -1602,11 +1610,9 @@ lm.ma.Est <- function(y=NULL,
 		                            fit.spline.min <- fitted(model.ma)
 		                            model.ma.min <- model.ma
 		                            basis.vec[p] <- b.basis
-		                            basis.singular.min <- basis.singular
+		                            basis.singular.vec[p] <- basis.singular
 		                        }
 		                    }
-		                    
-		                    if(basis.singular.min & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
 		                    
 		                    model.ma <- model.ma.min
 		                    fit.spline <- fitted(model.ma)
@@ -1615,7 +1621,7 @@ lm.ma.Est <- function(y=NULL,
 		
 		                    P <- prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p])
 		                    if(attr(P,"relevant")) {
-		                        if(!is.fullrank(P) & verbose) warning("Dimension basis is ill-conditioned - reduce degree.max")
+		                        basis.singular.vec[p] <- !is.fullrank(P)
 		                        if(basis.vec[p]=="additive" || basis.vec[p]=="taylor") {
 		                            model.ma <- lm(y~P,weights=weights)
 		                        } else {
@@ -1647,6 +1653,7 @@ lm.ma.Est <- function(y=NULL,
 		                 ma.mat=ma.mat[,p],
 		                 rank.vec=rank.vec[p],
 		                 basis.vec=basis.vec[p],
+                     basis.singular.vec=basis.singular.vec[p],
 		                 sigsq=sigsq[p])
 		
 		        }
@@ -1656,6 +1663,7 @@ lm.ma.Est <- function(y=NULL,
                 ma.mat[,p] <- output[[p]]$ma.mat
                 rank.vec[p] <- output[[p]]$rank.vec
                 basis.vec[p] <- output[[p]]$basis.vec
+                basis.singular.vec[p] <- output[[p]]$basis.singular.vec
                 sigsq[p] <- output[[p]]$sigsq
             }
 
@@ -1663,7 +1671,7 @@ lm.ma.Est <- function(y=NULL,
 
         }
 
-        if(verbose) cat("\r                                                    ")
+        if(verbose) cat("\r                                                                           ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing model average weights...")
 
@@ -1769,7 +1777,13 @@ lm.ma.Est <- function(y=NULL,
                 include.vec[lambda.vec==1] <- 0
             }
             
-            if(verbose) cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+            if(verbose) {
+                if(is.null(num.z)) {
+                    cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+                } else {
+                    cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.vec,")...",sep=""))
+                }
+            }
             
             if(compute.mean) {
 
@@ -2006,6 +2020,8 @@ lm.ma.Est <- function(y=NULL,
         }
     }
 
+    if(any(basis.singular.vec[b[b>1e-05]]) & verbose) warning("Non-zero weight candidate model basis is ill-conditioned - reduce degree.max")
+
     if(verbose) {
         cat("\r                                                            ")
         cat("\r")
@@ -2025,7 +2041,7 @@ lm.ma.Est <- function(y=NULL,
                 deriv.index=deriv.index,
                 degree.max=degree.max,
                 c.lambda=c.lambda,
-                lambda.grid.num=lambda.grid.num,
+                lambda.S=lambda.S,
                 lambda.vec=lambda.vec,
                 segments.min=segments.min,
                 segments.max=segments.max,

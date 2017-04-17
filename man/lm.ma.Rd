@@ -19,7 +19,7 @@ lm.ma(...)
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
-      c.lambda = 1,
+      c.lambda = NULL,
       compute.anova = FALSE,
       compute.anova.index = NULL,
       compute.deriv = FALSE,
@@ -30,7 +30,7 @@ lm.ma(...)
       deriv.order = 1,
       DKL.mat = NULL,
       knots = FALSE,
-      lambda.grid.num = 2,
+      lambda.S = 1,
       ma.weights = NULL,
       method = c("jma","mma"),
       parallel = FALSE,
@@ -56,7 +56,7 @@ lm.ma(...)
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
-      c.lambda = 1,
+      c.lambda = NULL,
       compute.anova = FALSE,
       compute.anova.index = NULL,
       compute.deriv = FALSE,
@@ -67,7 +67,7 @@ lm.ma(...)
       deriv.order = 1,
       DKL.mat = NULL,
       knots = FALSE,
-      lambda.grid.num = 2,
+      lambda.S = 1,
       ma.weights = NULL,
       method = c("jma","mma"),
       parallel = FALSE,
@@ -118,7 +118,7 @@ lm.ma(...)
 
   \item{compute.mean}{a logical value indicating whether or not to compute the conditional mean}
 
-  \item{degree.max}{maximum value for the basis degree in each dimension (defaults to \code{max(2,S*log(n)/k)} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
+  \item{degree.max}{maximum value for the basis degree in each dimension (defaults to \code{max(2,floor(S*log(n)/k))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
 
   \item{degree.min}{minimum value for the basis degree in each dimension}
 
@@ -130,7 +130,7 @@ lm.ma(...)
 
   \item{knots}{a logical value indicating whether or not to include interior knots}
 
-  \item{lambda.grid.num}{grid for smoothing parameter lambda \code{seq(c.lambda*num.z/num.obs,1,length=lambda.grid.num)}}
+  \item{lambda.S}{constant used to determine size of grid for lambda in each dimension (defaults to \code{max(2,floor(lambda.S*log(n)/p))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is \code{seq(0,1,length=max(2,floor(lambda.S*log(n)/p)))**4})}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
 
