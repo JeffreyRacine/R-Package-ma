@@ -769,6 +769,7 @@ lm.ma.default <- function(y=NULL,
     Est$compute.anova <- compute.anova
     Est$compute.anova.index <- compute.anova.index
     Est$bootstrap.ci <- bootstrap.ci
+    Est$alpha <- alpha
     
     if(verbose) cat("\r                                                                               ")
     if(verbose) cat("\r")
@@ -913,7 +914,7 @@ predict.lm.ma <- function(object,
                              verbose=object$verbose,
                              weights=object$weights,
                              ...)
-        
+
         if(object$bootstrap.ci | object$compute.deriv) {
             return(list(fit=Est$fitted.values,
                         deriv=Est$deriv,
