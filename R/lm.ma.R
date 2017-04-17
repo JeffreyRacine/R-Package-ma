@@ -1173,8 +1173,8 @@ lm.ma.Est <- function(y=NULL,
 
     ## If there is only one numeric predictor, use additive basis
     ## (waste to use auto in this case as all bases coincide)
-    
-    if(num.x == 1 & (basis != "additive")) {
+
+    if(num.x == 1 & is.null(num.z) & (basis != "additive")) {
         basis <- "additive"
     }
 
@@ -1196,7 +1196,11 @@ lm.ma.Est <- function(y=NULL,
         include <- NULL
     } else {
         include <- rep(1,num.z)
-        lambda.vec <- seq(c.lambda*num.z/num.obs,1,length=lambda.grid.num)
+        if(lambda.grid.num==1) {
+            lambda.vec <- c.lambda*num.z/num.obs
+        } else {
+            lambda.vec <- seq(.Machine$double.eps,1,length=lambda.grid.num)
+        }
     }
 
     if(is.null(degree.max)) {
