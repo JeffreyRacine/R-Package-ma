@@ -1160,12 +1160,11 @@ lm.ma.Est <- function(y=NULL,
         xeval <- xztmp$x
         zeval <- xztmp$z
         num.eval.obs <- NROW(X.eval)
-        ## Test for overlapping levels
+        ## Test for non-overlapping support of levels
         if(!is.null(num.z)) {
-            overlapping <- TRUE
-            for(i in 1:num.z) if(!all(zeval[,i] %in% z[,i])) overlapping <- FALSE
-            if(!overlapping) warning("evaluation and training levels do not overlap - prediction unreliable")
+            for(i in 1:num.z) if(!all(as.matrix(zeval)[,i] %in% as.matrix(z)[,i])) warning(paste(znames[i], " evaluation and training data have at least one non-overlapping level - prediction unreliable",sep=""),immediate.=TRUE)
         }
+
     } else {
         ## If there is no evaluation data set to x and z (wise?)
         xeval <- x
