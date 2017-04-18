@@ -1,3 +1,11 @@
+Changes from 1.01-2 to 1.0-3 [17-Apr-2017]
+
+- believe the glitch in multivariate derivatives with zero degree bases is fixed
+
+- added grid lambda capability, modified defaults
+
+- only report singular candidate bases if they receive non-zero weight in the final model
+
 Changes from 1.01-1 to 1.0-2 [14-Apr-2017]
 
 - added parallel capabilities to intensive parts (generating candidate models, bootstrapping, anova)
