@@ -307,6 +307,7 @@ summary(model.lm)
 ## Compare with the model average estimator (female and married are factors)
 
 model.ma <- lm.ma(lwage ~ female + married + educ + exper + tenure,
+                  parallel = TRUE,
                   compute.deriv = TRUE)
 
 summary(model.ma)
