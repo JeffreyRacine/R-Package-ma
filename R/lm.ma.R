@@ -100,6 +100,7 @@ lm.ma.formula <- function(formula,
     Est$call <- match.call()
     Est$formula <- formula
     Est$terms <- mt
+    Est$xlevels <- .getXlevels(mt, mf)
     
     Est$ptm <- (proc.time() - ptm)[3]
     if(exists.seed) assign(".Random.seed", save.seed, .GlobalEnv)
@@ -895,13 +896,17 @@ predict.lm.ma <- function(object,
     if(is.null(newdata)) {
         return(fitted(object))
     } else{
-        
-        tt <- terms(object)
-        exdat <- model.frame(delete.response(tt),newdata,xlev=object$xlevels)
+
+        newdata <- model.frame(delete.response(terms(object)),newdata,xlev=object$xlevels)
+
+        print("object$xlevels")
+        print(object$xlevels)
+        print("newdata")
+        print(newdata)
 
         Est <- lm.ma.default(y=object$y,
                              X=object$X,
-                             X.eval=exdat,
+                             X.eval=newdata,
                              alpha=object$alpha,
                              basis.vec=object$basis.vec,
                              basis=object$basis,
@@ -932,8 +937,6 @@ predict.lm.ma <- function(object,
                              ...)
 
         if(object$bootstrap.ci | object$compute.deriv) {
-            print("Est$deriv")            
-            print(Est$deriv)
             return(list(fit=Est$fitted.values,
                         deriv=Est$deriv,
                         fit.low=Est$fitted.ci.l,
@@ -975,24 +978,24 @@ plot.lm.ma <- function(x,
 
     ncol.X <- NCOL(x$X)
     if(!plot.deriv) {
-        xeval.median <- data.frame(matrix(NA,plot.num.eval,ncol.X))
-        names(xeval.median) <- xznames
+        xzeval.median <- data.frame(matrix(NA,plot.num.eval,ncol.X))
+        names(xzeval.median) <- xznames
         for(i in 1:ncol.X) {
-            xeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
+            xzeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
         }
         if(ncol.X > 1) par(mfrow=c(ifelse(ncol.X %%2 == 0, ncol.X/2, (ncol.X+1)/2),2))
         for(i in 1:ncol.X) {
-            xeval <- xeval.median
+            xzeval <- xzeval.median
             if(is.numeric.X[i]) {
-              xeval[,i] <- seq(uocquantile(x$X[,i],plot.xtrim),
+              xzeval[,i] <- seq(uocquantile(x$X[,i],plot.xtrim),
                                uocquantile(x$X[,i],1-plot.xtrim),
                                length=plot.num.eval)
               xlim <- c(uocquantile(x$X[,i],plot.xtrim),
                         uocquantile(x$X[,i],1-plot.xtrim))
             } else {
                 u <- sort(unique(x$X[,i]))
-                xeval[1:length(u),i] <- u
-                xeval <- xeval[1:length(u),]
+                xzeval[1:length(u),i] <- u
+                xzeval <- xzeval[1:length(u),]
             }
             x$compute.deriv <- FALSE
             if(plot.data) {
@@ -1006,46 +1009,46 @@ plot.lm.ma <- function(x,
                      ...)
                 if(is.numeric.X[i] & plot.rug) suppressWarnings(rug(x$X[x$X[,i] >= xlim[1] & x$X[,i] <= xlim[2] ,i]))
                 cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))                
-                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)    
+                foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=B)    
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(is.numeric.X[i]) {
-                    lines(xeval[,i],foo$fit,col=1)
+                    lines(xzeval[,i],foo$fit,col=1)
                 } else {
-                    points(xeval[,i],foo$fit,bg=1,col=1,pch=21)
+                    points(xzeval[,i],foo$fit,bg=1,col=1,pch=21)
                 }
                 if(plot.ci) {
                     if(is.numeric.X[i]) {
-                        lines(xeval[,i],foo$fit.low,col=2,lty=2)
-                        lines(xeval[,i],foo$fit.up,col=2,lty=2)
+                        lines(xzeval[,i],foo$fit.low,col=2,lty=2)
+                        lines(xzeval[,i],foo$fit.up,col=2,lty=2)
                     } else {
-                        points(xeval[,i],foo$fit.low,bg=2,col=2,pch=21)
-                        points(xeval[,i],foo$fit.up,bg=2,col=2,pch=21)
+                        points(xzeval[,i],foo$fit.low,bg=2,col=2,pch=21)
+                        points(xzeval[,i],foo$fit.up,bg=2,col=2,pch=21)
                     }
                 }
             } else {
                 cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))    
-                foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
+                foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=B)
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(!plot.ci) {
-                    plot(xeval[,i],foo$fit,
+                    plot(xzeval[,i],foo$fit,
                          ylab=yname,
                          xlab=xznames[i],
                          type=if(is.numeric.X[i]){"l"}else{"p"},
                          ...)
                 } else {
                     ylim <- range(c(foo$fit.low,foo$fit.up))
-                    plot(xeval[,i],foo$fit,
+                    plot(xzeval[,i],foo$fit,
                          ylab=yname,
                          xlab=xznames[i],
                          type=if(is.numeric.X[i]){"l"}else{"p"},
                          ylim=ylim,
                          ...)
                     if(is.numeric.X[i]) {
-                        lines(xeval[,i],foo$fit.low,col=2,lty=2)
-                        lines(xeval[,i],foo$fit.up,col=2,lty=2)
+                        lines(xzeval[,i],foo$fit.low,col=2,lty=2)
+                        lines(xzeval[,i],foo$fit.up,col=2,lty=2)
                     } else {
-                        points(xeval[,i],foo$fit.low,bg=2,col=2,pch=21)
-                        points(xeval[,i],foo$fit.up,bg=2,col=2,pch=21)                       
+                        points(xzeval[,i],foo$fit.low,bg=2,col=2,pch=21)
+                        points(xzeval[,i],foo$fit.up,bg=2,col=2,pch=21)                       
                     }
                 }
             }
@@ -1055,30 +1058,30 @@ plot.lm.ma <- function(x,
         
     } else {
         
-        xeval.median <- data.frame(matrix(NA,plot.num.eval,ncol.X))
-        names(xeval.median) <- xznames
+        xzeval.median <- data.frame(matrix(NA,plot.num.eval,ncol.X))
+        names(xzeval.median) <- xznames
         for(i in 1:ncol.X) {
-            xeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
+            xzeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
         }
         if(ncol.X > 1) par(mfrow=c(ifelse(ncol.X %%2 == 0, ncol.X/2, (ncol.X+1)/2),2))
         for(i in 1:ncol.X) {
             cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))
-            xeval <- xeval.median
+            xzeval <- xzeval.median
             if(is.numeric.X[i]) {
-                xeval[,i] <- seq(uocquantile(x$X[,i],plot.xtrim),
+                xzeval[,i] <- seq(uocquantile(x$X[,i],plot.xtrim),
                                  uocquantile(x$X[,i],1-plot.xtrim),
                                  length=plot.num.eval)
             } else {
                 u <- sort(unique(x$X[,i]))
-                xeval[1:length(u),i] <- u
-                xeval <- xeval[1:length(u),]
+                xzeval[1:length(u),i] <- u
+                xzeval <- xzeval[1:length(u),]
             }
             x$compute.deriv <- TRUE
             x$deriv.index <- i
  
-            foo <- predict(x,newdata=xeval,bootstrap.ci=plot.ci,B=B)
+            foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=B)
             if(!plot.ci) {
-                plot(xeval[,i],foo$deriv[,1],
+                plot(xzeval[,i],foo$deriv[,1],
                      ylab=if(is.numeric.X[i]){paste("d ",yname," / d ",xznames[i],sep="")}else{paste("Delta ",yname,sep="")},
                      xlab=xznames[i],
                      type=if(is.numeric.X[i]){"l"}else{"p"},
@@ -1086,7 +1089,7 @@ plot.lm.ma <- function(x,
                 abline(h=0,lty=2,col="grey")
             } else {
                 ylim <- range(c(foo$deriv.low[,1],foo$deriv.up[,1]))
-                plot(xeval[,i],foo$deriv[,1],
+                plot(xzeval[,i],foo$deriv[,1],
                      ylab=if(is.numeric.X[i]){paste("d ",yname," / d ",xznames[i],sep="")}else{paste("Delta ",yname,sep="")},
                      xlab=xznames[i],
                      type=if(is.numeric.X[i]){"l"}else{"p"},
@@ -1094,11 +1097,11 @@ plot.lm.ma <- function(x,
                      ...)
                 abline(h=0,lty=2,col="grey")                
                 if(is.numeric.X[i]) {
-                    lines(xeval[,i],foo$deriv.low[,1],col=2,lty=2)
-                    lines(xeval[,i],foo$deriv.up[,1],col=2,lty=2)
+                    lines(xzeval[,i],foo$deriv.low[,1],col=2,lty=2)
+                    lines(xzeval[,i],foo$deriv.up[,1],col=2,lty=2)
                 } else {
-                    points(xeval[,i],foo$deriv.low[,1],bg=2,col=2,pch=21)
-                    points(xeval[,i],foo$deriv.up[,1],bg=2,col=2,pch=21)                       
+                    points(xzeval[,i],foo$deriv.low[,1],bg=2,col=2,pch=21)
+                    points(xzeval[,i],foo$deriv.up[,1],bg=2,col=2,pch=21)                       
                 }
             }
         }
@@ -1801,17 +1804,6 @@ lm.ma.Est <- function(y=NULL,
                 include.vec[lambda.vec==1] <- 0
             }
 
-            #print("DS")
-            #print(DS)
-            #print("b")
-            #print(b)
-            #print("basis.vec[p]")
-            #print(basis.vec[p])            
-            #print("rank.vec[p]")
-            #print(rank.vec[p])
-            #print("lambda.vec")
-            #print(lambda.vec)            
-            
             if(verbose) {
                 if(is.null(num.z)) {
                     cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
