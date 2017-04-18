@@ -304,7 +304,7 @@ lm.ma.default <- function(y=NULL,
             cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
             registerDoParallel(cl)
 
-            output <- foreach(b=1:B,.verbose=verbose) %dopar% {
+            output <- foreach(b=1:B,.verbose=FALSE) %dopar% {
                 if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
                 ii <- sample(1:n,replace=TRUE)
                 out.boot <- lm.ma.Est(y=y[ii],
@@ -627,7 +627,7 @@ lm.ma.default <- function(y=NULL,
                 cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
                 registerDoParallel(cl)
                 
-                output <- foreach(b=1:B,.verbose=verbose) %dopar% {
+                output <- foreach(b=1:B,.verbose=FALSE) %dopar% {
                 
                     if(verbose) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests," (bootstrap replication ",b," of ",B,")",sep=""))
                     ## Residual bootstrap from the null model, use
@@ -1160,6 +1160,12 @@ lm.ma.Est <- function(y=NULL,
         xeval <- xztmp$x
         zeval <- xztmp$z
         num.eval.obs <- NROW(X.eval)
+        ## Test for overlapping levels
+        if(!is.null(num.z)) {
+            overlapping <- TRUE
+            for(i in 1:num.z) if(!any(levels(factor(zeval[,i]))==levels(factor(xeval[,i])))) overlapping <- FALSE
+            if(!overlapping) warning("evaluation and training levels do not overlap - prediction unreliable")
+        }
     } else {
         ## If there is no evaluation data set to x and z (wise?)
         xeval <- x
@@ -1232,16 +1238,6 @@ lm.ma.Est <- function(y=NULL,
         }
             
     }
-
-    ## Could it be here? Changing order could result in different basis ordering?
-    
-#    if(basis=="auto" & is.null(basis.vec) & is.null(ma.weights)) {
-#        basis.vec <- character()
-#    } else if(basis=="auto" & !is.null(basis.vec) & !is.null(ma.weights)) {
-#        basis.vec <- basis.vec[ma.weights>1e-05]
-#    }  else if(basis!="auto") {
-#        basis.vec <- rep(basis,NROW(DKL.mat))
-#    }
 
     if(!is.null(ma.weights)) {
         rank.vec <- rank.vec[ma.weights>1e-05]
@@ -1479,7 +1475,7 @@ lm.ma.Est <- function(y=NULL,
 
             ## Need p to be ascending in order for dopar inorder to function
 
-		        output <- foreach(p=1:P.num,.verbose=verbose) %dopar% {
+		        output <- foreach(p=1:P.num,.verbose=FALSE) %dopar% {
 		
                 DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])   
                 include.vec <- NULL
@@ -1693,7 +1689,7 @@ lm.ma.Est <- function(y=NULL,
         while(qr(D)$rank<M) {
             D <- D + diag(tol.ridge,M,M)
             tol.ridge <- tol.ridge*10
-            if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
+            #if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
             singular.D <- TRUE
         }
         if(method=="mma") {
@@ -1729,7 +1725,7 @@ lm.ma.Est <- function(y=NULL,
             while(qr(D)$rank<M) {
                 D <- D + diag(tol.ridge,M,M)
                 tol.ridge <- tol.ridge*10
-                if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
+                #if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
                 singular.D <- TRUE
             } 
             if(method=="mma") {
@@ -1752,10 +1748,10 @@ lm.ma.Est <- function(y=NULL,
             }
             
             if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
-                if(verbose) {
-                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>1e-05])," initial models, ",length(b.reb[b.reb>1e-05])," rebalanced ones)",sep=""))   
-                    if(!isTRUE(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))) warning(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))
-                }
+                #if(verbose) {
+                #    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>1e-05])," initial models, ",length(b.reb[b.reb>1e-05])," rebalanced ones)",sep=""))   
+                #    if(!isTRUE(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))) warning(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))
+                #}
                 b[b>1e-05] <- b.reb
             }
         }
