@@ -932,6 +932,8 @@ predict.lm.ma <- function(object,
                              ...)
 
         if(object$bootstrap.ci | object$compute.deriv) {
+            print("Est$deriv")            
+            print(Est$deriv)
             return(list(fit=Est$fitted.values,
                         deriv=Est$deriv,
                         fit.low=Est$fitted.ci.l,
@@ -963,7 +965,7 @@ plot.lm.ma <- function(x,
     if(!is.logical(plot.data)) stop("plot.data must be either TRUE or FALSE")   
     if(plot.num.eval<1) stop("plot.num.eval must be positive")
     if(plot.xtrim<0 | plot.xtrim>=0.5) stop("plot.xtrim must lie in [0,0.5)")
-    
+
     x$verbose <- FALSE
     x$bootstrap.ci <- plot.ci
     is.numeric.X <- x$numeric.logical
@@ -1116,7 +1118,7 @@ lm.ma.Est <- function(y=NULL,
                       X=NULL,
                       X.eval=NULL,
                       basis.vec=NULL,
-                      basis=c("tensor","taylor","additive","auto"),
+                      basis=c("auto","tensor","taylor","additive"),
                       c.lambda=NULL,
                       compute.deriv=FALSE,
                       compute.mean=TRUE,
@@ -1347,7 +1349,7 @@ lm.ma.Est <- function(y=NULL,
                                         model.z.unique <- lm(y~P-1,weights=L)
                                     }
                                     P <- prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=b.basis)
-                                    fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
+                                    fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                                 } else {
                                     model.z.unique <- lm(y~1,weights=L)
                                     fit.spline[zz] <- fitted(model.z.unique)[zz]
@@ -1391,7 +1393,7 @@ lm.ma.Est <- function(y=NULL,
                                     model.z.unique <- lm(y~P-1,weights=L)
                                 }
                                 P <- prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p])
-                                fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
+                                fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                             } else {
                                 model.z.unique <- lm(y~1,weights=L)
                                 fit.spline[zz] <- fitted(model.z.unique)[zz]
@@ -1537,7 +1539,7 @@ lm.ma.Est <- function(y=NULL,
 		                                    model.z.unique <- lm(y~P-1,weights=L)
 		                                }
 		                                P <- prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=b.basis)
-		                                fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
+		                                fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
 		                            } else {
 		                                model.z.unique <- lm(y~1,weights=L)
 		                                fit.spline[zz] <- fitted(model.z.unique)[zz]
@@ -1581,7 +1583,7 @@ lm.ma.Est <- function(y=NULL,
 		                                model.z.unique <- lm(y~P-1,weights=L)
 		                            }
 		                            P <- prod.spline(x=x,K=DS,xeval=x[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p])
-		                            fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
+		                            fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
 		                        } else {
 		                            model.z.unique <- lm(y~1,weights=L)
 		                            fit.spline[zz] <- fitted(model.z.unique)[zz]
@@ -1796,8 +1798,19 @@ lm.ma.Est <- function(y=NULL,
             if(!is.null(num.z)) {
                 lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
                 include.vec <- include
-#                include.vec[lambda.vec==1] <- 0
+                include.vec[lambda.vec==1] <- 0
             }
+
+            #print("DS")
+            #print(DS)
+            #print("b")
+            #print(b)
+            #print("basis.vec[p]")
+            #print(basis.vec[p])            
+            #print("rank.vec[p]")
+            #print(rank.vec[p])
+            #print("lambda.vec")
+            #print(lambda.vec)            
             
             if(verbose) {
                 if(is.null(num.z)) {
@@ -1829,7 +1842,7 @@ lm.ma.Est <- function(y=NULL,
                                 model.z.unique <- lm(y~P-1,weights=L)
                             }
                             P <- prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p])
-                            fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
+                            fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                         } else {
                             model.z.unique <- lm(y~1,weights=L)
                             fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(1:num.eval.obs))[zz]
@@ -1853,7 +1866,7 @@ lm.ma.Est <- function(y=NULL,
                             model.ma <- lm(y~P-1,weights=weights)
                         }
                         P <- prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p])
-                        fitted.mat[,p] <- predict(model.ma,newdata=data.frame(as.matrix(P)))
+                        fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                     } else {
                         model.ma <- lm(y~1,weights=weights)
                         fitted.mat[,p] <- predict(model.ma,newdata=data.frame(1:num.eval.obs))
@@ -1938,7 +1951,7 @@ lm.ma.Est <- function(y=NULL,
                                         model.z.unique <- lm(y~P-1,weights=L)
                                     }
                                     P <- prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p])
-                                    fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(as.matrix(P)))
+                                    fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                                 } else {
                                     model.z.unique <- lm(y~1,weights=L)
                                     fit.spline[zz] <- predict(model.z.unique,newdata=data.frame(1:num.eval.obs))[zz]
@@ -1999,7 +2012,7 @@ lm.ma.Est <- function(y=NULL,
                                 
                                 P <- prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval.base.tmp,knots="quantiles",basis=basis.vec[p])
                                 
-                                fit.spline <- predict(model.ma,newdata=data.frame(as.matrix(P)))
+                                fit.spline <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                             } else {
                                 model.ma <- lm(y~1,weights=weights)
                                 fit.spline <- predict(model.ma,newdata=data.frame(1:num.eval.obs))

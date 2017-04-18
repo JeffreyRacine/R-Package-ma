@@ -1,3 +1,7 @@
+Changes from 1.01-3 to 1.0-4 [18-Apr-2017]
+
+- first truly functioning version since incorporating parallel, extensive fumigation, degree zero and lambda grid
+
 Changes from 1.01-2 to 1.0-3 [17-Apr-2017]
 
 - believe the glitch in multivariate derivatives with zero degree bases is fixed
