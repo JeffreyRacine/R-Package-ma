@@ -1163,7 +1163,7 @@ lm.ma.Est <- function(y=NULL,
         ## Test for overlapping levels
         if(!is.null(num.z)) {
             overlapping <- TRUE
-            for(i in 1:num.z) if(!any(levels(factor(zeval[,i]))==levels(factor(xeval[,i])))) overlapping <- FALSE
+            for(i in 1:num.z) if(!all(zeval[,i] %in% z[,i])) overlapping <- FALSE
             if(!overlapping) warning("evaluation and training levels do not overlap - prediction unreliable")
         }
     } else {
