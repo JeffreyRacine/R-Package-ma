@@ -1260,16 +1260,14 @@ lm.ma.Est <- function(y=NULL,
     if(!is.null(ma.weights)) {
         rank.vec <- rank.vec[ma.weights>1e-05]
         DKL.mat <- DKL.mat[ma.weights>1e-05,,drop=FALSE]
+        basis.vec <- basis.vec[ma.weights>1e-05]
         ma.weights <- ma.weights[ma.weights>1e-05]/sum(ma.weights[ma.weights>1e-05])
+    } else {
+        basis.vec <- rep(basis,NROW(DKL.mat))
     }
 
     P.num <- NROW(DKL.mat)
     basis.singular.vec <- logical(length=P.num)
-    if(!is.null(basis.vec)) {
-        basis.vec <- basis.vec[ma.weights>1e-05]
-    } else {
-        basis.vec <- rep(basis,P.num)
-    }
 
     if(is.null(deriv.index)) deriv.index <- 1:ncol.X
     num.deriv <- length(deriv.index)
@@ -1310,7 +1308,7 @@ lm.ma.Est <- function(y=NULL,
                 if(!is.null(num.z)) {
                     lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
                     include.vec <- include
-#                    include.vec[lambda.vec==1] <- 0
+                    include.vec[lambda.vec==1] <- 0
                 }
                 
                 if(verbose) {
@@ -1792,12 +1790,13 @@ lm.ma.Est <- function(y=NULL,
 
         for(p in P.num:1) {
 
+
             DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])   
             include.vec <- NULL
             if(!is.null(num.z)) {
                 lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
                 include.vec <- include
-                include.vec[lambda.vec==1] <- 0
+#                include.vec[lambda.vec==1] <- 0
             }
             
             if(verbose) {
