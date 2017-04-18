@@ -36,6 +36,7 @@ lm.ma.formula <- function(formula,
                           S=2,
                           segments.min=1,
                           segments.max=3,
+                          trace=FALSE,
                           vc=TRUE,
                           verbose=TRUE,
                           weights=NULL,
@@ -87,6 +88,7 @@ lm.ma.formula <- function(formula,
                          S=S,
                          segments.min=segments.min,
                          segments.max=segments.max,
+                         trace=trace,
                          vc=vc,
                          verbose=verbose,
                          weights=weights,
@@ -138,6 +140,7 @@ lm.ma.default <- function(y=NULL,
                           S=2,
                           segments.min=1,
                           segments.max=3,
+                          trace=FALSE,
                           vc=TRUE,
                           verbose=TRUE,
                           weights=NULL,
@@ -183,6 +186,7 @@ lm.ma.default <- function(y=NULL,
                      lambda.S=lambda.S,
                      segments.min=segments.min,
                      segments.max=segments.max,
+                     trace=trace,
                      knots=knots,
                      S=S,
                      method=method,
@@ -220,7 +224,8 @@ lm.ma.default <- function(y=NULL,
                          c.lambda=c.lambda,
                          lambda.S=lambda.S,
                          segments.min=segments.min,
-                         segments.max=segments.max,
+                         segments.max=segments.max, 
+                         trace=trace,
                          knots=knots,
                          S=S,
                          method=method,
@@ -279,6 +284,7 @@ lm.ma.default <- function(y=NULL,
                                       lambda.S=lambda.S,
                                       segments.min=segments.min,
                                       segments.max=segments.max,
+                                      trace=trace,
                                       knots=knots,
                                       S=S,
                                       method=method,
@@ -321,6 +327,7 @@ lm.ma.default <- function(y=NULL,
                                       lambda.S=lambda.S,
                                       segments.min=segments.min,
                                       segments.max=segments.max,
+                                      trace=trace,
                                       knots=knots,
                                       S=S,
                                       method=method,
@@ -407,6 +414,7 @@ lm.ma.default <- function(y=NULL,
                                  lambda.S=lambda.S,
                                  segments.min=segments.min,
                                  segments.max=segments.max,
+                                 trace=trace,
                                  knots=knots,
                                  S=S,
                                  method=method,
@@ -453,6 +461,7 @@ lm.ma.default <- function(y=NULL,
                                      lambda.S=lambda.S,
                                      segments.min=segments.min,
                                      segments.max=segments.max,
+                                     trace=trace,
                                      knots=knots,
                                      S=S,
                                      method=method,
@@ -527,6 +536,7 @@ lm.ma.default <- function(y=NULL,
                                               lambda.S=lambda.S,
                                               segments.min=segments.min,
                                               segments.max=segments.max,
+                                              trace=trace,
                                               knots=knots,
                                               S=S,
                                               method=method,
@@ -556,6 +566,7 @@ lm.ma.default <- function(y=NULL,
                                               lambda.S=lambda.S,
                                               segments.min=segments.min,
                                               segments.max=segments.max,
+                                              trace=trace,
                                               knots=knots,
                                               S=S,
                                               method=method,
@@ -589,6 +600,7 @@ lm.ma.default <- function(y=NULL,
                                                   lambda.S=lambda.S,
                                                   segments.min=segments.min,
                                                   segments.max=segments.max,
+                                                  trace=trace,
                                                   knots=knots,
                                                   S=S,
                                                   method=method,
@@ -655,6 +667,7 @@ lm.ma.default <- function(y=NULL,
                                               lambda.S=lambda.S,
                                               segments.min=segments.min,
                                               segments.max=segments.max,
+                                              trace=trace,
                                               knots=knots,
                                               S=S,
                                               method=method,
@@ -684,6 +697,7 @@ lm.ma.default <- function(y=NULL,
                                               lambda.S=lambda.S,
                                               segments.min=segments.min,
                                               segments.max=segments.max,
+                                              trace=trace,
                                               knots=knots,
                                               S=S,
                                               method=method,
@@ -717,6 +731,7 @@ lm.ma.default <- function(y=NULL,
                                                   lambda.S=lambda.S,
                                                   segments.min=segments.min,
                                                   segments.max=segments.max,
+                                                  trace=trace,
                                                   knots=knots,
                                                   S=S,
                                                   method=method,
@@ -832,7 +847,7 @@ summary.lm.ma <- function(object,
     rank.vec <- rank.vec[order(rank.vec)]
     
     cat("\n\nNon-zero model average weights: ")
-    cat(formatC(ma.weights/sum(ma.weights),format="f",digits=5))
+    cat(formatC(ma.weights,format="f",digits=5))
     cat("\nNon-zero weight model ranks: ")
     cat(rank.vec)
     if(object$basis=="auto") {
@@ -910,6 +925,7 @@ predict.lm.ma <- function(object,
                              S=object$S,
                              segments.min=object$segments.min,
                              segments.max=object$segments.max,
+                             trace=object$trace,
                              vc=object$vc,
                              verbose=object$verbose,
                              weights=object$weights,
@@ -1120,6 +1136,7 @@ lm.ma.Est <- function(y=NULL,
                       S=2,
                       segments.min=1,
                       segments.max=3,
+                      trace=TRUE,
                       vc=TRUE,
                       verbose=TRUE,
                       weights=NULL,                      
@@ -1161,7 +1178,7 @@ lm.ma.Est <- function(y=NULL,
         zeval <- xztmp$z
         num.eval.obs <- NROW(X.eval)
         ## Test for non-overlapping support of numeric predictors
-        ## for(i in 1:num.x) if(min(xeval[,i]) < min(x[,i]) | max(xeval[,i]) > max(x[,i])) warning(paste(xnames[i], " evaluation data extends beyond the support of training data - prediction unreliable",sep=""),immediate.=TRUE)
+        if(trace) for(i in 1:num.x) if(min(xeval[,i]) < min(x[,i]) | max(xeval[,i]) > max(x[,i])) warning(paste(xnames[i], " evaluation data extends beyond the support of training data - prediction unreliable",sep=""),immediate.=TRUE)
         ## Test for non-overlapping support of categorical predictors
         if(!is.null(num.z)) {
             for(i in 1:num.z) if(!all(as.matrix(zeval)[,i] %in% as.matrix(z)[,i])) warning(paste(znames[i], " evaluation and training data have at least one non-overlapping level - prediction unreliable",sep=""),immediate.=TRUE)
@@ -1690,7 +1707,7 @@ lm.ma.Est <- function(y=NULL,
         while(qr(D)$rank<M) {
             D <- D + diag(tol.ridge,M,M)
             tol.ridge <- tol.ridge*10
-            #if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
+            if(trace) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
             singular.D <- TRUE
         }
         if(method=="mma") {
@@ -1726,7 +1743,7 @@ lm.ma.Est <- function(y=NULL,
             while(qr(D)$rank<M) {
                 D <- D + diag(tol.ridge,M,M)
                 tol.ridge <- tol.ridge*10
-                #if(verbose) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
+                if(trace) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
                 singular.D <- TRUE
             } 
             if(method=="mma") {
@@ -1749,10 +1766,10 @@ lm.ma.Est <- function(y=NULL,
             }
             
             if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
-                #if(verbose) {
-                #    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>1e-05])," initial models, ",length(b.reb[b.reb>1e-05])," rebalanced ones)",sep=""))   
-                #    if(!isTRUE(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))) warning(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))
-                #}
+                if(trace) {
+                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>1e-05])," initial models, ",length(b.reb[b.reb>1e-05])," rebalanced ones)",sep=""))   
+                    if(!isTRUE(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))) warning(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))
+                }
                 b[b>1e-05] <- b.reb
             }
         }
@@ -2063,6 +2080,7 @@ lm.ma.Est <- function(y=NULL,
                 restrict.sum.ma.weights=restrict.sum.ma.weights,
                 segments.max=segments.max,
                 segments.min=segments.min,
+                trace=trace,
                 vc=vc,
                 verbose=verbose,
                 xnames=xnames,

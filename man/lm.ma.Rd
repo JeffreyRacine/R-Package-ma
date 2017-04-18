@@ -41,6 +41,7 @@ lm.ma(...)
       S = 2,
       segments.min = 1,
       segments.max = 3,
+      trace = FALSE,
       vc = TRUE,
       verbose = TRUE,
       weights = NULL,
@@ -78,6 +79,7 @@ lm.ma(...)
       S = 2,
       segments.min = 1,
       segments.max = 3,
+      trace = FALSE,
       vc = TRUE,
       verbose = TRUE,
       weights = NULL,
@@ -152,6 +154,8 @@ lm.ma(...)
 
   \item{segments.max}{when \code{knots=TRUE} the maximum number of segments (i.e., number of knots minus 1 - there always exist two knots, the endpoints) to allow for the B-spline basis}
 
+  \item{trace}{a logical value indicating whether or not to issue a detailed progress report via \code{warning}}
+  
   \item{vc}{a logical value indicating whether to allow the categorical predictors to enter additively (only the intercept can shift) or to instead use a varying coefficient structure (all parameters can shift)}
 
   \item{verbose}{a logical value indicating whether to report detailed progress during computation (\code{warnings()} are not issued when \code{verbose=FALSE})}
