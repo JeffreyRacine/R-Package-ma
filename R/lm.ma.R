@@ -2033,7 +2033,7 @@ lm.ma.Est <- function(y=NULL,
     if(compute.mean) {
         fitted.values <- fitted.mat%*%b
     }
-    
+
     if(compute.deriv) {
         if(verbose) cat("\r                                                    ")
         if(verbose) cat("\r")
