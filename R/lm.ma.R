@@ -173,44 +173,52 @@ lm.ma.default <- function(y=NULL,
     ## First obtain weights, then in subsequent call computes fits and
     ## derivatives
 
-    Est <- lm.ma.Est(y=y,
-                     X=X,
-                     X.eval=X.eval,
-                     basis=basis,
-                     compute.deriv=FALSE,
-                     compute.mean=TRUE,
-                     deriv.order=deriv.order,
-                     degree.min=degree.min,
-                     deriv.index=deriv.index,
-                     degree.max=degree.max,
-                     c.lambda=c.lambda,
-                     lambda.S=lambda.S,
-                     segments.min=segments.min,
-                     segments.max=segments.max,
-                     trace=trace,
-                     knots=knots,
-                     S=S,
-                     method=method,
-                     ma.weights=ma.weights,
-                     basis.vec=basis.vec,
-                     parallel=parallel,
-                     parallel.cores=parallel.cores,
-                     rank.vec=rank.vec,
-                     restrict.sum.ma.weights=restrict.sum.ma.weights,
-                     DKL.mat=DKL.mat,
-                     weights=weights,
-                     vc=vc,
-                     verbose=verbose,
-                     ...)
+    ## Can this be avoided on subsequent calls?
+    ## if(is.null(ma.weights)) compute, otherwise pass arguments?
+
+    if(is.null(ma.weights)) {
+        Est <- lm.ma.Est(y=y,
+                         X=X,
+                         X.eval=X.eval,
+                         basis=basis,
+                         compute.deriv=FALSE,
+                         compute.mean=TRUE,
+                         deriv.order=deriv.order,
+                         degree.min=degree.min,
+                         deriv.index=deriv.index,
+                         degree.max=degree.max,
+                         c.lambda=c.lambda,
+                         lambda.S=lambda.S,
+                         segments.min=segments.min,
+                         segments.max=segments.max,
+                         trace=trace,
+                         knots=knots,
+                         S=S,
+                         method=method,
+                         ma.weights=ma.weights,
+                         basis.vec=basis.vec,
+                         parallel=parallel,
+                         parallel.cores=parallel.cores,
+                         rank.vec=rank.vec,
+                         restrict.sum.ma.weights=restrict.sum.ma.weights,
+                         DKL.mat=DKL.mat,
+                         weights=weights,
+                         vc=vc,
+                         verbose=verbose,
+                         ...)
+
+        ma.weights <- Est$ma.weights
+        rank.vec <- Est$rank.vec
+        DKL.mat <- Est$DKL.mat
+        basis.vec <- Est$basis.vec
+
+    }
 
     ## Save rank vector and matrix of degrees and segments (not
     ## computed in next call since ma.weights is passed, but needed
     ## for summary)
 
     if(compute.deriv | !is.null(X.eval)) {
-        rank.vec <- Est$rank.vec
-        DKL.mat <- Est$DKL.mat
-        basis.vec <- Est$basis.vec
 
         Est <- lm.ma.Est(y=y,
                          X=X,
@@ -230,13 +238,13 @@ lm.ma.default <- function(y=NULL,
                          knots=knots,
                          S=S,
                          method=method,
-                         ma.weights=Est$ma.weights,
-                         basis.vec=Est$basis.vec,
-                         parallel=Est$parallel,
-                         parallel.cores=Est$parallel.cores,
-                         rank.vec=Est$rank.vec,
+                         ma.weights=ma.weights,
+                         basis.vec=basis.vec,
+                         parallel=parallel,
+                         parallel.cores=parallel.cores,
+                         rank.vec=rank.vec,
                          restrict.sum.ma.weights=restrict.sum.ma.weights,
-                         DKL.mat=Est$DKL.mat,
+                         DKL.mat=DKL.mat,
                          weights=weights,
                          vc=vc,
                          verbose=verbose,
@@ -897,16 +905,9 @@ predict.lm.ma <- function(object,
         return(fitted(object))
     } else{
 
-        newdata <- model.frame(delete.response(terms(object)),newdata,xlev=object$xlevels)
-
-        print("object$xlevels")
-        print(object$xlevels)
-        print("newdata")
-        print(newdata)
-
         Est <- lm.ma.default(y=object$y,
                              X=object$X,
-                             X.eval=newdata,
+                             X.eval=model.frame(delete.response(terms(object)),newdata,xlev=object$xlevels),
                              alpha=object$alpha,
                              basis.vec=object$basis.vec,
                              basis=object$basis,
@@ -978,6 +979,7 @@ plot.lm.ma <- function(x,
 
     ncol.X <- NCOL(x$X)
     if(!plot.deriv) {
+        ## Plot partial means
         xzeval.median <- data.frame(matrix(NA,plot.num.eval,ncol.X))
         names(xzeval.median) <- xznames
         for(i in 1:ncol.X) {
@@ -988,8 +990,8 @@ plot.lm.ma <- function(x,
             xzeval <- xzeval.median
             if(is.numeric.X[i]) {
               xzeval[,i] <- seq(uocquantile(x$X[,i],plot.xtrim),
-                               uocquantile(x$X[,i],1-plot.xtrim),
-                               length=plot.num.eval)
+                                uocquantile(x$X[,i],1-plot.xtrim),
+                                length=plot.num.eval)
               xlim <- c(uocquantile(x$X[,i],plot.xtrim),
                         uocquantile(x$X[,i],1-plot.xtrim))
             } else {
@@ -1057,7 +1059,8 @@ plot.lm.ma <- function(x,
         if(ncol.X > 1) par(mfrow=c(1,1))
         
     } else {
-        
+
+        ## Plot derivatives
         xzeval.median <- data.frame(matrix(NA,plot.num.eval,ncol.X))
         names(xzeval.median) <- xznames
         for(i in 1:ncol.X) {
@@ -1069,16 +1072,17 @@ plot.lm.ma <- function(x,
             xzeval <- xzeval.median
             if(is.numeric.X[i]) {
                 xzeval[,i] <- seq(uocquantile(x$X[,i],plot.xtrim),
-                                 uocquantile(x$X[,i],1-plot.xtrim),
-                                 length=plot.num.eval)
+                                  uocquantile(x$X[,i],1-plot.xtrim),
+                                  length=plot.num.eval)
             } else {
                 u <- sort(unique(x$X[,i]))
                 xzeval[1:length(u),i] <- u
                 xzeval <- xzeval[1:length(u),]
             }
+
             x$compute.deriv <- TRUE
             x$deriv.index <- i
- 
+
             foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=B)
             if(!plot.ci) {
                 plot(xzeval[,i],foo$deriv[,1],
@@ -1313,7 +1317,7 @@ lm.ma.Est <- function(y=NULL,
                 if(!is.null(num.z)) {
                     lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
                     include.vec <- include
-                    include.vec[lambda.vec==1] <- 0
+                    #include.vec[lambda.vec==1] <- 0
                 }
                 
                 if(verbose) {
@@ -1503,7 +1507,7 @@ lm.ma.Est <- function(y=NULL,
                 if(!is.null(num.z)) {
                     lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
                     include.vec <- include
-                    include.vec[lambda.vec==1] <- 0
+                    #include.vec[lambda.vec==1] <- 0
                 }
 		
                 if(verbose) {
@@ -1801,7 +1805,7 @@ lm.ma.Est <- function(y=NULL,
             if(!is.null(num.z)) {
                 lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
                 include.vec <- include
-                include.vec[lambda.vec==1] <- 0
+                #include.vec[lambda.vec==1] <- 0
             }
 
             if(verbose) {
@@ -1878,8 +1882,6 @@ lm.ma.Est <- function(y=NULL,
                     K.additive[,2] <- ifelse(DS[,1]==0,0,DS[,2])
                     K.additive[,1] <- ifelse(DS[,1]>0,DS[,1]-1,DS[,1])
                 }
-
-                ## Must be fact that the indices are not 1,2,3
 
                 for(k in 1:num.deriv) {
 
@@ -1964,24 +1966,23 @@ lm.ma.Est <- function(y=NULL,
                                 P.deriv <- prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p],deriv.index=kk,deriv=deriv.order)
                                 dim.P.tensor <- NCOL(P)
                                 deriv.ind.vec <- logical(length=NCOL(P))
-                                coef.vec.model <- numeric(length=NCOL(P))
                                 if(basis.vec[p]=="additive") {
                                     model <- lm(y~P,weights=weights)
-                                    coef.vec.model <- coef(model)[-1]
+                                    coef.model <- coef(model)[-1]
                                     dim.P.deriv <- sum(K.additive[kk,])
                                     deriv.start <- ifelse(kk!=1,sum(K.additive[1:(kk-1),])+1,1)
                                     deriv.end <- deriv.start+sum(K.additive[kk,])-1
                                     deriv.ind.vec[deriv.start:deriv.end] <- TRUE
                                 } else if(basis.vec[p]=="tensor") {
                                     model <- lm(y~P-1,weights=weights)
-                                    coef.vec.model <- coef(model)
+                                    coef.model <- coef(model)
                                     deriv.ind.vec[1:dim.P.tensor] <- TRUE
                                 } else if(basis.vec[p]=="taylor") {
                                     model <- lm(y~P,weights=weights)
-                                    coef.vec.model <- coef(model)[-1]
+                                    coef.model <- coef(model)[-1]
                                     deriv.ind.vec[1:dim.P.tensor] <- TRUE
                                 }
-                                model.deriv <- P.deriv[,deriv.ind.vec,drop=FALSE]%*%coef.vec.model[deriv.ind.vec]
+                                model.deriv <- P.deriv[,deriv.ind.vec,drop=FALSE]%*%coef.model[deriv.ind.vec]
                             } else {
                                 model.deriv <- rep(0, num.eval.obs)
                             }
