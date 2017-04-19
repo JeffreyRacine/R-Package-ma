@@ -19,7 +19,7 @@ lm.ma(...)
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
-      c.lambda = NULL,
+      c.lambda = 1,
       compute.anova = FALSE,
       compute.anova.index = NULL,
       compute.deriv = FALSE,
@@ -58,7 +58,7 @@ lm.ma(...)
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
-      c.lambda = NULL,
+      c.lambda = 1,
       compute.anova = FALSE,
       compute.anova.index = NULL,
       compute.deriv = FALSE,
@@ -134,7 +134,7 @@ lm.ma(...)
 
   \item{knots}{a logical value indicating whether or not to include interior knots}
 
-  \item{lambda.S}{constant used to determine size of grid for lambda in each dimension (defaults to \code{max(2,floor(lambda.S*log(n)/p))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is \code{seq(0,1,length=max(2,floor(lambda.S*log(n)/p)))**2})}
+  \item{lambda.S}{constant used to determine size of grid for lambda in each dimension (defaults to \code{max(2,floor(lambda.S*log(n)/p))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is \code{seq(c.lambda*num.z/num.obs,1,length=max(2,floor(lambda.S*log(num.obs)/num.z)))})}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
 

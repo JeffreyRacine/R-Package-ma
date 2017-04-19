@@ -14,7 +14,7 @@ lm.ma.formula <- function(formula,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
-                          c.lambda=NULL,
+                          c.lambda=1,
                           compute.anova=FALSE,
                           compute.anova.index=NULL,
                           compute.deriv=FALSE,
@@ -121,7 +121,7 @@ lm.ma.default <- function(y=NULL,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
-                          c.lambda=NULL,
+                          c.lambda=1,
                           compute.anova=FALSE,
                           compute.anova.index=NULL,
                           compute.deriv=FALSE,
@@ -153,7 +153,7 @@ lm.ma.default <- function(y=NULL,
     basis <- match.arg(basis)
     method <- match.arg(method)
 
-    if(!is.null(c.lambda)) if(c.lambda < 0) stop("c.lambda must be non-negative")
+    if(c.lambda < 0) stop("c.lambda must be non-negative")
     if(lambda.S < 1) stop("lambda.S must be a positive integer")
     if(!is.null(parallel.cores)) if(parallel.cores < 1) stop("the number of cores requested must be a positive integer")
     if(!is.logical(parallel)) stop("parallel must be either TRUE or FALSE")
@@ -1144,7 +1144,7 @@ lm.ma.Est <- function(y=NULL,
                       X.eval=NULL,
                       basis.vec=NULL,
                       basis=c("auto","tensor","taylor","additive"),
-                      c.lambda=NULL,
+                      c.lambda=1,
                       compute.deriv=FALSE,
                       compute.mean=TRUE,
                       degree.max=NULL,
@@ -1256,11 +1256,7 @@ lm.ma.Est <- function(y=NULL,
         include <- NULL
     } else {
         include <- rep(1,num.z)
-        if(!is.null(c.lambda)) {
-            lambda.vec <- c.lambda*num.z/num.obs
-        } else {
-            lambda.vec <- seq(.Machine$double.eps**0.25,1,length=max(2,floor(lambda.S*log(num.obs)/num.z)))**2
-        }
+        lambda.vec <- seq(c.lambda*num.z/num.obs,1,length=max(1,floor(lambda.S*log(num.obs)/num.z)))
         n.lambda.vec <- length(lambda.vec)
     }
 
