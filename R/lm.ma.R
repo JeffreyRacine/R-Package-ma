@@ -27,6 +27,7 @@ lm.ma.formula <- function(formula,
                           knots=FALSE,
                           lambda.S=1,
                           ma.weights=NULL,
+                          ma.weights.cutoff=1e-04,
                           method=c("jma","mma"),
                           parallel=FALSE,
                           parallel.cores=NULL,
@@ -79,6 +80,7 @@ lm.ma.formula <- function(formula,
                          c.lambda=c.lambda,
                          lambda.S=lambda.S,
                          ma.weights=ma.weights,
+                         ma.weights.cutoff=ma.weights.cutoff,
                          method=method,
                          parallel=parallel,
                          parallel.cores=parallel.cores,
@@ -132,6 +134,7 @@ lm.ma.default <- function(y=NULL,
                           knots=FALSE,
                           lambda.S=1,
                           ma.weights=NULL,
+                          ma.weights.cutoff=1e-04,
                           method=c("jma","mma"),
                           parallel=FALSE,
                           parallel.cores=NULL,
@@ -196,6 +199,7 @@ lm.ma.default <- function(y=NULL,
                          S=S,
                          method=method,
                          ma.weights=ma.weights,
+                         ma.weights.cutoff=ma.weights.cutoff,
                          basis.vec=basis.vec,
                          parallel=parallel,
                          parallel.cores=parallel.cores,
@@ -239,6 +243,7 @@ lm.ma.default <- function(y=NULL,
                          S=S,
                          method=method,
                          ma.weights=ma.weights,
+                         ma.weights.cutoff=ma.weights.cutoff,
                          basis.vec=basis.vec,
                          parallel=parallel,
                          parallel.cores=parallel.cores,
@@ -298,6 +303,7 @@ lm.ma.default <- function(y=NULL,
                                       S=S,
                                       method=method,
                                       ma.weights=Est$ma.weights,
+                                      ma.weights.cutoff=ma.weights.cutoff,
                                       basis.vec=Est$basis.vec,
                                       parallel=Est$parallel,
                                       parallel.cores=Est$parallel.cores,
@@ -341,6 +347,7 @@ lm.ma.default <- function(y=NULL,
                                       S=S,
                                       method=method,
                                       ma.weights=Est$ma.weights,
+                                      ma.weights.cutoff=ma.weights.cutoff,
                                       basis.vec=Est$basis.vec,
                                       parallel=FALSE,
                                       parallel.cores=Est$parallel.cores,
@@ -428,6 +435,7 @@ lm.ma.default <- function(y=NULL,
                                  S=S,
                                  method=method,
                                  ma.weights=Est$ma.weights,
+                                 ma.weights.cutoff=ma.weights.cutoff,
                                  basis.vec=Est$basis.vec,
                                  parallel=Est$parallel,
                                  parallel.cores=Est$parallel.cores,
@@ -447,7 +455,8 @@ lm.ma.default <- function(y=NULL,
 
         for(k in 1:num.tests) {
 
-            if(verbose) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests,sep=""))
+            if(verbose & num.tests>1) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests,sep=""))
+            if(verbose & num.tests==1) cat(paste("\rAnova for predictor ",compute.anova.index[k],sep=""))
 
             is.numeric.X.k <- is.numeric(X[,compute.anova.index[k]])
             
@@ -475,6 +484,7 @@ lm.ma.default <- function(y=NULL,
                                      S=S,
                                      method=method,
                                      ma.weights=Est.ssu$ma.weights,
+                                     ma.weights.cutoff=ma.weights.cutoff,
                                      basis.vec=Est.ssu$basis.vec,
                                      parallel=Est.ssu$parallel,
                                      parallel.cores=Est.ssu$parallel.cores,
@@ -519,7 +529,8 @@ lm.ma.default <- function(y=NULL,
             if(!parallel) {
 
                 for(b in 1:B) {
-                    if(verbose) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests," (bootstrap replication ",b," of ",B,")",sep=""))
+                    if(verbose & num.tests>1) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests," (bootstrap replication ",b," of ",B,")",sep=""))
+                    if(verbose & num.tests==1) cat(paste("\rAnova for predictor ",compute.anova.index[k]," (bootstrap replication ",b," of ",B,")",sep=""))
                     ## Residual bootstrap from the null model, use
                     ## original model configuration with bootstrap y
                     
@@ -550,6 +561,7 @@ lm.ma.default <- function(y=NULL,
                                               S=S,
                                               method=method,
                                               ma.weights=ma.weights,
+                                              ma.weights.cutoff=ma.weights.cutoff,
                                               basis.vec=basis.vec,
                                               parallel=parallel,
                                               parallel.cores=parallel.cores,
@@ -580,6 +592,7 @@ lm.ma.default <- function(y=NULL,
                                               S=S,
                                               method=method,
                                               ma.weights=Est.ssu.boot$ma.weights,
+                                              ma.weights.cutoff=ma.weights.cutoff,
                                               basis.vec=Est.ssu.boot$basis.vec,
                                               parallel=Est.ssu.boot$parallel,
                                               parallel.cores=Est.ssu.boot$parallel.cores,
@@ -614,6 +627,7 @@ lm.ma.default <- function(y=NULL,
                                                   S=S,
                                                   method=method,
                                                   ma.weights=Est.ssu.boot$ma.weights,
+                                                  ma.weights.cutoff=ma.weights.cutoff,
                                                   basis.vec=Est.ssu.boot$basis.vec,
                                                   parallel=Est.ssu.boot$parallel,
                                                   parallel.cores=Est.ssu.boot$parallel.cores,
@@ -681,6 +695,7 @@ lm.ma.default <- function(y=NULL,
                                               S=S,
                                               method=method,
                                               ma.weights=ma.weights,
+                                              ma.weights.cutoff=ma.weights.cutoff,
                                               basis.vec=basis.vec,
                                               parallel=FALSE, ## override since already in parallel
                                               parallel.cores=parallel.cores,
@@ -711,6 +726,7 @@ lm.ma.default <- function(y=NULL,
                                               S=S,
                                               method=method,
                                               ma.weights=Est.ssu.boot$ma.weights,
+                                              ma.weights.cutoff=ma.weights.cutoff,
                                               basis.vec=Est.ssu.boot$basis.vec,
                                               parallel=FALSE,
                                               parallel.cores=Est.ssu.boot$parallel.cores,
@@ -745,6 +761,7 @@ lm.ma.default <- function(y=NULL,
                                                   S=S,
                                                   method=method,
                                                   ma.weights=Est.ssu.boot$ma.weights,
+                                                  ma.weights.cutoff=ma.weights.cutoff,
                                                   basis.vec=Est.ssu.boot$basis.vec,
                                                   parallel=FALSE,
                                                   parallel.cores=Est.ssu.boot$parallel.cores,
@@ -830,7 +847,7 @@ summary.lm.ma <- function(object,
 
     cat("Call:\n")
     print(object$call)
-    cat("\nModel Averaging Linear Regression",sep="")
+   cat("\nModel Averaging Linear Regression",sep="")
     cat(paste(ifelse(object$vc, " (Varying Coefficient Specification)"," (Additive Dummy Specification)"),sep=""))
     cat(paste("\nModel average criterion: ", ifelse(object$method=="jma","Jackknife (Hansen and Racine (2013))","Mallows  (Hansen (2007))"), sep=""))
     cat(paste("\nMinimum degree: ", object$degree.min, sep=""))  
@@ -847,9 +864,9 @@ summary.lm.ma <- function(object,
     cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
     cat(paste("\nEstimation time: ", formatC(object$ptm,digits=1,format="f")), " seconds",sep="")
 
-    ma.weights <- object$ma.weights[object$ma.weights>1e-05]
-    rank.vec <- object$rank.vec[object$ma.weights>1e-05]
-    basis.vec <- object$basis.vec[object$ma.weights>1e-05]
+    ma.weights <- object$ma.weights[object$ma.weights>object$ma.weights.cutoff]
+    rank.vec <- object$rank.vec[object$ma.weights>object$ma.weights.cutoff]
+    basis.vec <- object$basis.vec[object$ma.weights>object$ma.weights.cutoff]
 
     ma.weights <- ma.weights[order(rank.vec)]
     basis.vec <- basis.vec[order(rank.vec)]
@@ -875,8 +892,8 @@ summary.lm.ma <- function(object,
         maxPvalLen <- max(ncp <- nchar(format.pval(object$P.vec)))
         maxrejLen <- max(ncr <- nchar(reject))
 
-        cat("\n\nNonparametric significance test(s)\n")
-        cat("P Value(s):", paste("\n", nm," ",
+        if(length(object$compute.anova.index)==1){cat("\n\nNonparametric significance test\n")}else{cat("\n\nNonparametric significance tests\n")}
+        cat(if(length(object$compute.anova.index)==1){"P Value:"}else{"P Values:"}, paste("\n", nm," ",
                                  blank(maxNameLen-nc),
                                  format.pval(object$P.vec),
                                  blank(maxPvalLen-ncp),
@@ -922,6 +939,7 @@ predict.lm.ma <- function(object,
                              DKL.mat=object$DKL.mat,
                              lambda.S=object$lambda.S,
                              ma.weights=object$ma.weights,
+                             ma.weights.cutoff=object$ma.weights.cutoff,
                              method=object$method,
                              parallel=object$parallel,
                              parallel.cores=object$parallel.cores,
@@ -1137,6 +1155,7 @@ lm.ma.Est <- function(y=NULL,
                       knots=FALSE,
                       lambda.S=1,
                       ma.weights=NULL,
+                      ma.weights.cutoff=1e-04,
                       method=c("jma","mma"),
                       parallel=FALSE,
                       parallel.cores=NULL,
@@ -1240,7 +1259,7 @@ lm.ma.Est <- function(y=NULL,
         if(!is.null(c.lambda)) {
             lambda.vec <- c.lambda*num.z/num.obs
         } else {
-            lambda.vec <- seq(.Machine$double.eps**0.25,1,length=max(2,floor(lambda.S*log(num.obs)/num.z)))**4
+            lambda.vec <- seq(.Machine$double.eps**0.25,1,length=max(2,floor(lambda.S*log(num.obs)/num.z)))**2
         }
         n.lambda.vec <- length(lambda.vec)
     }
@@ -1267,10 +1286,10 @@ lm.ma.Est <- function(y=NULL,
     }
 
     if(!is.null(ma.weights)) {
-        rank.vec <- rank.vec[ma.weights>1e-05]
-        DKL.mat <- DKL.mat[ma.weights>1e-05,,drop=FALSE]
-        basis.vec <- basis.vec[ma.weights>1e-05]
-        ma.weights <- ma.weights[ma.weights>1e-05]/sum(ma.weights[ma.weights>1e-05])
+        rank.vec <- rank.vec[ma.weights>ma.weights.cutoff]
+        DKL.mat <- DKL.mat[ma.weights>ma.weights.cutoff,,drop=FALSE]
+        basis.vec <- basis.vec[ma.weights>ma.weights.cutoff]
+        ma.weights <- ma.weights[ma.weights>ma.weights.cutoff]/sum(ma.weights[ma.weights>ma.weights.cutoff])
     } else {
         basis.vec <- rep(basis,NROW(DKL.mat))
     }
@@ -1709,7 +1728,7 @@ lm.ma.Est <- function(y=NULL,
         ## weights
         M <- ncol(ma.mat)
         D <- t(ma.mat)%*%ma.mat
-        tol.ridge <- 1e-08
+        tol.ridge <- sqrt(.Machine$double.eps)
         singular.D <- FALSE
         while(qr(D)$rank<M) {
             D <- D + diag(tol.ridge,M,M)
@@ -1742,10 +1761,10 @@ lm.ma.Est <- function(y=NULL,
             ## model average weights (trivial overhead and can only
             ## improve upon the existing weights when D is not
             ## well-conditioned)
-            ma.mat.reb <- ma.mat[,b>1e-05,drop=FALSE]
+            ma.mat.reb <- ma.mat[,b>ma.weights.cutoff,drop=FALSE]
             M <- ncol(ma.mat.reb)
             D <- t(ma.mat.reb)%*%ma.mat.reb
-            tol.ridge <- 1e-08
+            tol.ridge <- sqrt(.Machine$double.eps)
             singular.D <- FALSE
             while(qr(D)$rank<M) {
                 D <- D + diag(tol.ridge,M,M)
@@ -1754,7 +1773,7 @@ lm.ma.Est <- function(y=NULL,
                 singular.D <- TRUE
             } 
             if(method=="mma") {
-                rank.vec.reb <- rank.vec[b>1e-05]
+                rank.vec.reb <- rank.vec[b>ma.weights.cutoff]
                 d <- -sigsq[which.max(rank.vec)]*rank.vec.reb
             } else {
                 d <- t(y)%*%ma.mat.reb
@@ -1772,12 +1791,12 @@ lm.ma.Est <- function(y=NULL,
                 b.reb <- b.reb/sum(b.reb)
             }
             
-            if(!isTRUE(all.equal(as.numeric(b[b>1e-05]),as.numeric(b.reb)))) {
+            if(!isTRUE(all.equal(as.numeric(b[b>ma.weights.cutoff]),as.numeric(b.reb)))) {
                 if(trace) {
-                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>1e-05])," initial models, ",length(b.reb[b.reb>1e-05])," rebalanced ones)",sep=""))   
-                    if(!isTRUE(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))) warning(all.equal(b[b>1e-05],b.reb[b.reb>1e-05]))
+                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>ma.weights.cutoff])," initial models, ",length(b.reb[b.reb>ma.weights.cutoff])," rebalanced ones)",sep=""))   
+                    if(!isTRUE(all.equal(b[b>ma.weights.cutoff],b.reb[b.reb>ma.weights.cutoff]))) warning(all.equal(b[b>ma.weights.cutoff],b.reb[b.reb>ma.weights.cutoff]))
                 }
-                b[b>1e-05] <- b.reb
+                b[b>ma.weights.cutoff] <- b.reb
             }
         }
 
@@ -2048,7 +2067,7 @@ lm.ma.Est <- function(y=NULL,
         }
     }
     
-    if(any(basis.singular.vec[b[b>1e-05]]) & verbose) warning("Non-zero weight candidate model basis is ill-conditioned - reduce degree.max")
+    if(any(basis.singular.vec[b[b>ma.weights.cutoff]]) & verbose) warning("Non-zero weight candidate model basis is ill-conditioned - reduce degree.max")
 
     if(verbose) {
         cat("\r                                                            ")
@@ -2074,6 +2093,7 @@ lm.ma.Est <- function(y=NULL,
                 lambda.vec=lambda.vec,
                 ma.model.rank=sum(rank.vec*abs(b)),
                 ma.weights=if(is.null(ma.weights)){abs(b)}else{ma.weights.orig},
+                ma.weights.cutoff=ma.weights.cutoff,
                 method=method,
                 nobs=num.obs,
                 num.x=num.x,

@@ -32,6 +32,7 @@ lm.ma(...)
       knots = FALSE,
       lambda.S = 1,
       ma.weights = NULL,
+      ma.weights.cutoff=1e-04,
       method = c("jma","mma"),
       parallel = FALSE,
       parallel.cores = NULL,
@@ -70,6 +71,7 @@ lm.ma(...)
       knots = FALSE,
       lambda.S = 1,
       ma.weights = NULL,
+      ma.weights.cutoff=1e-04,
       method = c("jma","mma"),
       parallel = FALSE,
       parallel.cores = NULL,
@@ -132,9 +134,11 @@ lm.ma(...)
 
   \item{knots}{a logical value indicating whether or not to include interior knots}
 
-  \item{lambda.S}{constant used to determine size of grid for lambda in each dimension (defaults to \code{max(2,floor(lambda.S*log(n)/p))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is \code{seq(0,1,length=max(2,floor(lambda.S*log(n)/p)))**4})}
+  \item{lambda.S}{constant used to determine size of grid for lambda in each dimension (defaults to \code{max(2,floor(lambda.S*log(n)/p))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is \code{seq(0,1,length=max(2,floor(lambda.S*log(n)/p)))**2})}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
+
+  \item{ma.weights.cutoff}{a small number below which a model weights is deemed to be essentially zero}
 
   \item{method}{a character string indicating whether to use jackknife model averaging (jma, Hansen and Racine (2013)) or Mallows model averaging (mma, Hansen (2007))}
 
