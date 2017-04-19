@@ -76,8 +76,8 @@ prod.spline <- function(x,
         if(knots=="uniform") {
           knots.vec <- NULL
         } else {
-          ## quantile knots
-          knots.vec <- as.numeric(quantile(x[,i,drop=FALSE],probs=seq(0,1,length=(K[i,2]+1))))
+            ## quantile knots
+          knots.vec <- as.numeric(quantile(x[,i,drop=FALSE],probs=seq(0,1,length=(K[i,2]+1),type=1)))
 #          if(length(unique(sort(knots.vec))) < length(knots.vec)) {
             ## Correct issue of repeated knots points caused by point
             ## mass data (e.g. knots will be c(0,0,0,1,5), repeated
@@ -88,7 +88,7 @@ prod.spline <- function(x,
             ## throw off predict etc. Note - there is something odd
             ## about what is produced by quantile as unique does not
             ## work as expected. 1e-20 is too small, 1e-10 works.
-          knots.vec <- knots.vec + seq(0,1e-10*(max(x[,i,drop=FALSE])-min(x[,i,drop=FALSE])),length=length(knots.vec))
+          knots.vec <- knots.vec + seq(0,sqrt(.Machine$double.eps)*(max(x[,i,drop=FALSE])-min(x[,i,drop=FALSE])),length=length(knots.vec))
 #          }
         }
         if((i==deriv.index)&&(deriv!=0)) {
@@ -128,7 +128,7 @@ prod.spline <- function(x,
         if(deriv!=0) {
           P.deriv <- list()
           for(i in 1:length(tp)) P.deriv[[i]] <- matrix(0,1,ncol(tp[[i]]))
-          deriv.index <- deriv.index - length(which((K[,1]==0)))
+          deriv.index <- deriv.index - length(which((K[1:deriv.index,1]==0)))
           while(deriv.index<=0) deriv.index <- deriv.index + 1
           P.deriv[[deriv.index]] <- matrix(NA,1,ncol(tp[[deriv.index]]))
           P[,!is.na(as.numeric(taylor.model.matrix(P.deriv)))] <- 0

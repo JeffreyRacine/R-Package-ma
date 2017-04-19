@@ -1,4 +1,6 @@
-Changes from 1.01-3 to 1.0-4 [18-Apr-2017]
+Changes from 1.01-3 to 1.0-4 [19-Apr-2017]
+
+- big subtle roach squashed - corrected glitch that could arise when computing derivatives and multiple predictors have degree 0 when using glp basis
 
 - first truly functioning version since incorporating parallel, extensive fumigation, degree zero and lambda grid
 
