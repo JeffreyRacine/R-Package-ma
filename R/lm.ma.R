@@ -408,9 +408,20 @@ lm.ma.default <- function(y=NULL,
             num.tests <- length(compute.anova.index)
         }
 
-        nrow.X <- NROW(X)
-        ncol.X <- NCOL(X)
-        
+        numeric.logical <- Est$numeric.logical
+        num.x <- Est$num.x
+        num.z <- Est$num.z
+        num.obs <- Est$num.obs
+        xzindex <- 1:num.x
+        xzindex[numeric.logical] <- 1:num.x
+        num.pred <- num.x
+        if(!is.null(num.z)) {
+            num.pred <- num.x+num.z
+            xzindex <- 1:num.pred
+            xzindex[numeric.logical] <- 1:num.x
+            xzindex[!numeric.logical] <- 1:num.z            
+        }
+
         P.vec <- numeric(length=num.tests)
         F.stat <- numeric(length=num.tests)
         F.boot <- numeric(length=B)
@@ -462,9 +473,11 @@ lm.ma.default <- function(y=NULL,
             
             X.res <- X[,-compute.anova.index[k],drop=FALSE]
 
+            
             ## With > 1 predictor, restricted model does not incorporate the kth predictor
 
-            if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
+            if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
+
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
                                      X.eval=NULL,
@@ -490,7 +503,7 @@ lm.ma.default <- function(y=NULL,
                                      parallel.cores=Est.ssu$parallel.cores,
                                      rank.vec=Est.ssu$rank.vec,
                                      restrict.sum.ma.weights=Est.ssu$restrict.sum.ma.weights,
-                                     DKL.mat=if(is.numeric.X.k){Est.ssu$DKL.mat[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu$num.x)),drop=FALSE]}else{Est.ssu$DKL.mat},
+                                     DKL.mat=if(is.numeric.X.k){Est.ssu$DKL.mat[,c(-xzindex[compute.anova.index[k]],-(xzindex[compute.anova.index[k]]+num.x)),drop=FALSE]}else{Est.ssu$DKL.mat},
                                      weights=weights,
                                      vc=vc,
                                      verbose=FALSE,
@@ -501,12 +514,12 @@ lm.ma.default <- function(y=NULL,
                 if(!is.numeric.X.k & vc) {
                     ssr.rank <- ssr.rank - 1
                 }
-            } else if(ncol.X == 1) {
+            } else if(num.pred == 1) {
                 ## With only one predictor, restricted model is
                 ## unconditional mean
                 ssr <- sum((y-mean(y))^2)
                 ssr.rank <- 1
-            } else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
+            } else if(num.pred>1 & num.x == 1 & is.numeric.X.k) {
                 foo <- X.res
                 for(i in 1:NCOL(foo)) foo[,i] <- as.numeric(foo[,i])
                 ## Only one numeric predictor, rest must be factors, compute multivariate mean
@@ -515,7 +528,7 @@ lm.ma.default <- function(y=NULL,
                 ind <-  attr(z.unique,"index")
                 ind.vals <-  unique(ind)
                 nrow.z.unique <- nrow(z.unique)
-                mv.mean <- numeric(length=nrow.X)
+                mv.mean <- numeric(length=num.obs)
                 for(i in 1:nrow.z.unique) {
                     zz <- ind == ind.vals[i]
                     mv.mean[zz] <- mean(y[zz])
@@ -524,7 +537,7 @@ lm.ma.default <- function(y=NULL,
                 ssr.rank <- 1
             }
 
-            F.stat[k] <- (nrow.X-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
+            F.stat[k] <- (num.obs-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
 
             if(!parallel) {
 
@@ -534,11 +547,11 @@ lm.ma.default <- function(y=NULL,
                     ## Residual bootstrap from the null model, use
                     ## original model configuration with bootstrap y
                     
-                    if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
-                        y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(nrow.X/(nrow.X-ssr.rank)),size=nrow.X,replace=TRUE)
-                    }  else if(ncol.X == 1) {
+                    if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
+                        y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(num.obs/(num.obs-ssr.rank)),size=num.obs,replace=TRUE)
+                    }  else if(num.pred == 1) {
                         y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
-                    }  else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
+                    }  else if(num.pred>1 & num.x == 1 & is.numeric.X.k) {
                         y.boot <- mv.mean + sample(y-mv.mean,replace=TRUE)                    
                     }
                     
@@ -606,7 +619,7 @@ lm.ma.default <- function(y=NULL,
                     
                     ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)  
                     
-                    if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
+                    if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
                         
                         Est.ssr.boot <- lm.ma.Est(y=y.boot,
                                                   X=X.res,
@@ -633,7 +646,7 @@ lm.ma.default <- function(y=NULL,
                                                   parallel.cores=Est.ssu.boot$parallel.cores,
                                                   rank.vec=Est.ssu.boot$rank.vec,
                                                   restrict.sum.ma.weights=Est.ssu.boot$restrict.sum.ma.weights,
-                                                  DKL.mat=if(is.numeric.X.k){Est.ssu.boot$DKL.mat[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu.boot$num.x)),drop=FALSE]}else{Est.ssu.boot$DKL.mat},
+                                                  DKL.mat=if(is.numeric.X.k){Est.ssu.boot$DKL.mat[,c(-xzindex[compute.anova.index[k]],-(xzindex[compute.anova.index[k]]+num.x)),drop=FALSE]}else{Est.ssu.boot$DKL.mat},
                                                   weights=weights,
                                                   vc=vc,
                                                   verbose=FALSE,
@@ -641,9 +654,9 @@ lm.ma.default <- function(y=NULL,
                         
                         ssr.boot <- sum((y.boot-Est.ssr.boot$fitted.values)^2)         
                         
-                    } else if(ncol.X == 1) {
+                    } else if(num.pred == 1) {
                         ssr.boot <- sum((y.boot-mean(y.boot))^2)
-                    }   else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
+                    }   else if(num.pred>1 & num.x == 1 & is.numeric.X.k) {
                         for(i in 1:nrow.z.unique) {
                             zz <- ind == ind.vals[i]
                             mv.mean[zz] <- mean(y.boot[zz])
@@ -651,7 +664,7 @@ lm.ma.default <- function(y=NULL,
                         ssr.boot <- sum((y.boot-mv.mean)^2)
                     }
                     
-                    F.boot[b] <- (nrow.X-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot)
+                    F.boot[b] <- (num.obs-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot)
 
                 }
 
@@ -668,11 +681,11 @@ lm.ma.default <- function(y=NULL,
                     ## Residual bootstrap from the null model, use
                     ## original model configuration with bootstrap y
                     
-                    if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
-                        y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(nrow.X/(nrow.X-ssr.rank)),size=nrow.X,replace=TRUE)
-                    }  else if(ncol.X == 1) {
+                    if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
+                        y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(num.obs/(num.obs-ssr.rank)),size=num.obs,replace=TRUE)
+                    }  else if(num.pred == 1) {
                         y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
-                    }  else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
+                    }  else if(num.pred>1 & num.x == 1 & is.numeric.X.k) {
                         y.boot <- mv.mean + sample(y-mv.mean,replace=TRUE)                    
                     }
                     
@@ -740,7 +753,7 @@ lm.ma.default <- function(y=NULL,
                     
                     ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)  
                     
-                    if(ncol.X>1 & (Est.ssu$num.x>1 | (Est.ssu$num.x==1 & !is.numeric.X.k))) {
+                    if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
                         
                         Est.ssr.boot <- lm.ma.Est(y=y.boot,
                                                   X=X.res,
@@ -767,7 +780,7 @@ lm.ma.default <- function(y=NULL,
                                                   parallel.cores=Est.ssu.boot$parallel.cores,
                                                   rank.vec=Est.ssu.boot$rank.vec,
                                                   restrict.sum.ma.weights=Est.ssu.boot$restrict.sum.ma.weights,
-                                                  DKL.mat=if(is.numeric.X.k){Est.ssu.boot$DKL.mat[,c(-compute.anova.index[k],-(compute.anova.index[k]+Est.ssu.boot$num.x)),drop=FALSE]}else{Est.ssu.boot$DKL.mat},
+                                                  DKL.mat=if(is.numeric.X.k){Est.ssu.boot$DKL.mat[,c(-xzindex[compute.anova.index[k]],-(xzindex[compute.anova.index[k]]+num.x)),drop=FALSE]}else{Est.ssu.boot$DKL.mat},
                                                   weights=weights,
                                                   vc=vc,
                                                   verbose=FALSE,
@@ -775,9 +788,9 @@ lm.ma.default <- function(y=NULL,
                         
                         ssr.boot <- sum((y.boot-Est.ssr.boot$fitted.values)^2)         
                         
-                    } else if(ncol.X == 1) {
+                    } else if(num.pred == 1) {
                         ssr.boot <- sum((y.boot-mean(y.boot))^2)
-                    }   else if(ncol.X>1 & Est.ssu$num.x == 1 & is.numeric.X.k) {
+                    }   else if(num.pred>1 & num.x == 1 & is.numeric.X.k) {
                         for(i in 1:nrow.z.unique) {
                             zz <- ind == ind.vals[i]
                             mv.mean[zz] <- mean(y.boot[zz])
@@ -785,7 +798,7 @@ lm.ma.default <- function(y=NULL,
                         ssr.boot <- sum((y.boot-mv.mean)^2)
                     }
                     
-                    list(F.boot=(nrow.X-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot))
+                    list(F.boot=(num.obs-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot))
                     
                 }
 
@@ -857,10 +870,10 @@ summary.lm.ma <- function(object,
         cat(paste("\nMaximum number of interior knots: ", object$segments.max-1, sep=""))  
     }
     cat(paste("\nBasis: ", object$basis, sep=""))  
-    cat(paste("\nNumber of observations: ", object$nobs, sep=""))
+    cat(paste("\nNumber of observations: ", object$num.obs, sep=""))
     cat(paste("\nEquivalent number of parameters: ", formatC(object$ma.model.rank,format="f",digits=2), sep=""))
-    cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$nobs-sum(object$rank.vec*object$ma.weights))),digits=4),
-              " on ", formatC(object$nobs-sum(object$rank.vec*object$ma.weights),format="f",digits=2)," degrees of freedom",sep=""))
+    cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$num.obs-sum(object$rank.vec*object$ma.weights))),digits=4),
+              " on ", formatC(object$num.obs-sum(object$rank.vec*object$ma.weights),format="f",digits=2)," degrees of freedom",sep=""))
     cat(paste("\nMultiple R-squared: ", format(object$r.squared,digits=4), sep=""))
     cat(paste("\nEstimation time: ", formatC(object$ptm,digits=1,format="f")), " seconds",sep="")
 
@@ -1208,9 +1221,7 @@ lm.ma.Est <- function(y=NULL,
         ## Test for non-overlapping support of numeric predictors
         if(trace) for(i in 1:num.x) if(min(xeval[,i]) < min(x[,i]) | max(xeval[,i]) > max(x[,i])) warning(paste(xnames[i], " evaluation data extends beyond the support of training data - prediction unreliable",sep=""),immediate.=TRUE)
         ## Test for non-overlapping support of categorical predictors
-        if(!is.null(num.z)) {
-            for(i in 1:num.z) if(!all(as.matrix(zeval)[,i] %in% as.matrix(z)[,i])) warning(paste(znames[i], " evaluation and training data have at least one non-overlapping level - prediction unreliable",sep=""),immediate.=TRUE)
-        }
+        if(!is.null(num.z) & trace) for(i in 1:num.z) if(!all(as.matrix(zeval)[,i] %in% as.matrix(z)[,i])) warning(paste(znames[i], " evaluation and training data have at least one non-overlapping level - prediction unreliable",sep=""),immediate.=TRUE)
 
     } else {
         ## If there is no evaluation data set to x and z (wise?)
@@ -1256,9 +1267,11 @@ lm.ma.Est <- function(y=NULL,
         include <- NULL
     } else {
         include <- rep(1,num.z)
-        lambda.vec <- seq(c.lambda*num.z/num.obs,1,length=max(1,floor(lambda.S*log(num.obs)/num.z)))
+        lambda.vec <- seq(0,1,length=max(1,floor(lambda.S*log(num.obs)/num.z)))**4
+        lambda.vec[1] <- c.lambda*num.z/num.obs
         n.lambda.vec <- length(lambda.vec)
     }
+
 
     if(is.null(degree.max)) {
         degree.max <- max(2,floor(S*log(num.obs)/num.x))
@@ -2091,7 +2104,7 @@ lm.ma.Est <- function(y=NULL,
                 ma.weights=if(is.null(ma.weights)){abs(b)}else{ma.weights.orig},
                 ma.weights.cutoff=ma.weights.cutoff,
                 method=method,
-                nobs=num.obs,
+                num.obs=num.obs,
                 num.x=num.x,
                 num.z=num.z,
                 numeric.logical=numeric.logical,
