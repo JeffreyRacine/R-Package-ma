@@ -90,9 +90,9 @@ lm.ma(...)
 }
 
 \arguments{
-  \item{formula}{ a symbolic description of the model to be fit }
+  \item{formula}{a symbolic description of the model to be fit }
 
-  \item{data}{ an optional data frame containing the variables in the model }
+  \item{data}{an optional data frame containing the variables in the model }
 
   \item{y}{a one dimensional vector of dependent data}
 
@@ -100,7 +100,7 @@ lm.ma(...)
 
   \item{X.eval}{a \eqn{p}-variate data frame of points on which the regression will be estimated (evaluation data)}
 
-  \item{alpha}{value in (0,1) used to compute \eqn{1-\alpha\%} confidence intervals}
+  \item{alpha}{a value in (0,1) used to compute \eqn{1-\alpha\%} confidence intervals}
 
   \item{B}{the number of bootstrap replications desired}
 
@@ -110,31 +110,29 @@ lm.ma(...)
   
   \item{bootstrap.ci}{a logical value indicating whether or not to bootstrap nonparametric confidence intervals}
 
-  \item{c.lambda}{constant for smoothing parameter lambda for weight
-  function for the categorical predictors when \code{vc=TRUE} (defaults
-  to \code{lambda=c.lambda*p/n} where \code{p} is the number of categorical predictors and \code{n} the number of observations)}
+  \item{c.lambda}{a constant for the smoothing parameter lambda used in the weight function for the categorical predictors when \code{vc=TRUE} (defaults to \code{lambda=c.lambda*p/n} where \code{p} is the number of categorical predictors and \code{n} the number of observations)}
 
   \item{compute.anova}{a logical value indicating whether or not conduct an anova-based bootstrap procedure to test for predictor significance}
 
-  \item{compute.anova.index}{an optional vector of indices indicating as to which predictor(s) the test procedure is to be performed (default is all predictors)}
+  \item{compute.anova.index}{an optional vector of indices indicating which predictor(s) are to be tested (default is all predictors)}
 
   \item{compute.deriv}{a logical value indicating whether or not to compute derivatives}
 
   \item{compute.mean}{a logical value indicating whether or not to compute the conditional mean}
 
-  \item{degree.max}{maximum value for the basis degree in each dimension (defaults to \code{max(2,floor(S*log(n)/k))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
+  \item{degree.max}{the maximum value for the basis degree in each dimension (defaults to \code{max(2,floor(S*log(n)/k))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
 
-  \item{degree.min}{minimum value for the basis degree in each dimension}
+  \item{degree.min}{the minimum value for the basis degree in each dimension}
 
-  \item{deriv.index}{optional vector of indices indicating as to which predictor(s) the derivative computation is to be performed}
+  \item{deriv.index}{an optional vector of indices indicating as to which predictor(s) the derivative computation is to be performed}
   
-  \item{deriv.order}{integer indicating order of derivative desired}
+  \item{deriv.order}{an integer indicating order of derivative desired}
 
-  \item{DKL.mat}{matrix with degree, knots, and lambda values that could optionally be passed to the basis routines}
+  \item{DKL.mat}{a matrix with degree, knots, and lambda values that could optionally be passed to the basis routines}
 
   \item{knots}{a logical value indicating whether or not to include interior knots}
 
-  \item{lambda.S}{constant used to determine size of grid for lambda in each dimension (defaults to \code{max(2,floor(lambda.S*log(n)/p))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is determined by \code{seq(0,1,length=max(2,floor(lambda.S*log(num.obs)/num.z)))**4}  with the first element \code{0} being replaced with \code{c.lambda*num.z/num.obs})}
+  \item{lambda.S}{a constant used to determine size of grid for lambda in each dimension (defaults to \code{max(2,floor(lambda.S*log(n)/p))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is determined by \code{seq(0,1,length=max(2,floor(lambda.S*log(num.obs)/num.z)))**4}  with the first element \code{0} being replaced with \code{c.lambda*num.z/num.obs})}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
 
@@ -154,9 +152,9 @@ lm.ma(...)
 
   \item{S}{the constant in the data-driven rule for determining degree.max}
 
-  \item{segments.min}{when \code{knots=TRUE} the minimum number of segments (i.e., number of knots minus 1 - there always exist two knots, the endpoints) to allow for the B-spline basis}
+  \item{segments.min}{the minimum number of segments when \code{knots=TRUE} (i.e., number of knots minus 1 - there always exist two knots, the endpoints) to allow for the B-spline basis}
 
-  \item{segments.max}{when \code{knots=TRUE} the maximum number of segments (i.e., number of knots minus 1 - there always exist two knots, the endpoints) to allow for the B-spline basis}
+  \item{segments.max}{the maximum number of segments when \code{knots=TRUE} (i.e., number of knots minus 1 - there always exist two knots, the endpoints) to allow for the B-spline basis}
 
   \item{trace}{a logical value indicating whether or not to issue a detailed progress report via \code{warning}}
   
