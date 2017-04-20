@@ -211,7 +211,6 @@ lm.ma.default <- function(y=NULL,
                          verbose=verbose,
                          ...)
 
-        ma.weights <- Est$ma.weights
         rank.vec <- Est$rank.vec
         DKL.mat <- Est$DKL.mat
         basis.vec <- Est$basis.vec
