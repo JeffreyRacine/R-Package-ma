@@ -47,7 +47,7 @@ uocquantile = function(x, prob = 0.5) {
     j = which(tq == max(tq))[1]
     sort(unique(x))[j]
   } else {
-    quantile(x, probs = prob)
+    quantile(x, probs = prob, type = 1)
   }
 }
 
