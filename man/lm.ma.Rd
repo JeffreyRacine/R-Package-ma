@@ -24,6 +24,7 @@ lm.ma(...)
       compute.anova.index = NULL,
       compute.deriv = FALSE,
       compute.mean = TRUE,
+      degree.by = 1,
       degree.max = NULL,
       degree.min = 0,
       deriv.index = NULL,
@@ -40,8 +41,9 @@ lm.ma(...)
       restrict.sum.ma.weights = TRUE,
       rng.seed = 42,
       S = 2,
-      segments.min = 1,
+      segments.by = 1,
       segments.max = 3,
+      segments.min = 1,
       trace = FALSE,
       vc = TRUE,
       verbose = TRUE,
@@ -63,6 +65,7 @@ lm.ma(...)
       compute.anova.index = NULL,
       compute.deriv = FALSE,
       compute.mean = TRUE,
+      degree.by = 1,
       degree.max = NULL,
       degree.min = 0,
       deriv.index = NULL,
@@ -79,8 +82,9 @@ lm.ma(...)
       restrict.sum.ma.weights = TRUE,
       rng.seed = 42,
       S = 2,
-      segments.min = 1,
+      segments.by = 1,
       segments.max = 3,
+      segments.min = 1,
       trace = FALSE,
       vc = TRUE,
       verbose = TRUE,
@@ -118,7 +122,10 @@ lm.ma(...)
 
   \item{compute.deriv}{a logical value indicating whether or not to compute derivatives}
 
-  \item{compute.mean}{a logical value indicating whether or not to compute the conditional mean}
+  \item{compute.mean}{a logical value indicating whether or not to
+    compute the conditional mean}
+
+  \item{degree.by}{increment in degree sequence}
 
   \item{degree.max}{the maximum value for the basis degree in each dimension (defaults to \code{max(2,floor(S*log(n)/k))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
 
@@ -151,6 +158,8 @@ lm.ma(...)
   \item{rng.seed}{an integer used to seed R's random number generator. This is to ensure replicability}
 
   \item{S}{the constant in the data-driven rule for determining degree.max}
+
+  \item{segments.by}{increment in segments sequence}
 
   \item{segments.min}{the minimum number of segments when \code{knots=TRUE} (i.e., number of knots minus 1 - there always exist two knots, the endpoints) to allow for the B-spline basis}
 
