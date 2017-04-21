@@ -1,4 +1,4 @@
-useDynLib(ma)
+useDynLib(ma, .registration = TRUE)
 import(stats, doParallel, foreach, parallel, quadprog)
 importFrom("graphics", "lines", "par", "plot", "points", "rug", "abline")
 
