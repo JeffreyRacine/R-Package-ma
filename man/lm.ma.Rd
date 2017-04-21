@@ -24,14 +24,14 @@ lm.ma(...)
       compute.anova.index = NULL,
       compute.deriv = FALSE,
       compute.mean = TRUE,
-      degree.by = 1,
+      degree.by = 2,
       degree.max = NULL,
       degree.min = 0,
       deriv.index = NULL,
       deriv.order = 1,
       DKL.mat = NULL,
       knots = FALSE,
-      lambda.S = 1,
+      lambda.S = 2,
       ma.weights = NULL,
       ma.weights.cutoff=1e-04,
       method = c("jma","mma"),
@@ -41,7 +41,7 @@ lm.ma(...)
       restrict.sum.ma.weights = TRUE,
       rng.seed = 42,
       S = 2,
-      segments.by = 1,
+      segments.by = 2,
       segments.max = 3,
       segments.min = 1,
       trace = FALSE,
@@ -65,14 +65,14 @@ lm.ma(...)
       compute.anova.index = NULL,
       compute.deriv = FALSE,
       compute.mean = TRUE,
-      degree.by = 1,
+      degree.by = 2,
       degree.max = NULL,
       degree.min = 0,
       deriv.index = NULL,
       deriv.order = 1,
       DKL.mat = NULL,
       knots = FALSE,
-      lambda.S = 1,
+      lambda.S = 2,
       ma.weights = NULL,
       ma.weights.cutoff=1e-04,
       method = c("jma","mma"),
@@ -82,7 +82,7 @@ lm.ma(...)
       restrict.sum.ma.weights = TRUE,
       rng.seed = 42,
       S = 2,
-      segments.by = 1,
+      segments.by = 2,
       segments.max = 3,
       segments.min = 1,
       trace = FALSE,
@@ -125,7 +125,8 @@ lm.ma(...)
   \item{compute.mean}{a logical value indicating whether or not to
     compute the conditional mean}
 
-  \item{degree.by}{increment in degree sequence}
+  \item{degree.by}{increment in degree sequence (if there are no
+  categorical predictors this is set to \code{max(1,ceiling(degree.by/2))})}
 
   \item{degree.max}{the maximum value for the basis degree in each dimension (defaults to \code{max(2,floor(S*log(n)/k))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
 
@@ -186,7 +187,7 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     model <- lm.ma(y~x1+x2,compute.anova=TRUE)
     model <- lm.ma(y~x1+x2,parallel=TRUE)
     model <- lm.ma(y~x1+x2,parallel=TRUE,parallel.cores=2)    
-    model <- lm.ma(y~x+z,lambda.grid.num=5)
+    model <- lm.ma(y~x+z,lambda.S=3)
 
     plot(model)
     plot(model,plot.data=TRUE)

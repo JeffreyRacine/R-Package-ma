@@ -6,7 +6,7 @@ This is the R package `ma' (Model Averaging) written and maintained by Jeffrey S
 
 You can install the development version but before
 doing so Windows users have to first install
-[Rtools](http://cran.r-project.org/bin/windows/Rtools), while OS X
+[Rtools](https://cran.r-project.org/bin/windows/Rtools/), while OS X
 users have to first install
 [Xcode](https://itunes.apple.com/us/app/xcode/id497799835) and the
 command line tools (in OS X 10.9 or higher, once you have Xcode
@@ -16,7 +16,7 @@ you have the latest version of R installed prior to commencing this
 process.
 
 After installing
-[Rtools](http://cran.r-project.org/bin/windows/Rtools)/[Xcode](https://itunes.apple.com/us/app/xcode/id497799835)
+[Rtools](https://cran.r-project.org/bin/windows/Rtools/)/[Xcode](https://itunes.apple.com/us/app/xcode/id497799835)
 and **devtools** (via install.packages("devtools")), install the
 development package using the following command:
 

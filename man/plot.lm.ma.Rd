@@ -5,9 +5,9 @@
 \usage{
 \method{plot}{lm.ma}(x,
      B = 99,
-     plot.deriv = FALSE,
      plot.ci = FALSE,
      plot.data = FALSE,
+     plot.deriv = FALSE,
      plot.num.eval = 250,
      plot.rug = FALSE,
      plot.xtrim = 0.005,
@@ -17,9 +17,9 @@
 \arguments{
   \item{x}{an object of type \code{lm.ma}}
   \item{B}{number of bootstrap replications used to construct nonparametric confidence intervals}
-  \item{plot.deriv}{a logical value indicating whether to compute derivatives or not}
   \item{plot.ci}{a logical value indicating whether to plot nonparametric confidence intervals or not}
   \item{plot.data}{a logical value indicating whether to plot the data or not}
+  \item{plot.deriv}{a logical value indicating whether to compute derivatives or not}
   \item{plot.num.eval}{number of evaluation points}
   \item{plot.rug}{a logical value indicating whether to plot the data with a rug or not}
   \item{plot.xtrim}{trimming parameter used to exclude tail values for the predictors that can obscure main features in the plot (trims the proportion \code{plot.xtrim} from each tail)}
