@@ -129,7 +129,7 @@ lm.ma(...)
 
   \item{degree.by}{increment in degree sequence (if \code{degree.min=0} sequence will include degree 0 then start at 1 in increments of \code{degree.by})}
 
-  \item{degree.max}{the maximum value for the basis degree in each dimension (defaults to \code{max(2,round(log(n)-S*log(k)))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
+  \item{degree.max}{the maximum value for the basis degree in each dimension (defaults to \code{max(2,ceiling(log(n)-S*log(k)))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
 
   \item{degree.min}{the minimum value for the basis degree in each dimension}
 
@@ -141,7 +141,7 @@ lm.ma(...)
 
   \item{knots}{a logical value indicating whether or not to include interior knots}
 
-  \item{lambda.S}{a constant used to determine size of grid for lambda in each dimension (size defaults to \code{max(1,round(log(n)-lambda.S*log(p)))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is determined by \code{seq(0,1,length=max(1,round(log(n)-lambda.S*log(p)))**4}  with the first element \code{0} being replaced with \code{c.lambda*num.z/num.obs})}
+  \item{lambda.S}{a constant used to determine size of grid for lambda in each dimension (size defaults to \code{max(1,ceiling(log(n)-lambda.S*log(p)))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is determined by \code{seq(0,1,length=max(1,ceiling(log(n)-lambda.S*log(p)))**4}  with the first element \code{0} being replaced with \code{c.lambda*num.z/num.obs})}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
 

@@ -397,7 +397,7 @@ lm.ma.default <- function(y=NULL,
             
         }
         
-        if(verbose) cat("\r                                                                                     ")
+        if(verbose) cat("\r                                                                                               ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing quantiles...")
 
@@ -413,7 +413,7 @@ lm.ma.default <- function(y=NULL,
                 Est$deriv.scale[,k] <- apply(boot.deriv.array[,,k],1,mad,na.rm=TRUE)  
             }
         }
-        if(verbose) cat("\r                                                                                     ")
+        if(verbose) cat("\r                                                                                               ")
         if(verbose) cat("\r")
 
     }
@@ -856,7 +856,7 @@ lm.ma.default <- function(y=NULL,
             
             P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
             
-            if(verbose) cat("\r                                                                                     ")
+            if(verbose) cat("\r                                                                                               ")
             if(verbose) cat("\r")
 
         }
@@ -870,7 +870,7 @@ lm.ma.default <- function(y=NULL,
     Est$bootstrap.ci <- bootstrap.ci
     Est$alpha <- alpha
     
-    if(verbose) cat("\r                                                                                     ")
+    if(verbose) cat("\r                                                                                               ")
     if(verbose) cat("\r")
 
     class(Est) <- "lm.ma"
@@ -1193,7 +1193,7 @@ plot.lm.ma <- function(x,
 
     }
         
-    if(verbose) cat("\r                                                                                     ")
+    cat("\r                                                                                               ")
     cat("\r")
     
 }
@@ -1318,20 +1318,21 @@ lm.ma.Est <- function(y=NULL,
         include <- NULL
     } else {
         include <- rep(1,num.z)
-        l.pow <- 4
-        lambda.seq <- seq((c.lambda*num.z/num.obs)**(1/l.pow),1,length=max(1,round(log(num.obs)-lambda.S*log(num.z))))**l.pow
+        l.pow <- 1
+        lambda.seq <- seq((c.lambda*num.z/num.obs)**(1/l.pow),1,length=max(1,ceiling(log(num.obs)-lambda.S*log(num.z))))**l.pow
         n.lambda.seq <- length(lambda.seq)
     }
 
 
     if(is.null(degree.max)) {
-        degree.max <- max(2,round(log(num.obs)-S*log(num.x)))
+        degree.max <- max(2,ceiling(log(num.obs)-S*log(num.x)))
     }
 
+    degree.seq <- c(0,seq(1,degree.max,by=degree.by))
+    if(degree.min != 0) degree.seq <- seq(degree.min,degree.max,by=degree.by)
+    segments.seq <- seq(segments.min,segments.max,by=segments.by)
+
     if(is.null(DKL.mat)) {
-        degree.seq <- c(0,seq(1,degree.max,by=degree.by))
-        if(degree.min != 0) degree.seq <- seq(degree.min,degree.max,by=degree.by)
-        segments.seq <- seq(segments.min,segments.max,by=segments.by)
         if(is.null(num.z)) {
             if(knots) {
                 DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,num.x=num.x)
@@ -1448,7 +1449,7 @@ lm.ma.Est <- function(y=NULL,
                             htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
                             cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
                             
-                            if(cv.val < cv.min & !any(basis.singular==TRUE)) {
+                            if(cv.val < cv.min & !any(basis.singular==TRUE) & (NCOL(P) < num.obs)) {
                                 cv.min <- cv.val
                                 fit.spline.min <- fit.spline
                                 htt.min <- htt
@@ -1526,7 +1527,7 @@ lm.ma.Est <- function(y=NULL,
                             htt <- hatvalues(model.ma)
                             htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
                             cv.val <- mean((y - fitted(model.ma))^2/(1-htt)^2)
-                            if(cv.val < cv.min  & !basis.singular) {
+                            if(cv.val < cv.min  & !basis.singular & (NCOL(P) < num.obs)) {
                                 cv.min <- cv.val
                                 fit.spline.min <- fitted(model.ma)
                                 model.ma.min <- model.ma
@@ -1637,7 +1638,7 @@ lm.ma.Est <- function(y=NULL,
 		                        htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
 		                        cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
 		                        
-		                        if(cv.val < cv.min & !any(basis.singular==TRUE)) {
+		                        if(cv.val < cv.min & !any(basis.singular==TRUE) & (NCOL(P) < num.obs)) {
 		                            cv.min <- cv.val
 		                            fit.spline.min <- fit.spline
 		                            htt.min <- htt
@@ -1715,7 +1716,7 @@ lm.ma.Est <- function(y=NULL,
 		                        htt <- hatvalues(model.ma)
 		                        htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
 		                        cv.val <- mean((y - fitted(model.ma))^2/(1-htt)^2)
-		                        if(cv.val < cv.min  & !basis.singular) {
+		                        if(cv.val < cv.min  & !basis.singular & (NCOL(P) < num.obs)) {
 		                            cv.min <- cv.val
 		                            fit.spline.min <- fitted(model.ma)
 		                            model.ma.min <- model.ma
@@ -1781,7 +1782,7 @@ lm.ma.Est <- function(y=NULL,
 
         }
 
-        if(verbose) cat("\r                                                                                     ")
+        if(verbose) cat("\r                                                                                               ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing model average weights...")
 
@@ -2105,7 +2106,7 @@ lm.ma.Est <- function(y=NULL,
 
     ## Compute fitted values and derivatives if requested
     
-    if(verbose) cat("\r                                                                                     ")
+    if(verbose) cat("\r                                                                                               ")
     if(verbose) cat("\r")
     if(verbose) cat("\rComputing fitted values...")
 
@@ -2114,7 +2115,7 @@ lm.ma.Est <- function(y=NULL,
     }
 
     if(compute.deriv) {
-        if(verbose) cat("\r                                                                                     ")
+        if(verbose) cat("\r                                                                                               ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing derivatives...")
         for(k in 1:num.deriv) {
@@ -2130,7 +2131,7 @@ lm.ma.Est <- function(y=NULL,
     if(any(basis.singular.vec[b[b>ma.weights.cutoff]]) & verbose) warning("Non-zero weight candidate model basis is ill-conditioned - reduce degree.max")
 
     if(verbose) {
-        cat("\r                                                                                     ")
+        cat("\r                                                                                               ")
         cat("\r")
     }
 
