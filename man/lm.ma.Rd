@@ -44,6 +44,7 @@ lm.ma(...)
       segments.by = 2,
       segments.max = 3,
       segments.min = 1,
+      singular.ok = TRUE,
       trace = FALSE,
       vc = TRUE,
       verbose = TRUE,
@@ -85,6 +86,7 @@ lm.ma(...)
       segments.by = 2,
       segments.max = 3,
       segments.min = 1,
+      singular.ok = TRUE,
       trace = FALSE,
       vc = TRUE,
       verbose = TRUE,
@@ -125,10 +127,9 @@ lm.ma(...)
   \item{compute.mean}{a logical value indicating whether or not to
     compute the conditional mean}
 
-  \item{degree.by}{increment in degree sequence (if there are no
-  categorical predictors this is set to \code{max(1,ceiling(degree.by/2))})}
+  \item{degree.by}{increment in degree sequence}
 
-  \item{degree.max}{the maximum value for the basis degree in each dimension (defaults to \code{max(2,floor(S*log(n)/k))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
+  \item{degree.max}{the maximum value for the basis degree in each dimension (defaults to \code{max(2,round(log(n)-S*log(k)))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
 
   \item{degree.min}{the minimum value for the basis degree in each dimension}
 
@@ -140,7 +141,7 @@ lm.ma(...)
 
   \item{knots}{a logical value indicating whether or not to include interior knots}
 
-  \item{lambda.S}{a constant used to determine size of grid for lambda in each dimension (defaults to \code{max(2,floor(lambda.S*log(n)/p))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is determined by \code{seq(0,1,length=max(2,floor(lambda.S*log(num.obs)/num.z)))**4}  with the first element \code{0} being replaced with \code{c.lambda*num.z/num.obs})}
+  \item{lambda.S}{a constant used to determine size of grid for lambda in each dimension (size defaults to \code{max(1,round(log(n)-lambda.S*log(p)))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is determined by \code{seq(0,1,length=max(1,round(log(n)-lambda.S*log(p)))**4}  with the first element \code{0} being replaced with \code{c.lambda*num.z/num.obs})}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
 
@@ -166,6 +167,8 @@ lm.ma(...)
 
   \item{segments.max}{the maximum number of segments when \code{knots=TRUE} (i.e., number of knots minus 1 - there always exist two knots, the endpoints) to allow for the B-spline basis}
 
+  \item{singular.ok}{if \sQuote{FALSE} (the default in S but not in R) a singular fit is an error}
+  
   \item{trace}{a logical value indicating whether or not to issue a detailed progress report via \code{warning}}
   
   \item{vc}{a logical value indicating whether to allow the categorical predictors to enter additively (only the intercept can shift) or to instead use a varying coefficient structure (all parameters can shift)}

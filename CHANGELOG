@@ -1,3 +1,7 @@
+Changes from 1.01-4 to 1.0-5 [22-Apr-2017]
+
+- too agressive on tamping down on model dimension as p and k increase so instead of a penalty /k /p trying /sqrt(k) /sqrt(p)
+
 Changes from 1.01-3 to 1.0-4 [19-Apr-2017]
 
 - big subtle roach squashed - corrected glitch that could arise when computing derivatives and multiple predictors have degree 0 when using glp basis

@@ -1,8 +1,8 @@
 Package: ma
 Type: Package
 Title: Model Averaging
-Version: 1.0-4
-Date: 2017-04-21
+Version: 1.0-5
+Date: 2017-04-23
 Imports: doParallel, foreach, parallel, quadprog
 Suggests: crs, np, rgl
 Authors@R: person(given = "Jeffrey S.", family = "Racine", role = c("aut","cre"), email = "racinej@mcmaster.ca")
