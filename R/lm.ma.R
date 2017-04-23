@@ -1431,7 +1431,12 @@ lm.ma.Est <- function(y=NULL,
                                 if(!is.null(weights)) L <- weights*L
                                 P <- suppressWarnings(prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis))
                                 if(attr(P,"relevant")) {
-                                    if(!is.fullrank(P)) basis.singular[i] <- TRUE
+                                    if(!is.fullrank(P)) {
+                                        basis.singular[i] <- TRUE
+                                        cv.val <- Inf
+                                        htt <- NULL
+                                        break
+                                    }
                                     if(b.basis=="additive" | b.basis=="taylor") {
                                         model.z.unique <- lm(y~P,weights=L,singular.ok=singular.ok)
                                     } else {
@@ -1445,9 +1450,11 @@ lm.ma.Est <- function(y=NULL,
                                 }
                                 htt[zz] <- hatvalues(model.z.unique)[zz]
                             }
-                            
-                            htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
-                            cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
+
+                            if(!any(basis.singular==TRUE)) {
+                                htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
+                                cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
+                            }
                             
                             if(cv.val < cv.min & !any(basis.singular==TRUE) & (NCOL(P) < num.obs)) {
                                 cv.min <- cv.val
@@ -1461,7 +1468,7 @@ lm.ma.Est <- function(y=NULL,
                         }
                         
                         fit.spline <- fit.spline.min
-                        htt.min <- htt
+                        htt <- htt.min
                         model.z.unique$rank <- rank.min
                         
                     } else {
@@ -1619,8 +1626,13 @@ lm.ma.Est <- function(y=NULL,
 		                            L <- prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
 		                            if(!is.null(weights)) L <- weights*L
 		                            P <- suppressWarnings(prod.spline(x=x,K=DS,knots="quantiles",basis=b.basis))
-		                            if(attr(P,"relevant")) {
-		                                if(!is.fullrank(P)) basis.singular[i] <- TRUE
+                                if(attr(P,"relevant")) {
+                                    if(!is.fullrank(P)) {
+                                        basis.singular[i] <- TRUE
+                                        cv.val <- Inf
+                                        htt <- NULL
+                                        break
+                                    }
 		                                if(b.basis=="additive" | b.basis=="taylor") {
 		                                    model.z.unique <- lm(y~P,weights=L,singular.ok=singular.ok)
 		                                } else {
@@ -1635,9 +1647,11 @@ lm.ma.Est <- function(y=NULL,
 		                            htt[zz] <- hatvalues(model.z.unique)[zz]
 		                        }
 		                        
-		                        htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
-		                        cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
-		                        
+                            if(!any(basis.singular==TRUE)) {
+                                htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
+                                cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
+                            }
+                            
 		                        if(cv.val < cv.min & !any(basis.singular==TRUE) & (NCOL(P) < num.obs)) {
 		                            cv.min <- cv.val
 		                            fit.spline.min <- fit.spline
@@ -1650,7 +1664,7 @@ lm.ma.Est <- function(y=NULL,
 		                    }
 		
 		                    fit.spline <- fit.spline.min
-		                    htt.min <- htt
+		                    htt <- htt.min
 		                    model.z.unique$rank <- rank.min
 		
 		                } else {
