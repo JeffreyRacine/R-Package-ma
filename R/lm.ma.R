@@ -397,7 +397,7 @@ lm.ma.default <- function(y=NULL,
             
         }
         
-        if(verbose) cat("\r                                     ")
+        if(verbose) cat("\r                                                                                     ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing quantiles...")
 
@@ -413,7 +413,7 @@ lm.ma.default <- function(y=NULL,
                 Est$deriv.scale[,k] <- apply(boot.deriv.array[,,k],1,mad,na.rm=TRUE)  
             }
         }
-        if(verbose) cat("\r                                     ")
+        if(verbose) cat("\r                                                                                     ")
         if(verbose) cat("\r")
 
     }
@@ -856,7 +856,7 @@ lm.ma.default <- function(y=NULL,
             
             P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
             
-            if(verbose) cat("\r                                                                               ")
+            if(verbose) cat("\r                                                                                     ")
             if(verbose) cat("\r")
 
         }
@@ -870,7 +870,7 @@ lm.ma.default <- function(y=NULL,
     Est$bootstrap.ci <- bootstrap.ci
     Est$alpha <- alpha
     
-    if(verbose) cat("\r                                                                               ")
+    if(verbose) cat("\r                                                                                     ")
     if(verbose) cat("\r")
 
     class(Est) <- "lm.ma"
@@ -1193,7 +1193,7 @@ plot.lm.ma <- function(x,
 
     }
         
-    cat("\r                                                     ")
+    if(verbose) cat("\r                                                                                     ")
     cat("\r")
     
 }
@@ -1313,14 +1313,14 @@ lm.ma.Est <- function(y=NULL,
         nrow.zeval.unique <- nrow(zeval.unique)
     }
 
-    lambda.vec <- NULL
+    lambda.seq <- NULL
     if(is.null(z)) {
         include <- NULL
     } else {
         include <- rep(1,num.z)
-        lambda.vec <- seq(0,1,length=max(1,round(log(num.obs)-lambda.S*log(num.z))))**4
-        lambda.vec[1] <- c.lambda*num.z/num.obs
-        n.lambda.vec <- length(lambda.vec)
+        l.pow <- 4
+        lambda.seq <- seq((c.lambda*num.z/num.obs)**(1/l.pow),1,length=max(1,round(log(num.obs)-lambda.S*log(num.z))))**l.pow
+        n.lambda.seq <- length(lambda.seq)
     }
 
 
@@ -1340,9 +1340,9 @@ lm.ma.Est <- function(y=NULL,
             }
         } else {
             if(knots) {
-                DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,K.vec3=lambda.vec,num.x=num.x,num.z=num.z)
+                DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
             } else {
-                DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,K.vec3=lambda.vec,num.x=num.x,num.z=num.z)
+                DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
             }
         }
             
@@ -1399,14 +1399,13 @@ lm.ma.Est <- function(y=NULL,
                 if(!is.null(num.z)) {
                     lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
                     include.vec <- include
-                    #include.vec[lambda.vec==1] <- 0
                 }
                 
                 if(verbose) {
                     if(is.null(num.z)) {
-                        cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+                        cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),")",sep=""))
                     } else {
-                        cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.vec,")...",sep=""))
+                        cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=3),collapse=","),")",sep=""))
                     }
                 }
                 
@@ -1589,14 +1588,13 @@ lm.ma.Est <- function(y=NULL,
                 if(!is.null(num.z)) {
                     lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
                     include.vec <- include
-                    #include.vec[lambda.vec==1] <- 0
                 }
 		
                 if(verbose) {
                     if(is.null(num.z)) {
-                        cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+                        cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),")",sep=""))
                     } else {
-                        cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.vec,")...",sep=""))
+                        cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=3),collapse=","),")",sep=""))
                     }
                 }
                 
@@ -1783,7 +1781,7 @@ lm.ma.Est <- function(y=NULL,
 
         }
 
-        if(verbose) cat("\r                                                                           ")
+        if(verbose) cat("\r                                                                                     ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing model average weights...")
 
@@ -1887,17 +1885,16 @@ lm.ma.Est <- function(y=NULL,
             if(!is.null(num.z)) {
                 lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
                 include.vec <- include
-                #include.vec[lambda.vec==1] <- 0
             }
 
             if(verbose) {
                 if(is.null(num.z)) {
-                    cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")...",sep=""))
+                    cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),")",sep=""))
                 } else {
-                    cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.vec,")...",sep=""))
+                    cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=3),collapse=","),")",sep=""))
                 }
             }
-            
+                
             if(compute.mean) {
 
                 ## Compute fitted values
@@ -2108,7 +2105,7 @@ lm.ma.Est <- function(y=NULL,
 
     ## Compute fitted values and derivatives if requested
     
-    if(verbose) cat("\r                                                    ")
+    if(verbose) cat("\r                                                                                     ")
     if(verbose) cat("\r")
     if(verbose) cat("\rComputing fitted values...")
 
@@ -2117,7 +2114,7 @@ lm.ma.Est <- function(y=NULL,
     }
 
     if(compute.deriv) {
-        if(verbose) cat("\r                                                    ")
+        if(verbose) cat("\r                                                                                     ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing derivatives...")
         for(k in 1:num.deriv) {
@@ -2133,7 +2130,7 @@ lm.ma.Est <- function(y=NULL,
     if(any(basis.singular.vec[b[b>ma.weights.cutoff]]) & verbose) warning("Non-zero weight candidate model basis is ill-conditioned - reduce degree.max")
 
     if(verbose) {
-        cat("\r                                                            ")
+        cat("\r                                                                                     ")
         cat("\r")
     }
 
@@ -2154,7 +2151,7 @@ lm.ma.Est <- function(y=NULL,
                 deriv=deriv,
                 knots=knots,
                 lambda.S=lambda.S,
-                lambda.vec=lambda.vec,
+                lambda.seq=lambda.seq,
                 ma.model.rank=sum(rank.vec*abs(b)),
                 ma.weights=if(is.null(ma.weights)){abs(b)}else{ma.weights.orig},
                 ma.weights.cutoff=ma.weights.cutoff,
