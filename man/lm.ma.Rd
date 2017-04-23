@@ -127,7 +127,7 @@ lm.ma(...)
   \item{compute.mean}{a logical value indicating whether or not to
     compute the conditional mean}
 
-  \item{degree.by}{increment in degree sequence}
+  \item{degree.by}{increment in degree sequence (if \code{degree.min=0} sequence will include degree 0 then start at 1 in increments of \code{degree.by})}
 
   \item{degree.max}{the maximum value for the basis degree in each dimension (defaults to \code{max(2,round(log(n)-S*log(k)))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
 

@@ -1329,7 +1329,8 @@ lm.ma.Est <- function(y=NULL,
     }
 
     if(is.null(DKL.mat)) {
-        degree.seq <- seq(degree.min,degree.max,by=degree.by)
+        degree.seq <- c(0,seq(1,degree.max,by=degree.by))
+        if(degree.min != 0) degree.seq <- seq(degree.min,degree.max,by=degree.by)
         segments.seq <- seq(segments.min,segments.max,by=segments.by)
         if(is.null(num.z)) {
             if(knots) {
@@ -1795,7 +1796,7 @@ lm.ma.Est <- function(y=NULL,
         while(qr(D)$rank<M) {
             D <- D + diag(tol.ridge,M,M)
             tol.ridge <- tol.ridge*10
-            if(trace) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""))
+            if(trace) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank (",tol.ridge,")",sep=""),immediate.=TRUE)
             singular.D <- TRUE
         }
         if(method=="mma") {
@@ -1831,7 +1832,7 @@ lm.ma.Est <- function(y=NULL,
             while(qr(D)$rank<M) {
                 D <- D + diag(tol.ridge,M,M)
                 tol.ridge <- tol.ridge*10
-                if(trace) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""))
+                if(trace) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""),immediate.=TRUE)
                 singular.D <- TRUE
             } 
             if(method=="mma") {
@@ -1855,8 +1856,8 @@ lm.ma.Est <- function(y=NULL,
             
             if(!isTRUE(all.equal(as.numeric(b[b>ma.weights.cutoff]),as.numeric(b.reb)))) {
                 if(trace) {
-                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>ma.weights.cutoff])," initial models, ",length(b.reb[b.reb>ma.weights.cutoff])," rebalanced ones)",sep=""))   
-                    if(!isTRUE(all.equal(b[b>ma.weights.cutoff],b.reb[b.reb>ma.weights.cutoff]))) warning(all.equal(b[b>ma.weights.cutoff],b.reb[b.reb>ma.weights.cutoff]))
+                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>ma.weights.cutoff])," initial models, ",length(b.reb[b.reb>ma.weights.cutoff])," rebalanced ones)",sep=""),immediate.=TRUE)   
+                    if(!isTRUE(all.equal(b[b>ma.weights.cutoff],b.reb[b.reb>ma.weights.cutoff]))) warning(all.equal(b[b>ma.weights.cutoff],b.reb[b.reb>ma.weights.cutoff]),immediate.=TRUE)
                 }
                 b[b>ma.weights.cutoff] <- b.reb
             }
