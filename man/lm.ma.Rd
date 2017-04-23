@@ -305,8 +305,8 @@ plot(model.ma,plot.data=TRUE,plot.ci=TRUE)
 plot(model.ma,plot.data=TRUE,plot.ci=TRUE,plot.deriv=TRUE)
 par(mfrow=c(1,1))
 
+\dontrun{
 #### Example 2 - five predictor (two categorical) earnings function
-
 data(wage1)
 attach(wage1)
 
@@ -372,7 +372,7 @@ predict(model.ma,newdata=newdata.female.married)$fit-
 predict(model.ma,newdata=newdata.female.notmarried)$fit
 
 detach(wage1)
-
+}
 #### Example 3 - Canadian Current Population Survey earnings data
 
 ## We compute two nonparametric estimators to compare with the 

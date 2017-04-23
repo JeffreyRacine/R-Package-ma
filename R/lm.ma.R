@@ -1456,7 +1456,7 @@ lm.ma.Est <- function(y=NULL,
                                 cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
                             }
                             
-                            if(cv.val < cv.min & !any(basis.singular==TRUE) & (NCOL(P) < num.obs)) {
+                            if(cv.val < cv.min & !any(basis.singular==TRUE) & (NCOL(P)/num.obs < 0.95)) {
                                 cv.min <- cv.val
                                 fit.spline.min <- fit.spline
                                 htt.min <- htt
@@ -1534,7 +1534,7 @@ lm.ma.Est <- function(y=NULL,
                             htt <- hatvalues(model.ma)
                             htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
                             cv.val <- mean((y - fitted(model.ma))^2/(1-htt)^2)
-                            if(cv.val < cv.min  & !basis.singular & (NCOL(P) < num.obs)) {
+                            if(cv.val < cv.min  & !basis.singular & (NCOL(P)/num.obs < 0.95)) {
                                 cv.min <- cv.val
                                 fit.spline.min <- fitted(model.ma)
                                 model.ma.min <- model.ma
@@ -1652,7 +1652,7 @@ lm.ma.Est <- function(y=NULL,
                                 cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
                             }
                             
-		                        if(cv.val < cv.min & !any(basis.singular==TRUE) & (NCOL(P) < num.obs)) {
+		                        if(cv.val < cv.min & !any(basis.singular==TRUE) & (NCOL(P)/num.obs < 0.95)) {
 		                            cv.min <- cv.val
 		                            fit.spline.min <- fit.spline
 		                            htt.min <- htt
@@ -1730,7 +1730,7 @@ lm.ma.Est <- function(y=NULL,
 		                        htt <- hatvalues(model.ma)
 		                        htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
 		                        cv.val <- mean((y - fitted(model.ma))^2/(1-htt)^2)
-		                        if(cv.val < cv.min  & !basis.singular & (NCOL(P) < num.obs)) {
+		                        if(cv.val < cv.min  & !basis.singular & (NCOL(P)/num.obs < 0.95)) {
 		                            cv.min <- cv.val
 		                            fit.spline.min <- fitted(model.ma)
 		                            model.ma.min <- model.ma
