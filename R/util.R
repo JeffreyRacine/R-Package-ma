@@ -128,3 +128,134 @@ RSQfunc <- function(y,y.pred,weights=NULL) {
   y.mean <- mean(y)
   return((sum((y-y.mean)*(y.pred-y.mean))^2)/(sum((y-y.mean)^2)*sum((y.pred-y.mean)^2)))
 }
+
+dim.bs <- function(basis="additive",kernel=TRUE,degree=NULL,segments=NULL,include=NULL) {
+
+  ## This function computes the dimension of the taylor basis without the
+  ## memory overhead associated with computing the taylor basis itself
+  ## (thanks to Zhenghua Nie)
+
+  two.dimen<- function(d1,d2,nd1,pd12){
+    if(d2 ==1) {
+      ret <- list()
+      ret$d12 <- pd12
+      ret$nd1 <- nd1
+      return(ret)
+    }
+    d12 <- d2
+    if(d1-d2>0){
+      for(i in 1:(d1-d2)){
+        d12 <- d12+d2*nd1[i]
+      }}
+    if(d2>1){
+      for(i in 2:d2){
+        d12 <- d12 + (i*nd1[d1-i+1])
+      }
+    }
+    d12 <- d12 + nd1[d1]   ## The maximum number
+    
+    nd2 <- nd1  ## Calculate nd2
+    if(d1>1){
+      for(j in 1:(d1-1)) {
+        nd2[j] <- 0
+        for(i in j:max(0,j-d2+1)) {
+          if(i > 0) {
+            nd2[j] <- nd2[j] + nd1[i]                  
+          }
+          else {
+            nd2[j] <- nd2[j] + 1  ## nd1[0] always 1
+          }
+        }
+      }
+    }
+    if(d2>1) {
+      nd2[d1] <- nd1[d1]
+      for(i in (d1-d2+1):(d1-1)) nd2[d1] <- nd2[d1]+nd1[i]
+    }
+    else {
+      nd2[d1] <- nd1[d1]
+    }
+    ret <- list()
+    ret$d12 <- d12
+    ret$nd1 <- nd2 
+    
+    return(ret)
+  }
+  
+  ## Some basic error checking
+ 
+  if(basis!="additive" & basis!="taylor" & basis!="tensor") stop(" Error: basis must be either additive, taylor, or tensor")
+
+  if(!kernel)
+    if(is.null(include)) stop(" Error: you must provide include vector")    
+  
+  K <- cbind(degree,segments)
+
+  ncol.bs <- 0
+
+  if(kernel) {
+    if(basis=="additive") {
+      if(any(K[,1] > 0))
+        ncol.bs <- sum(rowSums(K[K[,1]!=0,,drop=FALSE])-1)
+    }
+    if(basis=="taylor") {
+      dimen <- rowSums(K[K[,1]!=0,,drop=FALSE])-1
+      dimen <- dimen[dimen>0] ## Delete elements which are equal to 0.
+      dimen <- sort(dimen,decreasing=TRUE) ## Sort the array to save memory when doing the computation.
+      k <-length(dimen)
+      if(k==0) {
+        ncol.bs <- 0
+      } else {
+        nd1 <- rep(1,dimen[1])   ## At the beginning,  we have one for [1, 2, 3, ..., dimen[1]]
+        nd1[dimen[1]] <- 0       ## nd1 represents the frequency for every element of [1, 2, 3, ..., dimen[1]]
+        ncol.bs <- dimen[1]
+        if(k>1) {
+          for(i in 2:k) {
+            dim.rt <- two.dimen(dimen[1],dimen[i],nd1,ncol.bs)
+            nd1 <- dim.rt$nd1
+            ncol.bs <- dim.rt$d12
+          }
+          ncol.bs <- dim.rt$d12+k-1
+        }
+      }
+    }
+    if(basis=="tensor") {
+      if(any(K[,1] > 0))
+        ncol.bs <- prod(rowSums(K[K[,1]!=0,,drop=FALSE]))
+    }
+  } else {
+    if(basis=="additive") {
+      if(any(K[,1] > 0)) 
+        ncol.bs <- sum(c(rowSums(K[K[,1]!=0,,drop=FALSE]),include-1))
+    }
+    if(basis=="taylor") {
+      dimen <- c(rowSums(K[K[,1]!=0,,drop=FALSE])-1,include-1)
+      dimen <- dimen[dimen>0] ## Delete elements which are eqaul to 0.
+      dimen <- sort(dimen,decreasing=TRUE) ## Sort the array to save memory when doing the computation.
+      k <-length(dimen)
+      if(k==0) {
+        ncol.bs <- 0
+      } else {
+        nd1 <- rep(1,dimen[1])   ## At the beginning,  we have one for [1, 2, 3, ..., dimen[1]]
+        nd1[dimen[1]] <- 0       ## nd1 represents the frequency for every element of [1, 2, 3, ..., dimen[1]]
+        ncol.bs <- dimen[1]
+        if(k>1) {
+          for(i in 2:k) {
+            dim.rt <- two.dimen(dimen[1],dimen[i],nd1,ncol.bs)
+            nd1 <- dim.rt$nd1
+            ncol.bs <- dim.rt$d12
+          }
+          ncol.bs <- dim.rt$d12+k-1
+        }
+      }
+    }
+    if(basis=="tensor") {
+      if(any(K[,1] > 0)) 
+        ncol.bs <- prod(c(rowSums(K[K[,1]!=0,,drop=FALSE]),(include-1)))
+    }
+  }
+
+  return(ncol.bs)
+
+}
+

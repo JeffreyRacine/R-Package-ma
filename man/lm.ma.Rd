@@ -19,7 +19,6 @@ lm.ma(...)
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
-      c.lambda = 1,
       compute.anova = FALSE,
       compute.anova.index = NULL,
       compute.deriv = FALSE,
@@ -30,6 +29,7 @@ lm.ma(...)
       deriv.index = NULL,
       deriv.order = 1,
       DKL.mat = NULL,
+      eps.lambda = sqrt(.Machine$double.eps),
       knots = FALSE,
       lambda.S = 2,
       ma.weights = NULL,
@@ -61,7 +61,6 @@ lm.ma(...)
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
-      c.lambda = 1,
       compute.anova = FALSE,
       compute.anova.index = NULL,
       compute.deriv = FALSE,
@@ -72,6 +71,7 @@ lm.ma(...)
       deriv.index = NULL,
       deriv.order = 1,
       DKL.mat = NULL,
+      eps.lambda = sqrt(.Machine$double.eps),
       knots = FALSE,
       lambda.S = 2,
       ma.weights = NULL,
@@ -116,8 +116,6 @@ lm.ma(...)
   
   \item{bootstrap.ci}{a logical value indicating whether or not to bootstrap nonparametric confidence intervals}
 
-  \item{c.lambda}{a constant for the smoothing parameter lambda used in the weight function for the categorical predictors when \code{vc=TRUE} (defaults to \code{lambda=c.lambda*p/n} where \code{p} is the number of categorical predictors and \code{n} the number of observations)}
-
   \item{compute.anova}{a logical value indicating whether or not conduct an anova-based bootstrap procedure to test for predictor significance}
 
   \item{compute.anova.index}{an optional vector of indices indicating which predictor(s) are to be tested (default is all predictors)}
@@ -139,9 +137,11 @@ lm.ma(...)
 
   \item{DKL.mat}{a matrix with degree, knots, and lambda values that could optionally be passed to the basis routines}
 
+  \item{eps.lambda}{a constant for the smoothing parameter lambda used in the weight function for the categorical predictors when \code{vc=TRUE} (defaults to \code{lambda=eps.lambda*p/n} where \code{p} is the number of categorical predictors and \code{n} the number of observations)}
+
   \item{knots}{a logical value indicating whether or not to include interior knots}
 
-  \item{lambda.S}{a constant used to determine size of grid for lambda in each dimension (size defaults to \code{max(1,ceiling(log(n)-lambda.S*log(p)))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is determined by \code{seq(0,1,length=max(1,ceiling(log(n)-lambda.S*log(p)))**4}  with the first element \code{0} being replaced with \code{c.lambda*num.z/num.obs})}
+  \item{lambda.S}{a constant used to determine size of grid for lambda in each dimension (size defaults to \code{max(1,ceiling(log(n)-lambda.S*log(p)))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is determined by \code{seq(eps.lambda,1,length=max(1,ceiling(log(n)-lambda.S*log(p)))}}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
 
