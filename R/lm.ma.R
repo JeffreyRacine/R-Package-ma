@@ -1325,7 +1325,7 @@ lm.ma.Est <- function(y=NULL,
         basis <- "additive"
         degree.by <- max(1,round(degree.by/2))
         degree.max <- 2*degree.max
-        if(trace) warning("only one numeric predictor, degree.max doubled and degree.by doubled")
+        if(trace) warning("only one numeric predictor presence, degree.max doubled and degree.by halved")
     }
 
     lambda.seq <- NULL

@@ -137,11 +137,11 @@ lm.ma(...)
 
   \item{DKL.mat}{a matrix with degree, knots, and lambda values that could optionally be passed to the basis routines}
 
-  \item{eps.lambda}{a constant for the smoothing parameter lambda used in the weight function for the categorical predictors when \code{vc=TRUE} (defaults to \code{lambda=eps.lambda*p/n} where \code{p} is the number of categorical predictors and \code{n} the number of observations)}
+  \item{eps.lambda}{a small positive constant for the start of the sequence of smoothing parameters used in the weight function for the categorical predictors when \code{vc=TRUE}}
 
   \item{knots}{a logical value indicating whether or not to include interior knots}
 
-  \item{lambda.S}{a constant used to determine size of grid for lambda in each dimension (size defaults to \code{max(1,ceiling(log(n)-lambda.S*log(p)))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is determined by \code{seq(eps.lambda,1,length=max(1,ceiling(log(n)-lambda.S*log(p)))}}
+  \item{lambda.S}{a constant used to determine the grid size for lambda in each dimension (size defaults to \code{max(1,ceiling(log(n)-lambda.S*log(p)))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is determined by \code{seq(eps.lambda,1,length=max(1,ceiling(log(n)-lambda.S*log(p)))}}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
 
