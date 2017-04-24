@@ -1365,7 +1365,7 @@ lm.ma.Est <- function(y=NULL,
         basis.vec <- basis.vec[ma.weights>ma.weights.cutoff]
         ma.weights <- ma.weights[ma.weights>ma.weights.cutoff]/sum(ma.weights[ma.weights>ma.weights.cutoff])
     } else {
-        basis.vec <- rep(basis,NROW(DKL.mat))
+        if(is.null(basis.vec)) basis.vec <- rep(basis,NROW(DKL.mat))
     }
 
     P.num <- NROW(DKL.mat)
