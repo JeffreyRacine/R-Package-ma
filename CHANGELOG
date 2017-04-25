@@ -1,3 +1,7 @@
+Changes from 1.01-5 to 1.0-6 [25-Apr-2017]
+
+- removed redundant code snipped from parallel anova
+
 Changes from 1.01-4 to 1.0-5 [22-Apr-2017]
 
 - too agressive on tamping down on model dimension as p and k increase so instead of a penalty /k /p trying /sqrt(k) /sqrt(p)
