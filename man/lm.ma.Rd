@@ -40,7 +40,7 @@ lm.ma(...)
       rank.vec = NULL,
       restrict.sum.ma.weights = TRUE,
       rng.seed = 42,
-      S = 2,
+      S = 1,
       segments.by = 2,
       segments.max = 3,
       segments.min = 1,
@@ -82,7 +82,7 @@ lm.ma(...)
       rank.vec = NULL,
       restrict.sum.ma.weights = TRUE,
       rng.seed = 42,
-      S = 2,
+      S = 1,
       segments.by = 2,
       segments.max = 3,
       segments.min = 1,
@@ -274,7 +274,9 @@ If you wish to plot the object with the option \code{plot.ci=TRUE}, it is not ne
 When multivariate predictors are present, the number of candidate models can be quite large. When building the final model each candidate model must be constructed and evaluated. However, after solving for the model average weights many candidate models will receive zero weight. Subsequently, only the non-zero weight models need be evaluated (e.g. when constructing derivative estimates, predictions, confidence intervals and the like).
 
 Note that \code{predict.ma} produces a vector of predictions or a list of predictions, confidence bounds, derivative matrices and their confidence bounds.
-  
+
+Note that, in multivariate settings, the number of candidate models may grow unreasonably large (say 2,500 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) reduce \code{degree.max}, iv) reduce \code{segments.max}, or perhaps go with a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models).
+
 }
 
 \seealso{

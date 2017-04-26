@@ -35,7 +35,7 @@ lm.ma.formula <- function(formula,
                           rank.vec=NULL,
                           restrict.sum.ma.weights=TRUE,
                           rng.seed=42,
-                          S=2,
+                          S=1,
                           segments.by=2,
                           segments.max=3,
                           segments.min=1,
@@ -148,7 +148,7 @@ lm.ma.default <- function(y=NULL,
                           rank.vec=NULL,
                           restrict.sum.ma.weights=TRUE,
                           rng.seed=42,
-                          S=2,
+                          S=1,
                           segments.by=2,
                           segments.max=3,
                           segments.min=1,
@@ -1155,7 +1155,7 @@ lm.ma.Est <- function(y=NULL,
                       parallel.cores=NULL,
                       rank.vec=NULL,
                       restrict.sum.ma.weights=TRUE,
-                      S=2,
+                      S=1,
                       segments.by=2,
                       segments.min=1,
                       segments.max=3,
@@ -1239,7 +1239,7 @@ lm.ma.Est <- function(y=NULL,
     }
 
     if(is.null(degree.max)) {
-        degree.max <- max(2,ceiling(log(num.obs)-S*log(num.x)))
+        degree.max <- max(2,ceiling(log(num.obs)-S*log(1+num.x)))
     }
 
     ## If there is only one numeric predictor, use additive basis
@@ -1261,13 +1261,16 @@ lm.ma.Est <- function(y=NULL,
     }
 
     lambda.seq <- NULL
-    if(is.null(z)) {
+    if(vc) {
+        l.pow <- 1
+        lambda.seq <- seq(eps.lambda,1,length=max(1,ceiling(log(num.obs)-lambda.S*log(1+num.z))))**l.pow
+        n.lambda.seq <- length(lambda.seq)
+    }
+
+    if(is.null(z) | vc) {
         include <- NULL
     } else {
         include <- rep(1,num.z)
-        l.pow <- 1
-        lambda.seq <- seq(eps.lambda,1,length=max(1,ceiling(log(num.obs)-lambda.S*log(num.z))))**l.pow
-        n.lambda.seq <- length(lambda.seq)
     }
 
     degree.seq <- c(0,seq(1,degree.max,by=degree.by))
@@ -1282,10 +1285,12 @@ lm.ma.Est <- function(y=NULL,
                 DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
             }
         } else {
-            if(knots) {
+            if(knots & vc) {
                 DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
-            } else {
+            } else if(!knots & vc) {
                 DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
+            } else {
+                DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
             }
         }
             
@@ -1337,25 +1342,24 @@ lm.ma.Est <- function(y=NULL,
         if(!parallel) {
 
             for(p in P.num:1) {
-	
+
                 DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])
-                include.vec <- NULL
-                if(!is.null(num.z)) {
+                include.vec <- include
+                if(!is.null(num.z) & vc) {
                     lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
-                    include.vec <- include
                 }
 
                 if(verbose) {
                     if(length(degree.seq) < 11) {
-                        if(is.null(num.z)) {
+                        if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),")",sep=""))
-                        } else {
+                        } else if(vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=3),collapse=","),")",sep=""))
                         }
                     } else {
-                        if(is.null(num.z)) {
+                        if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")",sep=""))
-                        } else {
+                        } else if(vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.seq,")",sep=""))
                         }
                     }
@@ -1551,24 +1555,23 @@ lm.ma.Est <- function(y=NULL,
 
 		        output <- foreach(p=1:P.num,.verbose=FALSE) %dopar% {
 		
-                DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])   
-                include.vec <- NULL
-                if(!is.null(num.z)) {
+                DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])
+                include.vec <- include
+                if(!is.null(num.z) & vc) {
                     lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
-                    include.vec <- include
                 }
 		
                 if(verbose) {
                     if(length(degree.seq) < 11) {
-                        if(is.null(num.z)) {
+                        if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),")",sep=""))
-                        } else {
+                        } else if(vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=3),collapse=","),")",sep=""))
                         }
                     } else {
-                        if(is.null(num.z)) {
+                        if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")",sep=""))
-                        } else {
+                        } else if(vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.seq,")",sep=""))
                         }
                     }
@@ -1873,29 +1876,28 @@ lm.ma.Est <- function(y=NULL,
             for(p in P.num:1) {
     
     
-                DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])   
-                include.vec <- NULL
-                if(!is.null(num.z)) {
+                DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])
+                include.vec <- include
+                if(!is.null(num.z) & vc) {
                     lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
-                    include.vec <- include
                 }
-    
+		
                 if(verbose) {
                     if(length(degree.seq) < 11) {
-                        if(is.null(num.z)) {
+                        if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),")",sep=""))
-                        } else {
+                        } else if(vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=3),collapse=","),")",sep=""))
                         }
                     } else {
-                        if(is.null(num.z)) {
+                        if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")",sep=""))
-                        } else {
+                        } else if(vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.seq,")",sep=""))
                         }
                     }
                 }
-    
+
                 if(compute.mean) {
     
                     ## Compute fitted values
@@ -2123,29 +2125,28 @@ lm.ma.Est <- function(y=NULL,
 
 		        output <- foreach(p=1:P.num,.verbose=FALSE) %dopar% {
 		
-                DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])   
-                include.vec <- NULL
-                if(!is.null(num.z)) {
+                DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])
+                include.vec <- include
+                if(!is.null(num.z) & vc) {
                     lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
-                    include.vec <- include
                 }
-    
+		
                 if(verbose) {
                     if(length(degree.seq) < 11) {
-                        if(is.null(num.z)) {
+                        if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),")",sep=""))
-                        } else {
+                        } else if(vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=3),collapse=","),")",sep=""))
                         }
                     } else {
-                        if(is.null(num.z)) {
+                        if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")",sep=""))
-                        } else {
+                        } else if(vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.seq,")",sep=""))
                         }
                     }
                 }
-    
+
                 if(compute.mean) {
     
                     ## Compute fitted values
