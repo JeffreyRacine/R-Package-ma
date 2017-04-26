@@ -5,6 +5,7 @@ Version: 1.0-6
 Date: 2017-04-26
 Imports: doParallel, foreach, parallel, quadprog
 Suggests: crs, np, rgl
+Depends: R (>= 2.10)
 Authors@R: person(given = "Jeffrey S.", family = "Racine", role = c("aut","cre"), email = "racinej@mcmaster.ca")
 Author: Jeffrey S. Racine [aut, cre]
 Maintainer: Jeffrey S. Racine <racinej@mcmaster.ca>
