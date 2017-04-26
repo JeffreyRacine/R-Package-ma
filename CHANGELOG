@@ -1,5 +1,6 @@
 Changes from 1.01-5 to 1.0-6 [25-Apr-2017]
 
+- added Koenker's India child nutrition data (semiparametric additive model)
 - fixed glitch when vc=FALSE with basis="additive" etc.
 - removed redundant code snipped from parallel anova
 - num.z or num.x = 1, S*log(num.*) has no effect, using log(1+num.*), decreased default S=2 to S=1 (no need for lambda.S, already spans appropriately)
