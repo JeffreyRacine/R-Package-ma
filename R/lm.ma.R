@@ -996,7 +996,7 @@ plot.lm.ma <- function(x,
         for(i in 1:ncol.X) {
             xzeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
         }
-        if(ncol.X > 1) par(mfrow=c(ifelse(ncol.X %%2 == 0, ncol.X/2, (ncol.X+1)/2),2))
+        if(ncol.X > 1) par(mfrow=n2mfrow(ncol.X))
         for(i in 1:ncol.X) {
             xzeval <- xzeval.median
             if(numeric.logical[i]) {
@@ -1077,7 +1077,7 @@ plot.lm.ma <- function(x,
         for(i in 1:ncol.X) {
             xzeval.median[,i] <- uocquantile(x$X[,i],prob=0.5)
         }
-        if(ncol.X > 1) par(mfrow=c(ifelse(ncol.X %%2 == 0, ncol.X/2, (ncol.X+1)/2),2))
+        if(ncol.X > 1) par(mfrow=n2mfrow(ncol.X))
         for(i in 1:ncol.X) {
             cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))
             xzeval <- xzeval.median
