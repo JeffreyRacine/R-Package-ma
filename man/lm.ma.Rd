@@ -127,13 +127,13 @@ lm.ma(...)
 
   \item{degree.by}{increment in degree sequence (if \code{degree.min=0} sequence will include degree 0 then start at 1 in increments of \code{degree.by})}
 
-  \item{degree.max}{the maximum value for the basis degree in each dimension (defaults to \code{max(2,ceiling(log(n)-S*log(k)))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
+  \item{degree.max}{the maximum value for the basis degree in each dimension (defaults to \code{max(2,ceiling(log(n)-S*log(1+k)))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
 
   \item{degree.min}{the minimum value for the basis degree in each dimension}
 
   \item{deriv.index}{an optional vector of indices indicating as to which predictor(s) the derivative computation is to be performed}
   
-  \item{deriv.order}{an integer indicating order of derivative desired}
+  \item{deriv.order}{an integer indicating the order of derivative desired (1,2,...)}
 
   \item{DKL.mat}{a matrix with degree, knots, and lambda values that could optionally be passed to the basis routines}
 
@@ -141,13 +141,13 @@ lm.ma(...)
 
   \item{knots}{a logical value indicating whether or not to include interior knots}
 
-  \item{lambda.S}{a constant used to determine the grid size for lambda in each dimension (size defaults to \code{max(1,ceiling(log(n)-lambda.S*log(p)))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is determined by \code{seq(eps.lambda,1,length=max(1,ceiling(log(n)-lambda.S*log(p)))}}
+  \item{lambda.S}{a constant used to determine the grid size for lambda in each dimension (size defaults to \code{max(1,ceiling(log(n)-lambda.S*log(1+p)))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is determined by \code{seq(eps.lambda,1,length=max(1,ceiling(log(n)-lambda.S*log(1+p)))}}
 
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
 
   \item{ma.weights.cutoff}{a small number below which a model weight is deemed to be essentially zero}
 
-  \item{method}{a character string indicating whether to use jackknife model averaging (jma, Hansen and Racine (2013)) or Mallows model averaging (mma, Hansen (2007))}
+  \item{method}{a character string indicating whether to use jackknife model averaging (\code{"jma"}, Hansen and Racine (2013)) or Mallows model averaging (\code{"mma"}, Hansen (2007))}
 
   \item{parallel}{a logical value indicating whether or not to run certain routines in parallel}
   
@@ -263,7 +263,7 @@ Jeffrey S. Racine
 \note{
 This code is in beta status until further notice - proceed accordingly.
 
-The option \code{compute.anova} uses a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it will be fairly fast, but as the model complexity increases it may require some patience.
+The option \code{compute.anova} uses a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it may be fairly fast, but as the model complexity increases it will require some patience.
 
 The option \code{compute.anova} cannot be used in the presence of one or more factors and exactly one numeric predictor since there is no numeric predictor present when testing for significance for the one numeric predictor.
 
@@ -275,7 +275,7 @@ When multivariate predictors are present, the number of candidate models can be 
 
 Note that \code{predict.ma} produces a vector of predictions or a list of predictions, confidence bounds, derivative matrices and their confidence bounds.
 
-Note that, in multivariate settings, the number of candidate models may grow unreasonably large (say 2,500 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) reduce \code{degree.max}, iv) reduce \code{segments.max}, or perhaps go with a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models).
+Note that, in multivariate settings, the number of candidate models may grow unreasonably large (say 2,500 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) reduce \code{degree.max}, iv) reduce \code{segments.max} (if \code{knots=TRUE}), or perhaps go with a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
 
 }
 
