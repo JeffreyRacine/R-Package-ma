@@ -29,11 +29,13 @@ lm.ma(...)
       deriv.index = NULL,
       deriv.order = 1,
       DKL.mat = NULL,
-      eps.lambda = sqrt(.Machine$double.eps),
+      eps.lambda = 1e-04,
       knots = FALSE,
       lambda.S = 2,
+      lambda.num.max = NULL,
       ma.weights = NULL,
-      ma.weights.cutoff=1e-04,
+      ma.weights.cutoff = 1e-04,
+      max.num.candidate.models = 2500,
       method = c("jma","mma"),
       parallel = FALSE,
       parallel.cores = NULL,
@@ -71,11 +73,13 @@ lm.ma(...)
       deriv.index = NULL,
       deriv.order = 1,
       DKL.mat = NULL,
-      eps.lambda = sqrt(.Machine$double.eps),
+      eps.lambda = 1e-04,
       knots = FALSE,
       lambda.S = 2,
+      lambda.num.max = NULL,
       ma.weights = NULL,
-      ma.weights.cutoff=1e-04,
+      ma.weights.cutoff = 1e-04,
+      max.num.candidate.models = 2500,
       method = c("jma","mma"),
       parallel = FALSE,
       parallel.cores = NULL,
@@ -141,12 +145,16 @@ lm.ma(...)
 
   \item{knots}{a logical value indicating whether or not to include interior knots}
 
-  \item{lambda.S}{a constant used to determine the grid size for lambda in each dimension (size defaults to \code{max(1,ceiling(log(n)-lambda.S*log(1+p)))}) where \code{p} is the number of categorical predictors and \code{n} the number of observations (the grid is determined by \code{seq(eps.lambda,1,length=max(1,ceiling(log(n)-lambda.S*log(1+p)))}}
+  \item{lambda.S}{the constant in the data-driven rule for determining \code{lambda.num.max}}
 
+  \item{lambda.num.max}{the maximum value for the smoothing parameter grid in each dimension (defaults to \code{max(2,ceiling(log(n)-S*log(1+p)))} where \code{p} is the number of categorical predictors and \code{n} the number of observations}
+  
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
 
   \item{ma.weights.cutoff}{a small number below which a model weight is deemed to be essentially zero}
 
+  \item{max.num.candidate.models}{an arbitrary upper bound on the maximum number of candidate models permitted before execution halts}
+  
   \item{method}{a character string indicating whether to use jackknife model averaging (\code{"jma"}, Hansen and Racine (2013)) or Mallows model averaging (\code{"mma"}, Hansen (2007))}
 
   \item{parallel}{a logical value indicating whether or not to run certain routines in parallel}
@@ -159,7 +167,7 @@ lm.ma(...)
   
   \item{rng.seed}{an integer used to seed R's random number generator. This is to ensure replicability}
 
-  \item{S}{the constant in the data-driven rule for determining degree.max}
+  \item{S}{the constant in the data-driven rule for determining \code{degree.max}}
 
   \item{segments.by}{increment in segments sequence}
 
@@ -275,7 +283,7 @@ When multivariate predictors are present, the number of candidate models can be 
 
 Note that \code{predict.ma} produces a vector of predictions or a list of predictions, confidence bounds, derivative matrices and their confidence bounds.
 
-Note that, in multivariate settings, the number of candidate models may grow unreasonably large (say 2,500 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) reduce \code{degree.max}, iv) reduce \code{segments.max} (if \code{knots=TRUE}), or perhaps go with a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
+Note that, in multivariate settings, the number of candidate models may grow unreasonably large (say 2,500 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) reduce \code{degree.max}, iv) reduce \code{lambda.num.max} if categorical predictors are present, v) reduce \code{segments.max} (if \code{knots=TRUE}), or perhaps go with a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
 
 }
 
