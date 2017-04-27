@@ -1378,13 +1378,13 @@ lm.ma.Est <- function(y=NULL,
         }
         
         if(auto.reduce & P.num >= max.num.candidate.models) {
-            if(vc & (length(lambda.seq) > 2)) lambda.seq <- lambda.seq[-length(lambda.seq)]
+            if(vc & (length(lambda.seq) > 2)) lambda.seq <- lambda.seq[-(length(lambda.seq)-1)]
             if(knots & (length(segments.seq) > 1)) segments.seq <- segments.seq[-length(segments.seq)]
             if(length(degree.seq) > 2 & (length(lambda.seq) <= 2)) degree.seq <- degree.seq[-length(degree.seq)]
-            if(trace) warning(paste("number of candidate models (",P.num,") exceeds maximum (",max.num.candidate.models,") - see comments in Notes section (?lm.ma)",""),immediate.=TRUE)
-            if(trace) warning(paste("degree.seq = ",paste(degree.seq,collapse=","),""),immediate.=TRUE)
+            if(trace) warning(paste("number of candidate models (",P.num,") exceeds maximum (",max.num.candidate.models,") - see comments in Notes section (?lm.ma)",sep=""),immediate.=TRUE)
+            if(trace) warning(paste("degree.seq = ",paste(degree.seq,collapse=","),sep=""),immediate.=TRUE)
             if(vc & trace) warning(paste("lambda.seq = ",paste(lambda.seq,collapse=","),""),immediate.=TRUE)
-            if(knots & trace) warning(paste("segments.seq = ",paste(segments.seq,collapse=","),""),immediate.=TRUE)
+            if(knots & trace) warning(paste("segments.seq = ",paste(segments.seq,collapse=","),sep=""),immediate.=TRUE)
             DKL.mat <- NULL
         } else {
             auto.reduce.flag <- TRUE
