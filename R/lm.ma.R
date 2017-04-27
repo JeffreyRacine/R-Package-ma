@@ -1299,6 +1299,14 @@ lm.ma.Est <- function(y=NULL,
         if(trace) warning("only two numeric predictors present, no categorical, degree.by halved")
     }
 
+    if(!is.null(num.z)) {
+        if(num.x == 2 & num.z <= 2) {
+            degree.by <- max(1,round(degree.by/2))
+            if(trace) warning("only two numeric predictors present, two or less categorical predictors present, degree.by halved")
+        }
+    }
+        
+
     lambda.seq <- NULL
     if(vc) {
         l.pow <- 1

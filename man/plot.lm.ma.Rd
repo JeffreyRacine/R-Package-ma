@@ -1,6 +1,6 @@
 \name{plot.lm.ma}
 \alias{plot.lm.ma}
-\title{Plot an \code{lm.ma} object}
+\title{Plot an \code{lm.ma} Object}
 \description{Plots a model average model and its derivatives.}
 \usage{
 \method{plot}{lm.ma}(x,
