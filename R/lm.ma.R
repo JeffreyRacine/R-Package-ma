@@ -10,7 +10,7 @@ lm.ma.formula <- function(formula,
                           X=NULL,
                           X.eval=NULL,
                           alpha=0.05,
-                          auto.reduce=FALSE,
+                          auto.reduce=TRUE,
                           B=99,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
@@ -129,7 +129,7 @@ lm.ma.default <- function(y=NULL,
                           X=NULL,
                           X.eval=NULL,
                           alpha=0.05,
-                          auto.reduce=FALSE,
+                          auto.reduce=TRUE,
                           B=99,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
@@ -1178,7 +1178,7 @@ plot.lm.ma <- function(x,
 lm.ma.Est <- function(y=NULL,
                       X=NULL,
                       X.eval=NULL,
-                      auto.reduce=FALSE,
+                      auto.reduce=TRUE,
                       basis.vec=NULL,
                       basis=c("auto","tensor","taylor","additive"),
                       eps.lambda=1e-04,
@@ -1385,6 +1385,7 @@ lm.ma.Est <- function(y=NULL,
             if(trace) warning(paste("degree.seq = ",paste(degree.seq,collapse=","),sep=""),immediate.=TRUE)
             if(vc & trace) warning(paste("lambda.seq = ",paste(lambda.seq,collapse=","),""),immediate.=TRUE)
             if(knots & trace) warning(paste("segments.seq = ",paste(segments.seq,collapse=","),sep=""),immediate.=TRUE)
+            if(verbose) warning("auto.reduce invoked (set trace=TRUE to see details - see comments in Notes section (?lm.ma))")
             DKL.mat <- NULL
         } else {
             auto.reduce.flag <- TRUE
