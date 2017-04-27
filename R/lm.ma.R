@@ -10,6 +10,7 @@ lm.ma.formula <- function(formula,
                           X=NULL,
                           X.eval=NULL,
                           alpha=0.05,
+                          auto.reduce=FALSE,
                           B=99,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
@@ -68,6 +69,7 @@ lm.ma.formula <- function(formula,
                          X=txdat,
                          X.eval=NULL,
                          alpha=alpha,
+                         auto.reduce=auto.reduce,
                          B=B,
                          basis.vec=basis.vec,
                          basis=basis,
@@ -127,6 +129,7 @@ lm.ma.default <- function(y=NULL,
                           X=NULL,
                           X.eval=NULL,
                           alpha=0.05,
+                          auto.reduce=FALSE,
                           B=99,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
@@ -199,6 +202,7 @@ lm.ma.default <- function(y=NULL,
         Est <- lm.ma.Est(y=y,
                          X=X,
                          X.eval=X.eval,
+                         auto.reduce=auto.reduce,
                          basis=basis,
                          compute.deriv=FALSE,
                          compute.mean=TRUE,
@@ -247,6 +251,7 @@ lm.ma.default <- function(y=NULL,
         Est <- lm.ma.Est(y=y,
                          X=X,
                          X.eval=X.eval,
+                         auto.reduce=auto.reduce,
                          basis=basis,
                          compute.deriv=compute.deriv,
                          compute.mean=compute.mean,
@@ -312,6 +317,7 @@ lm.ma.default <- function(y=NULL,
                 out.boot <- lm.ma.Est(y=y[ii],
                                       X=X[ii,],
                                       X.eval=if(is.null(X.eval)){X}else{X.eval},
+                                      auto.reduce=auto.reduce,
                                       basis=basis,
                                       compute.deriv=compute.deriv,
                                       compute.mean=compute.mean,
@@ -354,6 +360,7 @@ lm.ma.default <- function(y=NULL,
 
             cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
             registerDoParallel(cl)
+            
 
             output <- foreach(b=1:B,.verbose=FALSE) %dopar% {
                 if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
@@ -361,6 +368,7 @@ lm.ma.default <- function(y=NULL,
                 out.boot <- lm.ma.Est(y=y[ii],
                                       X=X[ii,],
                                       X.eval=if(is.null(X.eval)){X}else{X.eval},
+                                      auto.reduce=auto.reduce,
                                       basis=basis,
                                       compute.deriv=compute.deriv,
                                       compute.mean=compute.mean,
@@ -465,6 +473,7 @@ lm.ma.default <- function(y=NULL,
             Est.ssu <- lm.ma.Est(y=y,
                                  X=X,
                                  X.eval=NULL,
+                                 auto.reduce=auto.reduce,
                                  basis=basis,
                                  compute.deriv=FALSE,
                                  compute.mean=TRUE,
@@ -521,6 +530,7 @@ lm.ma.default <- function(y=NULL,
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
                                      X.eval=NULL,
+                                     auto.reduce=auto.reduce,
                                      basis=basis,
                                      compute.deriv=FALSE,
                                      compute.mean=TRUE,
@@ -603,6 +613,7 @@ lm.ma.default <- function(y=NULL,
                     Est.ssu.boot <- lm.ma.Est(y=y.boot,
                                               X=X,
                                               X.eval=NULL,
+                                              auto.reduce=auto.reduce,
                                               basis=basis,
                                               compute.deriv=FALSE,
                                               compute.mean=TRUE,
@@ -643,6 +654,7 @@ lm.ma.default <- function(y=NULL,
                         Est.ssr.boot <- lm.ma.Est(y=y.boot,
                                                   X=X.res,
                                                   X.eval=NULL,
+                                                  auto.reduce=auto.reduce,
                                                   basis=basis,
                                                   compute.deriv=FALSE,
                                                   compute.mean=TRUE,
@@ -716,6 +728,7 @@ lm.ma.default <- function(y=NULL,
                     Est.ssu.boot <- lm.ma.Est(y=y.boot,
                                               X=X,
                                               X.eval=NULL,
+                                              auto.reduce=auto.reduce,
                                               basis=basis,
                                               compute.deriv=FALSE,
                                               compute.mean=TRUE,
@@ -756,6 +769,7 @@ lm.ma.default <- function(y=NULL,
                         Est.ssr.boot <- lm.ma.Est(y=y.boot,
                                                   X=X.res,
                                                   X.eval=NULL,
+                                                  auto.reduce=auto.reduce,
                                                   basis=basis,
                                                   compute.deriv=FALSE,
                                                   compute.mean=TRUE,
@@ -942,6 +956,7 @@ predict.lm.ma <- function(object,
                              X=object$X,
                              X.eval=model.frame(delete.response(terms(object)),newdata,xlev=object$xlevels),
                              alpha=object$alpha,
+                             auto.reduce=object$auto.reduce,
                              basis.vec=object$basis.vec,
                              basis=object$basis,
                              eps.lambda=object$eps.lambda,
@@ -1163,6 +1178,7 @@ plot.lm.ma <- function(x,
 lm.ma.Est <- function(y=NULL,
                       X=NULL,
                       X.eval=NULL,
+                      auto.reduce=FALSE,
                       basis.vec=NULL,
                       basis=c("auto","tensor","taylor","additive"),
                       eps.lambda=1e-04,
@@ -1324,36 +1340,58 @@ lm.ma.Est <- function(y=NULL,
     if(degree.min != 0) degree.seq <- seq(degree.min,degree.max,by=degree.by)
     segments.seq <- seq(segments.min,segments.max,by=segments.by)
 
-    if(is.null(DKL.mat)) {
-        if(is.null(num.z)) {
-            if(knots) {
-                DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,num.x=num.x)
+    auto.reduce.flag <- FALSE
+
+    while(!auto.reduce.flag) {
+
+        if(is.null(DKL.mat)) {
+            if(is.null(num.z)) {
+                if(knots) {
+                    DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,num.x=num.x)
+                } else {
+                    DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
+                }
             } else {
-                DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
+                if(knots & vc) {
+                    DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
+                } else if(!knots & vc) {
+                    DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
+                } else {
+                    DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
+                }
             }
-        } else {
-            if(knots & vc) {
-                DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
-            } else if(!knots & vc) {
-                DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
-            } else {
-                DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
-            }
-        }
             
+        }
+        
+        if(!is.null(ma.weights)) {
+            rank.vec <- rank.vec[ma.weights>ma.weights.cutoff]
+            DKL.mat <- DKL.mat[ma.weights>ma.weights.cutoff,,drop=FALSE]
+            basis.vec <- basis.vec[ma.weights>ma.weights.cutoff]
+            ma.weights <- ma.weights[ma.weights>ma.weights.cutoff]/sum(ma.weights[ma.weights>ma.weights.cutoff])
+        } else {
+            if(is.null(basis.vec)) basis.vec <- rep(basis,NROW(DKL.mat))
+        }
+        
+        P.num <- NROW(DKL.mat)
+        if(!auto.reduce & P.num >= max.num.candidate.models) {
+            stop(paste("number of candidate models (",P.num,") exceeds maximum (",max.num.candidate.models,") - see comments in Notes section (?lm.ma)",""))
+        }
+        
+        if(auto.reduce & P.num >= max.num.candidate.models) {
+            if(vc & (length(lambda.seq) > 2)) lambda.seq <- lambda.seq[-length(lambda.seq)]
+            if(knots & (length(segments.seq) > 1)) segments.seq <- segments.seq[-length(segments.seq)]
+            if(length(degree.seq) > 2 & (length(lambda.seq) <= 2)) degree.seq <- degree.seq[-length(degree.seq)]
+            if(trace) warning(paste("number of candidate models (",P.num,") exceeds maximum (",max.num.candidate.models,") - see comments in Notes section (?lm.ma)",""),immediate.=TRUE)
+            if(trace) warning(paste("degree.seq = ",paste(degree.seq,collapse=","),""),immediate.=TRUE)
+            if(vc & trace) warning(paste("lambda.seq = ",paste(lambda.seq,collapse=","),""),immediate.=TRUE)
+            if(knots & trace) warning(paste("segments.seq = ",paste(segments.seq,collapse=","),""),immediate.=TRUE)
+            DKL.mat <- NULL
+        } else {
+            auto.reduce.flag <- TRUE
+        }
+        
     }
 
-    if(!is.null(ma.weights)) {
-        rank.vec <- rank.vec[ma.weights>ma.weights.cutoff]
-        DKL.mat <- DKL.mat[ma.weights>ma.weights.cutoff,,drop=FALSE]
-        basis.vec <- basis.vec[ma.weights>ma.weights.cutoff]
-        ma.weights <- ma.weights[ma.weights>ma.weights.cutoff]/sum(ma.weights[ma.weights>ma.weights.cutoff])
-    } else {
-        if(is.null(basis.vec)) basis.vec <- rep(basis,NROW(DKL.mat))
-    }
-
-    P.num <- NROW(DKL.mat)
-    if(P.num >= max.num.candidate.models) stop(paste("number of candidate models (",P.num,") exceeds maximum (",max.num.candidate.models,") - see comments in Notes section (?lm.ma)",""))
     basis.singular.vec <- logical(length=P.num)
 
     if(is.null(deriv.index)) deriv.index <- 1:ncol.X
@@ -2452,6 +2490,7 @@ lm.ma.Est <- function(y=NULL,
     return(list(DKL.mat=if(is.null(ma.weights)){DKL.mat}else{DKL.mat.orig},
                 S=S,
                 X=X,
+                auto.reduce=auto.reduce,
                 basis.singular.vec=basis.singular.vec,
                 basis.vec=if(is.null(ma.weights)){basis.vec}else{basis.vec.orig},
                 basis=basis,

@@ -13,6 +13,7 @@ lm.ma(...)
       X = NULL,
       X.eval = NULL,
       alpha = 0.05,
+      auto.reduce = FALSE,
       B = 99,
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
@@ -57,6 +58,7 @@ lm.ma(...)
       X = NULL,
       X.eval = NULL,
       alpha = 0.05,
+      auto.reduce = FALSE,
       B = 99,
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
@@ -110,6 +112,8 @@ lm.ma(...)
 
   \item{alpha}{a value in (0,1) used to compute \eqn{1-\alpha\%} confidence intervals}
 
+  \item{auto.reduce}{a logical value indicating whether or not to use some crude heuristics to reduce the number of candidate models if the number of candidate models exceeds \code{max.num.candidate.models}}
+  
   \item{B}{the number of bootstrap replications desired}
 
   \item{basis.vec}{a vector (character) of bases for each candidate model}
@@ -281,7 +285,7 @@ When multivariate predictors are present, the number of candidate models can be 
 
 Note that \code{predict.ma} produces a vector of predictions or a list of predictions, confidence bounds, derivative matrices and their confidence bounds.
 
-Note that, in multivariate settings, the number of candidate models may grow unreasonably large (say 2,500 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) set and restrict \code{degree.max}, iv) set and restrict \code{lambda.num.max} if categorical predictors are present, v) reduce \code{segments.max} (if \code{knots=TRUE}), or perhaps instead consider a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
+Note that, in multivariate settings, the number of candidate models may grow unreasonably large (say 2,500 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) set and restrict \code{degree.max}, iv) set and restrict \code{lambda.num.max} if categorical predictors are present, v) reduce \code{segments.max} (if \code{knots=TRUE}), vi) set \code{auto.reduce=TRUE}, or perhaps instead consider a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
 
 }
 
