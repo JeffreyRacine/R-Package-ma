@@ -1289,7 +1289,7 @@ lm.ma.Est <- function(y=NULL,
 
     if(num.x == 1 & (basis != "additive")) {
         basis <- "additive"
-        degree.max <- 2*degree.max
+        if(!is.null(degree.max)) degree.max <- 2*degree.max
         degree.by <- max(1,round(degree.by/2))
         if(trace) warning("only one numeric predictor presence, degree.max doubled and degree.by halved")
     }
@@ -1408,7 +1408,7 @@ lm.ma.Est <- function(y=NULL,
                         if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")",sep=""))
                         } else if(vc) {
-                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.seq,")",sep=""))
+                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", lambda.num = ",n.lambda.seq,")",sep=""))
                         }
                     }
                 }
@@ -1620,7 +1620,7 @@ lm.ma.Est <- function(y=NULL,
                         if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")",sep=""))
                         } else if(vc) {
-                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.seq,")",sep=""))
+                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", lambda.num = ",n.lambda.seq,")",sep=""))
                         }
                     }
                 }
@@ -1941,7 +1941,7 @@ lm.ma.Est <- function(y=NULL,
                         if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")",sep=""))
                         } else if(vc) {
-                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.seq,")",sep=""))
+                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", lambda.num = ",n.lambda.seq,")",sep=""))
                         }
                     }
                 }
@@ -2190,7 +2190,7 @@ lm.ma.Est <- function(y=NULL,
                         if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,")",sep=""))
                         } else if(vc) {
-                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", grid.num = ",n.lambda.seq,")",sep=""))
+                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree.max = ",degree.max,", lambda.num = ",n.lambda.seq,")",sep=""))
                         }
                     }
                 }
