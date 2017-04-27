@@ -1289,9 +1289,14 @@ lm.ma.Est <- function(y=NULL,
 
     if(num.x == 1 & (basis != "additive")) {
         basis <- "additive"
-        degree.by <- max(1,round(degree.by/2))
         degree.max <- 2*degree.max
+        degree.by <- max(1,round(degree.by/2))
         if(trace) warning("only one numeric predictor presence, degree.max doubled and degree.by halved")
+    }
+
+    if(num.x == 2 & is.null(num.z)) {
+        degree.by <- max(1,round(degree.by/2))
+        if(trace) warning("only two numeric predictors present, no categorical, degree.by halved")
     }
 
     lambda.seq <- NULL
