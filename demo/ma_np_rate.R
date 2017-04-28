@@ -1,7 +1,7 @@
 ## Comparison of rates of convergence (RMSE) of model averaging
 ## versus nonparametric kernel regression (kernel rate is -2/(4+p) where p is 
-## the number of numeric predictors (-.33 for p=2), correctly specified 
-## parametric model's rate would be -1/2)
+## the number of numeric predictors (-0.33 for p=2), correctly specified 
+## parametric model's rate would be -0.50)
 
 library(ma)
 library(np)
