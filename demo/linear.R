@@ -29,4 +29,4 @@ summary(model.lm)
 summary(model.ma)
 
 coef(model.lm)[-1]
-coef(model.ma)[1,]
+(coef(model.ma)[z1==1&z2==1,])[1,]
