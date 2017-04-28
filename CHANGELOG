@@ -4,7 +4,7 @@ Changes from 1.01-5 to 1.0-6 [28-Apr-2017]
 - added numerous demos (e.g. demo(cps71,package="ma"))
 - added Koenker's India child nutrition data (semiparametric additive model)
 - fixed glitch when vc=FALSE with basis="additive" etc.
-- removed redundant code snipped from parallel anova
+- removed redundant code snippet from parallel anova
 - num.z or num.x = 1, S*log(num.*) has no effect, using log(1+num.*), decreased default S=2 to S=1 (no need for lambda.S, already spans appropriately)
 
 Changes from 1.01-4 to 1.0-5 [22-Apr-2017]
