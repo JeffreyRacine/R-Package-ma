@@ -1,4 +1,5 @@
 anova             Demonstration of significance test with simulated data
+cps71             Demonstration for one predictor wage model
 linear            Demonstration of how to replicate a simple linear model
 india             Demonstration with child nutrition data
 wage1             Demonstration with wage data

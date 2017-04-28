@@ -287,6 +287,9 @@ Note that \code{predict.ma} produces a vector of predictions or a list of predic
 
 Note that, in multivariate settings, the number of candidate models may grow unreasonably large (say 2,500 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) set and restrict \code{degree.max}, iv) set and restrict \code{lambda.num.max} if categorical predictors are present, v) reduce \code{segments.max} (if \code{knots=TRUE}), vi) set \code{auto.reduce=TRUE}, or perhaps instead consider a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
 
+See \code{demo(package="ma")} for illustrative demonstrations with real
+and simulated data (e.g., \code{demo(cps71,package="ma")}).
+
 }
 
 \seealso{

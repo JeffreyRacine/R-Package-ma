@@ -1,5 +1,7 @@
-Changes from 1.01-5 to 1.0-6 [25-Apr-2017]
+Changes from 1.01-5 to 1.0-6 [28-Apr-2017]
 
+- added auto.reduce feature to restrict the number of candidate models to lie below an arbitrary (user-controlled) cutoff
+- added numerous demos (e.g. demo(cps71,package="ma"))
 - added Koenker's India child nutrition data (semiparametric additive model)
 - fixed glitch when vc=FALSE with basis="additive" etc.
 - removed redundant code snipped from parallel anova
