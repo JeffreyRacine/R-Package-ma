@@ -1,7 +1,7 @@
 ## Comparison of rates of convergence (RMSE) of model averaging
 ## versus nonparametric kernel regression (kernel rate is -2/(4+p) where p is 
-## the number of numeric predictors, correctly specified parametric model's rate
-## would be -1/2)
+## the number of numeric predictors (-.33 for p=2), correctly specified 
+## parametric model's rate would be -1/2)
 
 library(ma)
 library(np)
@@ -27,6 +27,7 @@ for(m in 1:M) {
         nobs[i] <- n
         i <- i + 1
     }
+    ## Regress log(RMSE) on log(n), slope is empirical rate of convergence
     model.ma <- ltsReg(log(sqrt(mse.ma))~log(nobs))
     model.np <- ltsReg(log(sqrt(mse.np))~log(nobs))
     ylim=c(min(log(sqrt(c(mse.ma,mse.np)))),max(log(sqrt(c(mse.ma,mse.np)))))
@@ -36,7 +37,8 @@ for(m in 1:M) {
          ylab="log RMSE",
          cex=.5,
          col=1,
-         sub=paste("RMSE Rate: MA = ",formatC(coef(model.ma)[2],format="f",digits=3),", NP = ",formatC(coef(model.np)[2],format="f",digits=3),sep=""))
+         sub=paste("Replication ",m," of ",M,", MA rate = ",formatC(coef(model.ma)[2],format="f",digits=2),
+                   ", NP rate = ",formatC(coef(model.np)[2],format="f",digits=2),sep=""))
     points(log(nobs),log(sqrt(mse.np)),col=2,cex=.5,pch=4)
     abline(model.ma)
     abline(model.np,col=2,lty=2)

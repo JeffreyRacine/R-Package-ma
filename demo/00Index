@@ -3,5 +3,5 @@ cps71             Demonstration for one predictor wage model
 india             Demonstration with child nutrition data
 linear            Demonstration of how to replicate a simple linear model
 ma_BIC_AIC_cps71  Comparison of BIC and AIC model selection with model averaging on hold-out data
-ma_np_rate.R      Comparison of empirical rates of conversion (RMSE) of kernel regression and model averaging with two numeric predictors
+ma_np_rate      Comparison of empirical rates of conversion (RMSE) of kernel regression and model averaging with two numeric predictors
 wage1             Demonstration with wage data
