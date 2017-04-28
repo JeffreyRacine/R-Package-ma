@@ -1,4 +1,4 @@
-## Demonstration of anova-based signifance test
+## Demonstration of anova-based significance test
 
 library(ma)
 
