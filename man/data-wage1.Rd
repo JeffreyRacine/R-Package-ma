@@ -47,7 +47,14 @@ are 526 observations in total. }
 }
 
 \examples{
+\dontrun{
 data(wage1)
+model.ma <- lm.ma(lwage ~ female + married + educ + exper + tenure,
+                  data = wage1,
+                  parallel = TRUE)
+plot(model.ma,plot.data=TRUE)
+plot(model.ma,plot.deriv=TRUE)
+}
 }
 
 \keyword{datasets}
