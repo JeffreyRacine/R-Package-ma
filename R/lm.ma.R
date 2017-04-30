@@ -1359,8 +1359,9 @@ lm.ma.Est <- function(y=NULL,
     segments.seq <- seq(segments.min,segments.max,by=segments.by)
 
     auto.reduce.flag <- FALSE
+    auto.reduce.num.attempts <- 0
 
-    while(!auto.reduce.flag) {
+    while(!auto.reduce.flag & auto.reduce.num.attempts < 1000) {
 
         if(is.null(DKL.mat)) {
             if(verbose) {
@@ -1411,11 +1412,14 @@ lm.ma.Est <- function(y=NULL,
             if(knots & trace) warning(paste("segments.seq = ",paste(segments.seq,collapse=","),sep=""),immediate.=TRUE)
             if(verbose) warning("auto.reduce invoked (set trace=TRUE to see details - see comments in Notes section (?lm.ma))")
             DKL.mat <- NULL
+            auto.reduce.num.attempts <- auto.reduce.num.attempts+1
         } else {
             auto.reduce.flag <- TRUE
         }
         
     }
+
+    if(auto.reduce.num.attempts==1000) stop("auto.reduce failed - see comments in Notes section (?lm.ma))")
 
     basis.singular.vec <- logical(length=P.num)
 
