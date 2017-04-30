@@ -273,6 +273,8 @@ Jeffrey S. Racine
 \note{
 This code is in beta status until further notice - proceed accordingly.
 
+Note that the purpose of this package is to focus on attenuating bias arising from model misspecification in situations where model uncertainty is present and where one is concerned about its impact on any subsequent inference and prediction. If your objective is to include all possible measured predictors (i.e., the kitchen sink approach) and conduct variable selection (i.e., attempt to determine which variables enter linearly), this package is not for you. This approach is best suited to situations involving a manageable number of predictors and a sufficient number of observations so that nonlinearities can be reasonably uncovered.
+
 The option \code{compute.anova} uses a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it may be fairly fast, but as the model complexity increases it will require some patience.
 
 The option \code{compute.anova} cannot be used in the presence of one or more factors and exactly one numeric predictor since there is no numeric predictor present when testing for significance for the one numeric predictor.
