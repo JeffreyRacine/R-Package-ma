@@ -893,6 +893,8 @@ summary.lm.ma <- function(object,
     }
     cat(paste("\nBasis: ", object$basis, sep=""))  
     cat(paste("\nNumber of observations: ", object$num.obs, sep=""))
+    cat(paste("\nNumber of numeric predictors: ", object$num.x, sep=""))
+    if(!is.null(object$num.z)) cat(paste("\nNumber of categorical predictors: ", object$num.z, sep=""))
     cat(paste("\nEquivalent number of parameters: ", formatC(object$ma.model.rank,format="f",digits=2), sep=""))
     cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$num.obs-sum(object$rank.vec*object$ma.weights))),digits=4),
               " on ", formatC(object$num.obs-sum(object$rank.vec*object$ma.weights),format="f",digits=2)," degrees of freedom",sep=""))
@@ -1217,6 +1219,12 @@ lm.ma.Est <- function(y=NULL,
                       weights=NULL,                      
                       ...) {
 
+    if(verbose) {
+        cat("\r                                                                                               ")
+        cat("\r")
+        cat("\rPre-processing data...")
+    }
+
     ma.weights.orig <- ma.weights
     basis.vec.orig <- basis.vec
     rank.vec.orig <- rank.vec
@@ -1277,6 +1285,11 @@ lm.ma.Est <- function(y=NULL,
     }
 
     if(vc & !is.null(num.z)) {
+        if(verbose) {
+            cat("\r                                                                                               ")
+            cat("\r")
+            cat("\rGenerating uniquecombs()...")
+        }
         z.unique <- uniquecombs(as.matrix(z))
         num.z <- ncol(z.unique)
         ind <-  attr(z.unique,"index")
@@ -1350,6 +1363,12 @@ lm.ma.Est <- function(y=NULL,
     while(!auto.reduce.flag) {
 
         if(is.null(DKL.mat)) {
+            if(verbose) {
+                cat("\r                                                                                               ")
+                cat("\r")
+                cat("\rGenerating DKL.mat...")
+            }
+
             if(is.null(num.z)) {
                 if(knots) {
                     DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,num.x=num.x)

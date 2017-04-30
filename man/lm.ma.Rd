@@ -225,7 +225,7 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     ## the procedure for the models that receive positive model average
     ## weights, try the following:
 
-    model$DKL.mat[model$ma.weights>1e-05,]
+    model$DKL.mat[model$ma.weights>model$ma.weights.cutoff,]
 }
 
 Note that, unlike \code{lm} in which the formula interface specifies functional form, in \code{lm.ma} the formula interface is strictly for listing the variables involved and the procedure will determine an appropriate model averaged functional form. Do not incorporate transformations, interactions and the like in the formula interface for \code{lm.ma} as these will most surely fail.
