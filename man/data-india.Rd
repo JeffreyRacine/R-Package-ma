@@ -53,8 +53,9 @@ faccar <- factor(car)
 
 ## Estimate a semiparametric additive model averaged model
 
-model <- lm.ma(cheight ~ faccsex + facctwin + faccbirthorder + facmunemployed
-                         + facmreligion + faccar + cage + mbmi + medu,
+model <- lm.ma(cheight ~ faccsex + facctwin + faccbirthorder +
+               facmunemployed + facmreligion + faccar + cage +
+               mbmi + medu,
                basis="additive",
                vc=FALSE)
 

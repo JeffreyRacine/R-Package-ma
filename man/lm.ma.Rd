@@ -320,7 +320,6 @@ plot(model.ma,plot.data=TRUE,plot.ci=TRUE)
 plot(model.ma,plot.data=TRUE,plot.ci=TRUE,plot.deriv=TRUE)
 par(mfrow=c(1,1))
 
-\dontrun{
 #### Example 2 - five predictor (two categorical) earnings function
 data(wage1)
 attach(wage1)
@@ -339,10 +338,13 @@ model.lm.mwint <- lm(lwage ~ female + married + female:married + educ + exper
 
 summary(model.lm)
 
-## Compare with the model average estimator (female and married are factors)
+## Compare with a semiparametric additive model average estimator
+## (female and married are factors)
 
 model.ma <- lm.ma(lwage ~ female + married + educ + exper + tenure,
-                  compute.deriv = TRUE)
+                  compute.deriv = TRUE,
+                  basis = "additive",
+                  vc = FALSE)
 
 summary(model.ma)
 
@@ -387,7 +389,7 @@ predict(model.ma,newdata=newdata.female.married)$fit-
 predict(model.ma,newdata=newdata.female.notmarried)$fit
 
 detach(wage1)
-}
+
 #### Example 3 - Canadian Current Population Survey earnings data
 
 ## We compute two nonparametric estimators to compare with the 

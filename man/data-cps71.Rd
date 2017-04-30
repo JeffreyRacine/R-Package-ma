@@ -25,5 +25,9 @@
 \keyword{datasets}
 
 \examples{
+\dontrun{
 data(cps71)
+model <- lm.ma(logwage~age,compute.anova=TRUE,data=cps71)
+summary(model)
+}
 }
