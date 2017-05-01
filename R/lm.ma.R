@@ -9,6 +9,7 @@ lm.ma.formula <- function(formula,
                           y=NULL,
                           X=NULL,
                           X.eval=NULL,
+                          all.combinations=TRUE,
                           alpha=0.05,
                           auto.reduce=TRUE,
                           B=99,
@@ -68,6 +69,7 @@ lm.ma.formula <- function(formula,
     Est <- lm.ma.default(y=tydat,
                          X=txdat,
                          X.eval=NULL,
+                         all.combinations=all.combinations,
                          alpha=alpha,
                          auto.reduce=auto.reduce,
                          B=B,
@@ -128,6 +130,7 @@ lm.ma.formula <- function(formula,
 lm.ma.default <- function(y=NULL,
                           X=NULL,
                           X.eval=NULL,
+                          all.combinations=TRUE,
                           alpha=0.05,
                           auto.reduce=TRUE,
                           B=99,
@@ -207,6 +210,7 @@ lm.ma.default <- function(y=NULL,
         Est <- lm.ma.Est(y=y,
                          X=X,
                          X.eval=X.eval,
+                         all.combinations=all.combinations,
                          auto.reduce=auto.reduce,
                          basis=basis,
                          compute.deriv=FALSE,
@@ -256,6 +260,7 @@ lm.ma.default <- function(y=NULL,
         Est <- lm.ma.Est(y=y,
                          X=X,
                          X.eval=X.eval,
+                         all.combinations=all.combinations,
                          auto.reduce=auto.reduce,
                          basis=basis,
                          compute.deriv=compute.deriv,
@@ -322,6 +327,7 @@ lm.ma.default <- function(y=NULL,
                 out.boot <- lm.ma.Est(y=y[ii],
                                       X=X[ii,],
                                       X.eval=if(is.null(X.eval)){X}else{X.eval},
+                                      all.combinations=all.combinations,
                                       auto.reduce=auto.reduce,
                                       basis=basis,
                                       compute.deriv=compute.deriv,
@@ -373,6 +379,7 @@ lm.ma.default <- function(y=NULL,
                 out.boot <- lm.ma.Est(y=y[ii],
                                       X=X[ii,],
                                       X.eval=if(is.null(X.eval)){X}else{X.eval},
+                                      all.combinations=all.combinations,
                                       auto.reduce=auto.reduce,
                                       basis=basis,
                                       compute.deriv=compute.deriv,
@@ -478,6 +485,7 @@ lm.ma.default <- function(y=NULL,
             Est.ssu <- lm.ma.Est(y=y,
                                  X=X,
                                  X.eval=NULL,
+                                 all.combinations=all.combinations,
                                  auto.reduce=auto.reduce,
                                  basis=basis,
                                  compute.deriv=FALSE,
@@ -535,6 +543,7 @@ lm.ma.default <- function(y=NULL,
                 Est.ssr <- lm.ma.Est(y=y,
                                      X=X.res,
                                      X.eval=NULL,
+                                     all.combinations=all.combinations,
                                      auto.reduce=auto.reduce,
                                      basis=basis,
                                      compute.deriv=FALSE,
@@ -618,6 +627,7 @@ lm.ma.default <- function(y=NULL,
                     Est.ssu.boot <- lm.ma.Est(y=y.boot,
                                               X=X,
                                               X.eval=NULL,
+                                              all.combinations=all.combinations,
                                               auto.reduce=auto.reduce,
                                               basis=basis,
                                               compute.deriv=FALSE,
@@ -659,6 +669,7 @@ lm.ma.default <- function(y=NULL,
                         Est.ssr.boot <- lm.ma.Est(y=y.boot,
                                                   X=X.res,
                                                   X.eval=NULL,
+                                                  all.combinations=all.combinations,
                                                   auto.reduce=auto.reduce,
                                                   basis=basis,
                                                   compute.deriv=FALSE,
@@ -733,6 +744,7 @@ lm.ma.default <- function(y=NULL,
                     Est.ssu.boot <- lm.ma.Est(y=y.boot,
                                               X=X,
                                               X.eval=NULL,
+                                              all.combinations=all.combinations,
                                               auto.reduce=auto.reduce,
                                               basis=basis,
                                               compute.deriv=FALSE,
@@ -774,6 +786,7 @@ lm.ma.default <- function(y=NULL,
                         Est.ssr.boot <- lm.ma.Est(y=y.boot,
                                                   X=X.res,
                                                   X.eval=NULL,
+                                                  all.combinations=all.combinations,
                                                   auto.reduce=auto.reduce,
                                                   basis=basis,
                                                   compute.deriv=FALSE,
@@ -963,6 +976,7 @@ predict.lm.ma <- function(object,
                              X=object$X,
                              X.eval=model.frame(delete.response(terms(object)),newdata,xlev=object$xlevels),
                              alpha=object$alpha,
+                             all.combinations=object$all.combinations,
                              auto.reduce=object$auto.reduce,
                              basis.vec=object$basis.vec,
                              basis=object$basis,
@@ -1185,6 +1199,7 @@ plot.lm.ma <- function(x,
 lm.ma.Est <- function(y=NULL,
                       X=NULL,
                       X.eval=NULL,
+                      all.combinations=TRUE,
                       auto.reduce=TRUE,
                       basis.vec=NULL,
                       basis=c("auto","tensor","taylor","additive"),
@@ -1370,24 +1385,68 @@ lm.ma.Est <- function(y=NULL,
                 cat("\rGenerating DKL.mat...")
             }
 
+            all.combinations <- FALSE
+
             if(is.null(num.z)) {
                 if(knots) {
-                    DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,num.x=num.x)
+                    if(all.combinations) {
+                        DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,num.x=num.x)
+                    } else {
+                        DKL.mat <- matrix(NA,length(degree.seq),2*num.x)
+                        for(i in 1:length(degree.seq)) {
+                            DKL.mat[i,1:num.x] <- degree.seq[i]
+                            DKL.mat[i,(num.x+1):(2*num.x)] <- segments.seq[1]
+                        }
+                    }
                 } else {
-                    DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
+                    if(all.combinations) {
+                        DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
+                    } else {
+                        DKL.mat <- matrix(NA,length(degree.seq),2*num.x)
+                        for(i in 1:length(degree.seq)) {
+                            DKL.mat[i,1:num.x] <- degree.seq[i]
+                            DKL.mat[i,(num.x+1):(2*num.x)] <- 1
+                        }
+                    }
                 }
             } else {
                 if(knots & vc) {
-                    DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
+                    if(all.combinations) {
+                        DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
+                    } else {
+                        DKL.mat <- matrix(NA,length(degree.seq),3*num.x)
+                        for(i in 1:length(degree.seq)) {
+                            DKL.mat[i,1:num.x] <- degree.seq[i]
+                            DKL.mat[i,(num.x+1):(2*num.x)] <- segments.seq[1]
+                            DKL.mat[i,(2*num.x+1):(3*num.x)] <- lambda.seq[1]
+                        }
+                    }
                 } else if(!knots & vc) {
-                    DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
+                    if(all.combinations) {
+                        DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
+                    } else {
+                        DKL.mat <- matrix(NA,length(degree.seq),3*num.x)
+                        for(i in 1:length(degree.seq)) {
+                            DKL.mat[i,1:num.x] <- degree.seq[i]
+                            DKL.mat[i,(num.x+1):(2*num.x)] <- 1
+                            DKL.mat[i,(2*num.x+1):(3*num.x)] <- lambda.seq[1]
+                        }
+                    }
                 } else {
-                    DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
+                    if(all.combinations) {
+                        DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
+                    } else {
+                        DKL.mat <- matrix(NA,length(degree.seq),2*num.x)
+                        for(i in 1:length(degree.seq)) {
+                            DKL.mat[i,1:num.x] <- degree.seq[i]
+                            DKL.mat[i,(num.x+1):(2*num.x)] <- 1
+                        }
+                    }
                 }
             }
             
         }
-        
+
         if(!is.null(ma.weights)) {
             rank.vec <- rank.vec[ma.weights>ma.weights.cutoff]
             DKL.mat <- DKL.mat[ma.weights>ma.weights.cutoff,,drop=FALSE]
@@ -2519,6 +2578,7 @@ lm.ma.Est <- function(y=NULL,
     return(list(DKL.mat=if(is.null(ma.weights)){DKL.mat}else{DKL.mat.orig},
                 S=S,
                 X=X,
+                all.combinations=all.combinations,
                 auto.reduce=auto.reduce,
                 basis.singular.vec=basis.singular.vec,
                 basis.vec=if(is.null(ma.weights)){basis.vec}else{basis.vec.orig},

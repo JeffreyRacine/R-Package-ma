@@ -12,6 +12,7 @@ lm.ma(...)
 \method{lm.ma}{default}(y = NULL,
       X = NULL,
       X.eval = NULL,
+      all.combinations = TRUE,
       alpha = 0.05,
       auto.reduce = TRUE,
       B = 99,
@@ -57,6 +58,7 @@ lm.ma(...)
       y = NULL,
       X = NULL,
       X.eval = NULL,
+      all.combinations = TRUE,
       alpha = 0.05,
       auto.reduce = TRUE,
       B = 99,
@@ -110,6 +112,8 @@ lm.ma(...)
 
   \item{X.eval}{a \eqn{p}-variate data frame of points on which the regression will be estimated (evaluation data)}
 
+  \item{all.combinations}{a logical value indicating whether or not to attempt all combinations of degrees, segments, knots, and lambda values or not (if \code{all.combinations=FALSE} only candidate models with the same degree in all dimensions are considered, no interior knots are considered, the minimum number of segments and values for lambda are used)}
+
   \item{alpha}{a value in (0,1) used to compute \eqn{1-\alpha\%} confidence intervals}
 
   \item{auto.reduce}{a logical value indicating whether or not to use some crude heuristics to reduce the number of candidate models if the number of candidate models exceeds \code{max.num.candidate.models}}
@@ -122,7 +126,7 @@ lm.ma(...)
   
   \item{bootstrap.ci}{a logical value indicating whether or not to construct nonparametric bootstrap confidence intervals}
 
-  \item{compute.anova}{a logical value indicating whether or not conduct an anova-based bootstrap procedure to test for predictor significance}
+  \item{compute.anova}{a logical value indicating whether or not to conduct an anova-based bootstrap procedure to test for predictor significance}
 
   \item{compute.anova.index}{an optional vector of indices indicating which predictor(s) are to be tested (default is all predictors)}
 
@@ -288,7 +292,7 @@ When multivariate predictors are present, the number of candidate models can be 
 
 Note that \code{predict.ma} produces a vector of predictions or a list of predictions, confidence bounds, derivative matrices and their confidence bounds.
 
-Note that, in multivariate settings, the number of candidate models may grow unreasonably large (say 2,500 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) set and restrict \code{degree.max}, iv) set and restrict \code{lambda.num.max} if categorical predictors are present, v) reduce \code{segments.max} (if \code{knots=TRUE}), or perhaps instead consider a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
+Note that, in multivariate settings, the number of candidate models may grow unreasonably large (say 2,500 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) set and restrict \code{degree.max}, iv) set and restrict \code{lambda.num.max} if categorical predictors are present, v) reduce \code{segments.max} (if \code{knots=TRUE}),  vi) set \code{all.combinations=FALSE}, or perhaps instead consider a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
 
 See \code{demo(package="ma")} for illustrative demonstrations with real
 and simulated data (e.g., \code{demo(cps71,package="ma")}).
