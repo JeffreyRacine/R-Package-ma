@@ -1549,6 +1549,7 @@ lm.ma.Est <- function(y=NULL,
                     
                     if(basis=="auto") {
                         cv.min <- Inf
+                        fit.spline.min <- NULL
                         for(b.basis in c("tensor","taylor","additive")) {
                             
                             fit.spline <- numeric(length=num.obs)
@@ -1656,6 +1657,7 @@ lm.ma.Est <- function(y=NULL,
                     
                     if(basis=="auto") {
                         cv.min <- Inf
+                        fit.spline.min <- NULL
                         for(b.basis in c("tensor","taylor","additive")) {
                             basis.singular <- logical(1)
                             P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=b.basis))
@@ -1682,7 +1684,7 @@ lm.ma.Est <- function(y=NULL,
                         }
                         
                         model.ma <- model.ma.min
-                        fit.spline <- fitted(model.ma)
+                        fit.spline <- fit.spline.min
                         
                     } else {
                         
@@ -1761,6 +1763,7 @@ lm.ma.Est <- function(y=NULL,
 		                    
 		                if(basis=="auto") {
 		                    cv.min <- Inf
+                        fit.spline.min <- NULL
 		                    for(b.basis in c("tensor","taylor","additive")) {
                             dim.P <- dim.bs(basis=b.basis,kernel=TRUE,degree=DS[,1],segments=DS[,2],include=include)
                             if(dim.P/num.obs > 0.95) {
@@ -1867,6 +1870,7 @@ lm.ma.Est <- function(y=NULL,
 		                    
 		                if(basis=="auto") {
 		                    cv.min <- Inf
+                        fit.spline.min <- NULL
 		                    for(b.basis in c("tensor","taylor","additive")) {
                             basis.singular <- logical(1)
 		                        P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=b.basis))
@@ -1893,7 +1897,7 @@ lm.ma.Est <- function(y=NULL,
 		                    }
 		                    
 		                    model.ma <- model.ma.min
-		                    fit.spline <- fitted(model.ma)
+		                    fit.spline <- fit.spline.min
 		
 		                } else {
 		
