@@ -1498,9 +1498,6 @@ lm.ma.Est <- function(y=NULL,
 
     }
 
-    cat("\r                                                                                               ")
-    cat("\r")
-
     if(!is.null(ma.weights)) {
         rank.vec <- rank.vec[ma.weights>ma.weights.cutoff]
         DKL.mat <- DKL.mat[ma.weights>ma.weights.cutoff,,drop=FALSE]
@@ -1530,10 +1527,6 @@ lm.ma.Est <- function(y=NULL,
     sigsq <- numeric(length=P.num)
     ma.mat <- matrix(NA,num.obs,P.num)
     fitted.mat <- matrix(NA,if(is.null(X.eval)){num.obs}else{num.eval.obs},P.num)
-
-    if(verbose) cat("\r                                                                                               ")
-    if(verbose) cat("\r")
-    if(verbose) cat("\rGenerating candidate models...")
 
     if(is.null(ma.weights)) {
 
@@ -1789,6 +1782,10 @@ lm.ma.Est <- function(y=NULL,
             
         } else {
             
+            if(verbose) cat("\r                                                                                               ")
+            if(verbose) cat("\r")
+            if(verbose) cat("\rGenerating candidate models...")
+
             ## Parallel
             
             cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
