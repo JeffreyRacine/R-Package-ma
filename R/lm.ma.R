@@ -1416,22 +1416,22 @@ lm.ma.Est <- function(y=NULL,
                     if(all.combinations) {
                         DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
                     } else {
-                        DKL.mat <- matrix(NA,length(degree.seq),3*num.x)
+                        DKL.mat <- matrix(NA,length(degree.seq),2*num.x+num.z)
                         for(i in 1:length(degree.seq)) {
                             DKL.mat[i,1:num.x] <- degree.seq[i]
                             DKL.mat[i,(num.x+1):(2*num.x)] <- segments.seq[1]
-                            DKL.mat[i,(2*num.x+1):(3*num.x)] <- lambda.seq[1]
+                            DKL.mat[i,(2*num.x+1):(2*num.x+num.z)] <- lambda.seq[1]
                         }
                     }
                 } else if(!knots & vc) {
                     if(all.combinations) {
                         DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
                     } else {
-                        DKL.mat <- matrix(NA,length(degree.seq),3*num.x)
+                        DKL.mat <- matrix(NA,length(degree.seq),2*num.x+num.z)
                         for(i in 1:length(degree.seq)) {
                             DKL.mat[i,1:num.x] <- degree.seq[i]
                             DKL.mat[i,(num.x+1):(2*num.x)] <- 1
-                            DKL.mat[i,(2*num.x+1):(3*num.x)] <- lambda.seq[1]
+                            DKL.mat[i,(2*num.x+1):(2*num.x+num.z)] <- lambda.seq[1]
                         }
                     }
                 } else {
