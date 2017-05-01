@@ -1712,7 +1712,6 @@ lm.ma.Est <- function(y=NULL,
                     } else {
 
                         dim.P <- dim.bs(basis=basis.vec[p],kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories) ## XXX
-                        print(dim.P)
                         if(dim.P/num.obs > 0.95) {
                             basis.singular <- TRUE
                             cv.val <- Inf
@@ -1958,7 +1957,6 @@ lm.ma.Est <- function(y=NULL,
                     } else {
 
                         dim.P <- dim.bs(basis=basis.vec[p],kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories) ## XXX
-                        print(dim.P)
                         if(dim.P/num.obs > 0.95) {
                             basis.singular <- TRUE
                             cv.val <- Inf
