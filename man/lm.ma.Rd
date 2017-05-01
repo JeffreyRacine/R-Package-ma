@@ -205,6 +205,7 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     model <- lm.ma(y~x1+x2,parallel=TRUE)
     model <- lm.ma(y~x1+x2,parallel=TRUE,parallel.cores=2)    
     model <- lm.ma(y~x+z,lambda.S=3)
+    model <- lm.ma(y~x1+x2+x3+x4+x5,vc=FALSE,degree.by=1,degree.max=4,all.combinations=FALSE)
 
     plot(model)
     plot(model,plot.data=TRUE)

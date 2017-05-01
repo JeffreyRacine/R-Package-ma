@@ -129,6 +129,15 @@ RSQfunc <- function(y,y.pred,weights=NULL) {
   return((sum((y-y.mean)*(y.pred-y.mean))^2)/(sum((y-y.mean)^2)*sum((y.pred-y.mean)^2)))
 }
 
+nrow.DKL.mat <- function(num.x,num.z,degree.seq,segments.seq,lambda.seq) {
+
+    dim.DKL <- length(degree.seq)^num.x * length(segments.seq)^num.x
+    if(!is.null(num.z) & !is.null(lambda.seq)) dim.DKL <- dim.DKL * length(lambda.seq)^num.z
+
+    return(dim.DKL)
+    
+}
+
 dim.bs <- function(basis="additive",kernel=TRUE,degree=NULL,segments=NULL,include=NULL,categories=NULL) {
 
   ## This function computes the dimension of the taylor basis without the

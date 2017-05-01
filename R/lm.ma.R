@@ -895,7 +895,7 @@ summary.lm.ma <- function(object,
 
     cat("Call:\n")
     print(object$call)
-   cat("\nModel Averaging Linear Regression",sep="")
+    cat("\nModel Averaging Linear Regression",sep="")
     cat(paste(ifelse(object$vc, " (Varying Coefficient Specification)"," (Additive Dummy Specification)"),sep=""))
     cat(paste("\nModel average criterion: ", ifelse(object$method=="jma","Jackknife (Hansen and Racine (2013))","Mallows  (Hansen (2007))"), sep=""))
     cat(paste("\nMinimum degree: ", object$degree.min, sep=""))  
@@ -959,6 +959,8 @@ summary.lm.ma <- function(object,
     }
 
     cat("\n\n")
+
+    if(object$auto.reduce.invoked) cat("Note: auto.reduce invoked  - see comments in Notes section (?lm.ma)\n\n")
     
 }
 
@@ -978,6 +980,7 @@ predict.lm.ma <- function(object,
                              alpha=object$alpha,
                              all.combinations=object$all.combinations,
                              auto.reduce=object$auto.reduce,
+                             auto.reduce.invoked=object$auto.reduce.invoked,
                              basis.vec=object$basis.vec,
                              basis=object$basis,
                              eps.lambda=object$eps.lambda,
@@ -1347,6 +1350,8 @@ lm.ma.Est <- function(y=NULL,
         if(trace) warning("only one numeric predictor presence, degree.max doubled and degree.by halved")
     }
 
+    degree.max.orig <- degree.max
+
     if(num.x == 2 & is.null(num.z)) {
         degree.by <- max(1,round(degree.by/2))
         if(trace) warning("only two numeric predictors present, no categorical, degree.by halved")
@@ -1375,14 +1380,18 @@ lm.ma.Est <- function(y=NULL,
 
     degree.seq <- c(0,seq(1,degree.max,by=degree.by))
     if(degree.min != 0) degree.seq <- seq(degree.min,degree.max,by=degree.by)
-    segments.seq <- seq(segments.min,segments.max,by=segments.by)
+    segments.seq <- segments.min
+    if(knots) segments.seq <- seq(segments.min,segments.max,by=segments.by)
 
     auto.reduce.flag <- FALSE
-    auto.reduce.num.attempts <- 0
+    auto.reduce.invoked <- FALSE
 
-    while(!auto.reduce.flag & auto.reduce.num.attempts < 100) {
+    if(is.null(DKL.mat)) {
 
-        if(is.null(DKL.mat)) {
+        auto.reduce.num.attempts <- 0
+    
+        while(is.null(DKL.mat) & !auto.reduce.flag & auto.reduce.num.attempts <= 100) {
+
             if(verbose) {
                 cat("\r                                                                                               ")
                 cat("\r")
@@ -1392,29 +1401,34 @@ lm.ma.Est <- function(y=NULL,
             if(is.null(num.z)) {
                 if(knots) {
                     if(all.combinations) {
-                        DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,num.x=num.x)
+                        P.num <- nrow.DKL.mat(num.x,num.z,degree.seq,segments.seq,lambda.seq)
+                        if(P.num < max.num.candidate.models) DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,num.x=num.x)
                     } else {
                         DKL.mat <- matrix(NA,length(degree.seq),2*num.x)
                         for(i in 1:length(degree.seq)) {
                             DKL.mat[i,1:num.x] <- degree.seq[i]
                             DKL.mat[i,(num.x+1):(2*num.x)] <- segments.seq[1]
                         }
+                        P.num <- NROW(DKL.mat)
                     }
                 } else {
                     if(all.combinations) {
-                        DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
+                        P.num <- nrow.DKL.mat(num.x,num.z,degree.seq,segments.seq,lambda.seq)
+                        if(P.num < max.num.candidate.models) DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
                     } else {
                         DKL.mat <- matrix(NA,length(degree.seq),2*num.x)
                         for(i in 1:length(degree.seq)) {
                             DKL.mat[i,1:num.x] <- degree.seq[i]
                             DKL.mat[i,(num.x+1):(2*num.x)] <- 1
                         }
+                        P.num <- NROW(DKL.mat)
                     }
                 }
             } else {
                 if(knots & vc) {
                     if(all.combinations) {
-                        DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
+                        P.num <- nrow.DKL.mat(num.x,num.z,degree.seq,segments.seq,lambda.seq)
+                        if(P.num < max.num.candidate.models) DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=segments.seq,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
                     } else {
                         DKL.mat <- matrix(NA,length(degree.seq),2*num.x+num.z)
                         for(i in 1:length(degree.seq)) {
@@ -1422,10 +1436,12 @@ lm.ma.Est <- function(y=NULL,
                             DKL.mat[i,(num.x+1):(2*num.x)] <- segments.seq[1]
                             DKL.mat[i,(2*num.x+1):(2*num.x+num.z)] <- lambda.seq[1]
                         }
+                        P.num <- NROW(DKL.mat)
                     }
                 } else if(!knots & vc) {
                     if(all.combinations) {
-                        DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
+                        P.num <- nrow.DKL.mat(num.x,num.z,degree.seq,segments.seq,lambda.seq)
+                        if(P.num < max.num.candidate.models) DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,K.vec3=lambda.seq,num.x=num.x,num.z=num.z)
                     } else {
                         DKL.mat <- matrix(NA,length(degree.seq),2*num.x+num.z)
                         for(i in 1:length(degree.seq)) {
@@ -1433,55 +1449,66 @@ lm.ma.Est <- function(y=NULL,
                             DKL.mat[i,(num.x+1):(2*num.x)] <- 1
                             DKL.mat[i,(2*num.x+1):(2*num.x+num.z)] <- lambda.seq[1]
                         }
+                        P.num <- NROW(DKL.mat)
                     }
                 } else {
                     if(all.combinations) {
-                        DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
+                        P.num <- nrow.DKL.mat(num.x,num.z,degree.seq,segments.seq,lambda.seq)
+                        if(P.num < max.num.candidate.models) DKL.mat <- matrix.combn(K.vec1=degree.seq,K.vec2=1,num.x=num.x)
                     } else {
                         DKL.mat <- matrix(NA,length(degree.seq),2*num.x)
                         for(i in 1:length(degree.seq)) {
                             DKL.mat[i,1:num.x] <- degree.seq[i]
                             DKL.mat[i,(num.x+1):(2*num.x)] <- 1
                         }
+                        P.num <- NROW(DKL.mat)
                     }
                 }
             }
             
+            if(!auto.reduce & P.num >= max.num.candidate.models) {
+                stop(paste("number of candidate models (",P.num,") exceeds maximum (",max.num.candidate.models,") - see comments in Notes section (?lm.ma)",""))
+            }
+            
+            if(auto.reduce & P.num >= max.num.candidate.models) {
+                if(vc & (length(lambda.seq) > 2)) lambda.seq <- lambda.seq[-(length(lambda.seq)-1)]
+                if(knots & (length(segments.seq) > 1)) segments.seq <- segments.seq[-length(segments.seq)]
+                if(length(degree.seq) > 2 & (length(lambda.seq) <= 2)) degree.seq <- degree.seq[-length(degree.seq)]
+                if(trace) warning(paste("number of candidate models (",P.num,") exceeds maximum (",max.num.candidate.models,") - see comments in Notes section (?lm.ma)",sep=""),immediate.=TRUE)
+                if(trace) warning(paste("degree.seq = ",paste(degree.seq,collapse=","),sep=""),immediate.=TRUE)
+                if(vc & trace) warning(paste("lambda.seq = ",paste(lambda.seq,collapse=","),""),immediate.=TRUE)
+                if(knots & trace) warning(paste("segments.seq = ",paste(segments.seq,collapse=","),sep=""),immediate.=TRUE)
+                if(verbose) warning("auto.reduce invoked (set trace=TRUE to see details - see comments in Notes section (?lm.ma))")
+                DKL.mat <- NULL
+                auto.reduce.num.attempts <- auto.reduce.num.attempts+1
+                if(auto.reduce.num.attempts==95) {
+                    all.combinations <- FALSE
+                    degree.by <- 1
+                    degree.max <- degree.max.orig
+                    if(verbose) warning("auto.reduce invoked, num.attempts=99, setting all.combinations=FALSE as a last resort")
+                }
+                auto.reduce.invoked <- TRUE
+            } else {
+                auto.reduce.flag <- TRUE
+            }
+            
+            if(auto.reduce.num.attempts==100) stop("auto.reduce failed - see comments in Notes section (?lm.ma))")
+            
         }
 
-        if(!is.null(ma.weights)) {
-            rank.vec <- rank.vec[ma.weights>ma.weights.cutoff]
-            DKL.mat <- DKL.mat[ma.weights>ma.weights.cutoff,,drop=FALSE]
-            basis.vec <- basis.vec[ma.weights>ma.weights.cutoff]
-            ma.weights <- ma.weights[ma.weights>ma.weights.cutoff]/sum(ma.weights[ma.weights>ma.weights.cutoff])
-        } else {
-            if(is.null(basis.vec)) basis.vec <- rep(basis,NROW(DKL.mat))
-        }
-        
-        P.num <- NROW(DKL.mat)
-        if(!auto.reduce & P.num >= max.num.candidate.models) {
-            stop(paste("number of candidate models (",P.num,") exceeds maximum (",max.num.candidate.models,") - see comments in Notes section (?lm.ma)",""))
-        }
-        
-        if(auto.reduce & P.num >= max.num.candidate.models) {
-            if(vc & (length(lambda.seq) > 2)) lambda.seq <- lambda.seq[-(length(lambda.seq)-1)]
-            if(knots & (length(segments.seq) > 1)) segments.seq <- segments.seq[-length(segments.seq)]
-            if(length(degree.seq) > 2 & (length(lambda.seq) <= 2)) degree.seq <- degree.seq[-length(degree.seq)]
-            if(trace) warning(paste("number of candidate models (",P.num,") exceeds maximum (",max.num.candidate.models,") - see comments in Notes section (?lm.ma)",sep=""),immediate.=TRUE)
-            if(trace) warning(paste("degree.seq = ",paste(degree.seq,collapse=","),sep=""),immediate.=TRUE)
-            if(vc & trace) warning(paste("lambda.seq = ",paste(lambda.seq,collapse=","),""),immediate.=TRUE)
-            if(knots & trace) warning(paste("segments.seq = ",paste(segments.seq,collapse=","),sep=""),immediate.=TRUE)
-            if(verbose) warning("auto.reduce invoked (set trace=TRUE to see details - see comments in Notes section (?lm.ma))")
-            DKL.mat <- NULL
-            auto.reduce.num.attempts <- auto.reduce.num.attempts+1
-        } else {
-            auto.reduce.flag <- TRUE
-        }
-        
     }
 
-    if(auto.reduce.num.attempts==100) stop("auto.reduce failed - see comments in Notes section (?lm.ma))")
+    if(!is.null(ma.weights)) {
+        rank.vec <- rank.vec[ma.weights>ma.weights.cutoff]
+        DKL.mat <- DKL.mat[ma.weights>ma.weights.cutoff,,drop=FALSE]
+        basis.vec <- basis.vec[ma.weights>ma.weights.cutoff]
+        ma.weights <- ma.weights[ma.weights>ma.weights.cutoff]/sum(ma.weights[ma.weights>ma.weights.cutoff])
+    } else {
+        if(is.null(basis.vec)) basis.vec <- rep(basis,NROW(DKL.mat))
+    }
 
+    P.num <- NROW(DKL.mat)
+        
     basis.singular.vec <- logical(length=P.num)
 
     if(is.null(deriv.index)) deriv.index <- 1:ncol.X
@@ -1673,7 +1700,7 @@ lm.ma.Est <- function(y=NULL,
                         fit.spline.min <- NULL
                         for(b.basis in c("tensor","taylor","additive")) {
                             basis.singular <- logical(1)
-                            dim.P <- dim.bs(basis=b.basis,kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories) ## XXX
+                            dim.P <- dim.bs(basis=b.basis,kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
                             if(dim.P/num.obs > 0.95) {
                                 basis.singular <- TRUE
                                 cv.val <- Inf
@@ -1798,7 +1825,6 @@ lm.ma.Est <- function(y=NULL,
                         cv.min <- Inf
                         fit.spline.min <- NULL
                         for(b.basis in c("tensor","taylor","additive")) {
-                            
                             fit.spline <- numeric(length=num.obs)
                             htt <- numeric(length=num.obs)
                             basis.singular <- logical(length=nrow.z.unique)
@@ -1956,7 +1982,7 @@ lm.ma.Est <- function(y=NULL,
                         
                     } else {
 
-                        dim.P <- dim.bs(basis=basis.vec[p],kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories) ## XXX
+                        dim.P <- dim.bs(basis=basis.vec[p],kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
                         if(dim.P/num.obs > 0.95) {
                             basis.singular <- TRUE
                             cv.val <- Inf
@@ -2649,6 +2675,7 @@ lm.ma.Est <- function(y=NULL,
                 X=X,
                 all.combinations=all.combinations,
                 auto.reduce=auto.reduce,
+                auto.reduce.invoked=auto.reduce.invoked,
                 basis.singular.vec=basis.singular.vec,
                 basis.vec=if(is.null(ma.weights)){basis.vec}else{basis.vec.orig},
                 basis=basis,
