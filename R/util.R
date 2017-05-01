@@ -186,8 +186,8 @@ dim.bs <- function(basis="additive",kernel=TRUE,degree=NULL,segments=NULL,includ
  
   if(basis!="additive" & basis!="taylor" & basis!="tensor") stop(" Error: basis must be either additive, taylor, or tensor")
 
-  if(!kernel)
-    if(is.null(include) | is.null(categories)) stop(" Error: you must provide include and categories vectors")    
+  #if(!kernel)
+  #  if(is.null(include) | is.null(categories)) stop(" Error: you must provide include and categories vectors")    
   
   K <- cbind(degree,segments)
 
