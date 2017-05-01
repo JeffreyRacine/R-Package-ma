@@ -1361,7 +1361,7 @@ lm.ma.Est <- function(y=NULL,
     auto.reduce.flag <- FALSE
     auto.reduce.num.attempts <- 0
 
-    while(!auto.reduce.flag & auto.reduce.num.attempts < 1000) {
+    while(!auto.reduce.flag & auto.reduce.num.attempts < 100) {
 
         if(is.null(DKL.mat)) {
             if(verbose) {
@@ -1419,7 +1419,7 @@ lm.ma.Est <- function(y=NULL,
         
     }
 
-    if(auto.reduce.num.attempts==1000) stop("auto.reduce failed - see comments in Notes section (?lm.ma))")
+    if(auto.reduce.num.attempts==100) stop("auto.reduce failed - see comments in Notes section (?lm.ma))")
 
     basis.singular.vec <- logical(length=P.num)
 
