@@ -1482,9 +1482,18 @@ lm.ma.Est <- function(y=NULL,
                 DKL.mat <- NULL
                 auto.reduce.num.attempts <- auto.reduce.num.attempts+1
                 if(auto.reduce.num.attempts==95) {
+                    ## It would be virtually impossible to trip
+                    ## max.num.candidate.models when all models have
+                    ## the same degree, lambda, segment etc. So as we
+                    ## did in the univariate case, help things out and
+                    ## try to get a richer set of models.
                     all.combinations <- FALSE
                     degree.by <- 1
-                    degree.max <- degree.max.orig
+                    degree.max <- 2*degree.max.orig
+                    degree.seq <- c(0,seq(1,degree.max,by=degree.by))
+                    if(degree.min != 0) degree.seq <- seq(degree.min,degree.max,by=degree.by)
+                    segments.seq <- segments.min
+                    if(knots) segments.seq <- seq(segments.min,segments.max,by=segments.by)
                     if(verbose) warning("auto.reduce invoked, num.attempts=99, setting all.combinations=FALSE as a last resort")
                 }
                 auto.reduce.invoked <- TRUE
