@@ -77,7 +77,7 @@ prod.spline <- function(x,
           knots.vec <- NULL
         } else {
             ## quantile knots
-          knots.vec <- as.numeric(quantile(x[,i,drop=FALSE],probs=seq(0,1,length=(K[i,2]+1),type=1)))
+          knots.vec <- as.numeric(quantile(x[,i,drop=FALSE],probs=seq(0,1,length=(K[i,2]+1)),type=1))
 #          if(length(unique(sort(knots.vec))) < length(knots.vec)) {
             ## Correct issue of repeated knots points caused by point
             ## mass data (e.g. knots will be c(0,0,0,1,5), repeated

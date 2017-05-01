@@ -129,7 +129,7 @@ RSQfunc <- function(y,y.pred,weights=NULL) {
   return((sum((y-y.mean)*(y.pred-y.mean))^2)/(sum((y-y.mean)^2)*sum((y.pred-y.mean)^2)))
 }
 
-dim.bs <- function(basis="additive",kernel=TRUE,degree=NULL,segments=NULL,include=NULL) {
+dim.bs <- function(basis="additive",kernel=TRUE,degree=NULL,segments=NULL,include=NULL,categories=NULL) {
 
   ## This function computes the dimension of the taylor basis without the
   ## memory overhead associated with computing the taylor basis itself
@@ -187,7 +187,7 @@ dim.bs <- function(basis="additive",kernel=TRUE,degree=NULL,segments=NULL,includ
   if(basis!="additive" & basis!="taylor" & basis!="tensor") stop(" Error: basis must be either additive, taylor, or tensor")
 
   if(!kernel)
-    if(is.null(include)) stop(" Error: you must provide include vector")    
+    if(is.null(include) | is.null(categories)) stop(" Error: you must provide include and categories vectors")    
   
   K <- cbind(degree,segments)
 
@@ -226,10 +226,10 @@ dim.bs <- function(basis="additive",kernel=TRUE,degree=NULL,segments=NULL,includ
   } else {
     if(basis=="additive") {
       if(any(K[,1] > 0)) 
-        ncol.bs <- sum(c(rowSums(K[K[,1]!=0,,drop=FALSE]),include-1))
+        ncol.bs <- sum(c(rowSums(K[K[,1]!=0,,drop=FALSE]),include*categories-1))
     }
     if(basis=="taylor") {
-      dimen <- c(rowSums(K[K[,1]!=0,,drop=FALSE])-1,include-1)
+      dimen <- c(rowSums(K[K[,1]!=0,,drop=FALSE])-1,include*categories-1)
       dimen <- dimen[dimen>0] ## Delete elements which are eqaul to 0.
       dimen <- sort(dimen,decreasing=TRUE) ## Sort the array to save memory when doing the computation.
       k <-length(dimen)
@@ -251,7 +251,7 @@ dim.bs <- function(basis="additive",kernel=TRUE,degree=NULL,segments=NULL,includ
     }
     if(basis=="tensor") {
       if(any(K[,1] > 0)) 
-        ncol.bs <- prod(c(rowSums(K[K[,1]!=0,,drop=FALSE]),(include-1)))
+        ncol.bs <- prod(c(rowSums(K[K[,1]!=0,,drop=FALSE]),(include*categories-1)))
     }
   }
 
