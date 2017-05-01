@@ -112,7 +112,7 @@ lm.ma(...)
 
   \item{X.eval}{a \eqn{p}-variate data frame of points on which the regression will be estimated (evaluation data)}
 
-  \item{all.combinations}{a logical value indicating whether or not to attempt all combinations of degrees, segments, knots, and lambda values or not (if \code{all.combinations=FALSE} only candidate models with the same degree in all dimensions are considered, no interior knots are considered, the minimum number of segments and values for lambda are used)}
+  \item{all.combinations}{a logical value indicating whether or not to attempt all combinations of degrees, segments, knots, and lambda values (if \code{all.combinations=FALSE} only candidate models with the same degree in all dimensions are considered, no interior knots are considered, while the minimum number of segments and smallest value for lambda are used)}
 
   \item{alpha}{a value in (0,1) used to compute \eqn{1-\alpha\%} confidence intervals}
 
@@ -278,7 +278,6 @@ Jeffrey S. Racine
 This code is in beta status until further notice - proceed accordingly.
 
 Note that the purpose of this package is to attenuate bias arising from model misspecification in situations where model uncertainty is present and you are concerned about its impact on any subsequent inference and prediction. This package is best suited to situations involving a manageable number of predictors (i.e., a handful or two at most) and a sufficient number of observations so that nonlinearities can reasonably be uncovered. If your objective is to include all possible measured predictors (i.e., the kitchen sink approach) and conduct variable selection (i.e., attempt to determine which variables enter linearly), this package is not for you; see instead the R packages \pkg{BMA}, \pkg{lars}, or the function \link[MASS]{stepAIC} in the \pkg{MASS} package (with \code{degree.max=1} the defaults would only allow for at most eleven numeric predictors, i.e., \eqn{2^{11}} combinations of degrees 0 and 1).
-
 
 The option \code{compute.anova} uses a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it may be fairly fast, but as the model complexity increases it will require some patience.
 
