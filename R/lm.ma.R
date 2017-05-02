@@ -1488,15 +1488,11 @@ lm.ma.Est <- function(y=NULL,
                     ## did in the univariate case, help things out and
                     ## try to get a richer set of models.
                     all.combinations <- FALSE
-                    degree.by <- 1
                     degree.max <- 2*degree.max.orig
                     vc <- FALSE
                     #basis <- "additive"
-                    degree.seq <- c(0,seq(1,degree.max,by=degree.by))
-                    if(degree.min != 0) degree.seq <- seq(degree.min,degree.max,by=degree.by)
-                    segments.seq <- segments.min
-                    if(knots) segments.seq <- seq(segments.min,segments.max,by=segments.by)
-                    if(verbose) warning("auto.reduce invoked, num.attempts=99, setting all.combinations=FALSE as a last resort")
+                    degree.seq <- degree.min:degree.max
+                    if(verbose) warning("auto.reduce invoked, num.attempts=90, setting all.combinations=FALSE as a last resort",immediate.=TRUE)
                 }
                 auto.reduce.invoked <- TRUE
             } else {

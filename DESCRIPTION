@@ -11,5 +11,5 @@ Author: Jeffrey S. Racine [aut, cre]
 Maintainer: Jeffrey S. Racine <racinej@mcmaster.ca>
 Description: Model averaging using a variety of multivariate bases and averaging criteria.
 License: GPL-2
-URL: <https://github.com/JeffreyRacine/R-Package-ma>
-BugReports: <https://github.com/JeffreyRacine/R-Package-ma/issues>
+URL: https://github.com/JeffreyRacine/R-Package-ma
+BugReports: https://github.com/JeffreyRacine/R-Package-ma/issues
