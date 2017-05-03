@@ -8,13 +8,11 @@
 /* .C calls */
 extern void gsl_bspline(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void gsl_bspline_deriv(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void mgcv_tensor_mm(void *, void *, void *, void *, void *, void *);
 extern void RuniqueCombs(void *, void *, void *, void *);
 
 static const R_CMethodDef CEntries[] = {
     {"gsl_bspline",       (DL_FUNC) &gsl_bspline,        9},
     {"gsl_bspline_deriv", (DL_FUNC) &gsl_bspline_deriv, 11},
-    {"mgcv_tensor_mm",   (DL_FUNC) &mgcv_tensor_mm,      6},
     {"RuniqueCombs",      (DL_FUNC) &RuniqueCombs,       4},
     {NULL, NULL, 0}
 };
