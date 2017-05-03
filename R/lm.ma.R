@@ -1493,7 +1493,7 @@ lm.ma.Est <- function(y=NULL,
                     if(degree.min != 0) degree.seq <- seq(degree.min,degree.max,by=degree.by)
                     segments.seq <- segments.min
                     if(knots) segments.seq <- seq(segments.min,segments.max,by=segments.by)
-                    if(verbose) warning("auto.reduce invoked, num.attempts=90, setting all.combinations=FALSE as a last resort - see comments in Notes section (?lm.ma)",immediate.=TRUE)
+                    if(verbose) warning("auto.reduce invoked, setting all.combinations=FALSE as a last resort - see comments in Notes section (?lm.ma)",immediate.=TRUE)
                 }
                 auto.reduce.invoked <- TRUE
             } else {

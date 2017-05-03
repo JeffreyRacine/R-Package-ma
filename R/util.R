@@ -234,8 +234,8 @@ dim.bs <- function(basis="additive",kernel=TRUE,degree=NULL,segments=NULL,includ
     }
   } else {
     if(basis=="additive") {
-      if(any(K[,1] > 0)) 
-        ncol.bs <- sum(c(rowSums(K[K[,1]!=0,,drop=FALSE]),include*categories-1))
+      if(any(K[,1] > 0))
+          ncol.bs <- sum(c(rowSums(K[K[,1]!=0,,drop=FALSE])-1,include*categories-1))  
     }
     if(basis=="taylor") {
       dimen <- c(rowSums(K[K[,1]!=0,,drop=FALSE])-1,include*categories-1)
