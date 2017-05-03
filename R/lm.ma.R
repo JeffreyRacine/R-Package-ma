@@ -11,6 +11,7 @@ lm.ma.formula <- function(formula,
                           X.eval=NULL,
                           all.combinations=TRUE,
                           alpha=0.05,
+                          auto.basis=c("tensor","additive"),
                           auto.reduce=TRUE,
                           B=99,
                           basis.vec=NULL,
@@ -71,6 +72,7 @@ lm.ma.formula <- function(formula,
                          X.eval=NULL,
                          all.combinations=all.combinations,
                          alpha=alpha,
+                         auto.basis=auto.basis,
                          auto.reduce=auto.reduce,
                          B=B,
                          basis.vec=basis.vec,
@@ -132,6 +134,7 @@ lm.ma.default <- function(y=NULL,
                           X.eval=NULL,
                           all.combinations=TRUE,
                           alpha=0.05,
+                          auto.basis=c("tensor","additive"),
                           auto.reduce=TRUE,
                           B=99,
                           basis.vec=NULL,
@@ -211,6 +214,7 @@ lm.ma.default <- function(y=NULL,
                          X=X,
                          X.eval=X.eval,
                          all.combinations=all.combinations,
+                         auto.basis=auto.basis,
                          auto.reduce=auto.reduce,
                          basis=basis,
                          compute.deriv=FALSE,
@@ -261,6 +265,7 @@ lm.ma.default <- function(y=NULL,
                          X=X,
                          X.eval=X.eval,
                          all.combinations=all.combinations,
+                         auto.basis=auto.basis,
                          auto.reduce=auto.reduce,
                          basis=basis,
                          compute.deriv=compute.deriv,
@@ -328,6 +333,7 @@ lm.ma.default <- function(y=NULL,
                                       X=X[ii,],
                                       X.eval=if(is.null(X.eval)){X}else{X.eval},
                                       all.combinations=all.combinations,
+                                      auto.basis=auto.basis,
                                       auto.reduce=auto.reduce,
                                       basis=basis,
                                       compute.deriv=compute.deriv,
@@ -380,6 +386,7 @@ lm.ma.default <- function(y=NULL,
                                       X=X[ii,],
                                       X.eval=if(is.null(X.eval)){X}else{X.eval},
                                       all.combinations=all.combinations,
+                                      auto.basis=auto.basis,
                                       auto.reduce=auto.reduce,
                                       basis=basis,
                                       compute.deriv=compute.deriv,
@@ -486,6 +493,7 @@ lm.ma.default <- function(y=NULL,
                                  X=X,
                                  X.eval=NULL,
                                  all.combinations=all.combinations,
+                                 auto.basis=auto.basis,
                                  auto.reduce=auto.reduce,
                                  basis=basis,
                                  compute.deriv=FALSE,
@@ -544,6 +552,7 @@ lm.ma.default <- function(y=NULL,
                                      X=X.res,
                                      X.eval=NULL,
                                      all.combinations=all.combinations,
+                                     auto.basis=auto.basis,
                                      auto.reduce=auto.reduce,
                                      basis=basis,
                                      compute.deriv=FALSE,
@@ -628,6 +637,7 @@ lm.ma.default <- function(y=NULL,
                                               X=X,
                                               X.eval=NULL,
                                               all.combinations=all.combinations,
+                                              auto.basis=auto.basis,
                                               auto.reduce=auto.reduce,
                                               basis=basis,
                                               compute.deriv=FALSE,
@@ -670,6 +680,7 @@ lm.ma.default <- function(y=NULL,
                                                   X=X.res,
                                                   X.eval=NULL,
                                                   all.combinations=all.combinations,
+                                                  auto.basis=auto.basis,
                                                   auto.reduce=auto.reduce,
                                                   basis=basis,
                                                   compute.deriv=FALSE,
@@ -745,6 +756,7 @@ lm.ma.default <- function(y=NULL,
                                               X=X,
                                               X.eval=NULL,
                                               all.combinations=all.combinations,
+                                              auto.basis=auto.basis,
                                               auto.reduce=auto.reduce,
                                               basis=basis,
                                               compute.deriv=FALSE,
@@ -787,6 +799,7 @@ lm.ma.default <- function(y=NULL,
                                                   X=X.res,
                                                   X.eval=NULL,
                                                   all.combinations=all.combinations,
+                                                  auto.basis=auto.basis,
                                                   auto.reduce=auto.reduce,
                                                   basis=basis,
                                                   compute.deriv=FALSE,
@@ -979,6 +992,7 @@ predict.lm.ma <- function(object,
                              X.eval=model.frame(delete.response(terms(object)),newdata,xlev=object$xlevels),
                              alpha=object$alpha,
                              all.combinations=object$all.combinations,
+                             auto.basis=object$auto.basis,
                              auto.reduce=object$auto.reduce,
                              auto.reduce.invoked=object$auto.reduce.invoked,
                              basis.vec=object$basis.vec,
@@ -1203,6 +1217,7 @@ lm.ma.Est <- function(y=NULL,
                       X=NULL,
                       X.eval=NULL,
                       all.combinations=TRUE,
+                      auto.basis=c("tensor","additive"),
                       auto.reduce=TRUE,
                       basis.vec=NULL,
                       basis=c("auto","tensor","taylor","additive"),
@@ -1488,6 +1503,7 @@ lm.ma.Est <- function(y=NULL,
                     ## did in the univariate case, help things out and
                     ## try to get a richer set of models.
                     all.combinations <- FALSE
+                    degree.by <- 1
                     degree.max <- degree.max.orig
                     degree.seq <- c(0,seq(1,degree.max,by=degree.by))
                     if(degree.min != 0) degree.seq <- seq(degree.min,degree.max,by=degree.by)
@@ -1583,11 +1599,11 @@ lm.ma.Est <- function(y=NULL,
                     
                     ## Varying coefficient regression spline formulation -
                     ## must have categorical predictors
-                    
+
                     if(basis=="auto") {
                         cv.min <- Inf
                         fit.spline.min <- NULL
-                        for(b.basis in c("tensor","taylor","additive")) {
+                        for(b.basis in auto.basis) {
                            
                             fit.spline <- numeric(length=num.obs)
                             htt <- numeric(length=num.obs)
@@ -1646,7 +1662,6 @@ lm.ma.Est <- function(y=NULL,
                     } else {
 
                         ## Varying coefficient specification, non-auto basis
-                        
                         fit.spline <- numeric(length=num.obs)
                         htt <- numeric(length=num.obs)
                         basis.singular <- logical(length=nrow.z.unique)
@@ -1700,7 +1715,7 @@ lm.ma.Est <- function(y=NULL,
                     if(basis=="auto") {
                         cv.min <- Inf
                         fit.spline.min <- NULL
-                        for(b.basis in c("tensor","taylor","additive")) {
+                        for(b.basis in auto.basis) {
                             basis.singular <- logical(1)
                             dim.P <- dim.bs(basis=b.basis,kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
                             if(dim.P/num.obs < 0.95) {
@@ -1828,7 +1843,7 @@ lm.ma.Est <- function(y=NULL,
                     if(basis=="auto") {
                         cv.min <- Inf
                         fit.spline.min <- NULL
-                        for(b.basis in c("tensor","taylor","additive")) {
+                        for(b.basis in auto.basis) {
                            
                             fit.spline <- numeric(length=num.obs)
                             htt <- numeric(length=num.obs)
@@ -1941,7 +1956,7 @@ lm.ma.Est <- function(y=NULL,
                     if(basis=="auto") {
                         cv.min <- Inf
                         fit.spline.min <- NULL
-                        for(b.basis in c("tensor","taylor","additive")) {
+                        for(b.basis in auto.basis) {
                             basis.singular <- logical(1)
                             dim.P <- dim.bs(basis=b.basis,kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
                             if(dim.P/num.obs < 0.95) {
@@ -2671,6 +2686,7 @@ lm.ma.Est <- function(y=NULL,
                 S=S,
                 X=X,
                 all.combinations=all.combinations,
+                auto.basis=auto.basis,
                 auto.reduce=auto.reduce,
                 auto.reduce.invoked=auto.reduce.invoked,
                 basis.singular.vec=basis.singular.vec,

@@ -41,6 +41,11 @@ taylor.model.matrix <- function(X) {
     }
   }
 
+  ## http://musicallyut.blogspot.ca/2012/07/pre-allocate-your-vectors.html
+## Again, a common topic I won't dwell on too much. Essentially, R is bad at continually re-sizing objects, because it makes an extra copy of these objects each time. So if you have a loop that creates a vector or list, don't append to the vector or list with each pass of the loop. Instead, make an empty object of the correct size first, then fill in its elements.
+
+  ## Is this relevant?
+
   res <- cbind(1, X[[1]])[, 1 + z[, 1]]
   if(k > 1) for (i in 2:k) res <- res * cbind(1, X[[i]])[, 1 + z[, i]]
   return(matrix(res,nrow=NROW(X[[1]])))

@@ -14,6 +14,7 @@ lm.ma(...)
       X.eval = NULL,
       all.combinations = TRUE,
       alpha = 0.05,
+      auto.basis = c("tensor","additive"),
       auto.reduce = TRUE,
       B = 99,
       basis.vec = NULL,
@@ -60,6 +61,7 @@ lm.ma(...)
       X.eval = NULL,
       all.combinations = TRUE,
       alpha = 0.05,
+      auto.basis = c("tensor","additive"),
       auto.reduce = TRUE,
       B = 99,
       basis.vec = NULL,
@@ -116,6 +118,8 @@ lm.ma(...)
 
   \item{alpha}{a value in (0,1) used to compute \eqn{1-\alpha\%} confidence intervals}
 
+  \item{auto.basis}{which (subset possible) bases to use when \code{basis="auto"}}
+  
   \item{auto.reduce}{a logical value indicating whether or not to use some crude heuristics to reduce the number of candidate models if the number of candidate models exceeds \code{max.num.candidate.models}}
   
   \item{B}{the number of bootstrap replications desired}
