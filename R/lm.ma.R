@@ -2426,6 +2426,8 @@ lm.ma.Est <- function(y=NULL,
     
                                 P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p]))
                                 if(attr(P,"relevant")) {
+                                    zeval.base.tmp <- zeval
+                                    zeval.base.tmp[,kk] <- zeval.base[1,kk]
                                     P.eval <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval.base.tmp,knots="quantiles",basis=basis.vec[p]))
                                     if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                                         if(is.null(weights)) {
@@ -2442,9 +2444,6 @@ lm.ma.Est <- function(y=NULL,
                                         }
                                         fit.spline <- P.eval%*%coef(model.ma)
                                     }
-                                    
-                                    zeval.base.tmp <- zeval
-                                    zeval.base.tmp[,kk] <- zeval.base[1,kk]
                                 } else {
                                     model.ma <- lm(y~1,weights=weights,singular.ok=singular.ok)
                                     fit.spline <- suppressWarnings(predict(model.ma,newdata=data.frame(1:num.eval.obs)))
@@ -2705,6 +2704,8 @@ lm.ma.Est <- function(y=NULL,
     
                                 P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p]))
                                 if(attr(P,"relevant")) {
+                                    zeval.base.tmp <- zeval
+                                    zeval.base.tmp[,kk] <- zeval.base[1,kk]
                                     P.eval <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval.base.tmp,knots="quantiles",basis=basis.vec[p]))
                                     if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                                         if(is.null(weights)) {
@@ -2721,9 +2722,6 @@ lm.ma.Est <- function(y=NULL,
                                         }
                                         fit.spline <- P.eval%*%coef(model.ma)
                                     }
-                                    
-                                    zeval.base.tmp <- zeval
-                                    zeval.base.tmp[,kk] <- zeval.base[1,kk]
                                 } else {
                                     model.ma <- lm(y~1,weights=weights,singular.ok=singular.ok)
                                     fit.spline <- suppressWarnings(predict(model.ma,newdata=data.frame(1:num.eval.obs)))
