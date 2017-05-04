@@ -1,5 +1,6 @@
 Changes from 1.01-6 to 1.0-7 [04-May-2017]
 
+- pushed lm.fit/lm.wfit throughout... 20-20% speed gain, more robust than lm
 - added option for auto.basis to remove (by default for the moment) the taylor basis from being evaluated (hopelessly inefficient for large numbers of predictors)
 - migrated Simon Wood's tensor.product.model.matrix() (he now uses more efficient C code, previously R code)
 

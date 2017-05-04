@@ -2406,7 +2406,11 @@ lm.ma.Est <- function(y=NULL,
                                         coef.model <- coef(model)
                                         deriv.ind.vec[1:dim.P.tensor] <- TRUE
                                     } else if(basis.vec[p]=="taylor") {
-                                        model <- lm(y~P,weights=weights,singular.ok=singular.ok)
+                                        if(is.null(weights)) {
+                                            model <- lm.fit(cbind(1,P),y,singular.ok=singular.ok)
+                                        } else {
+                                            model <- lm.wfit(cbind(1,P),y,weights,singular.ok=singular.ok)
+                                        }
                                         coef.model <- coef(model)[-1]
                                         deriv.ind.vec[1:dim.P.tensor] <- TRUE
                                     }
@@ -2681,7 +2685,11 @@ lm.ma.Est <- function(y=NULL,
                                         coef.model <- coef(model)
                                         deriv.ind.vec[1:dim.P.tensor] <- TRUE
                                     } else if(basis.vec[p]=="taylor") {
-                                        model <- lm(y~P,weights=weights,singular.ok=singular.ok)
+                                        if(is.null(weights)) {
+                                            model <- lm.fit(cbind(1,P),y,singular.ok=singular.ok)
+                                        } else {
+                                            model <- lm.wfit(cbind(1,P),y,weights,singular.ok=singular.ok)
+                                        }
                                         coef.model <- coef(model)[-1]
                                         deriv.ind.vec[1:dim.P.tensor] <- TRUE
                                     }
