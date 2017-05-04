@@ -1617,7 +1617,7 @@ lm.ma.Est <- function(y=NULL,
                     ## must have categorical predictors
 
                     if(basis=="auto") {
-                        cv.min <- Inf
+                        cv.val <- cv.min <- Inf
                         fit.spline.min <- NULL
                         for(b.basis in auto.basis) {
                            
@@ -1733,7 +1733,7 @@ lm.ma.Est <- function(y=NULL,
                     ## predictors)
                     
                     if(basis=="auto") {
-                        cv.min <- Inf
+                        cv.val <- cv.min <- Inf
                         fit.spline.min <- NULL
                         for(b.basis in auto.basis) {
                             basis.singular <- logical(1)
@@ -1881,7 +1881,7 @@ lm.ma.Est <- function(y=NULL,
                     ## must have categorical predictors
 
                     if(basis=="auto") {
-                        cv.min <- Inf
+                        cv.val <- cv.min <- Inf
                         fit.spline.min <- NULL
                         for(b.basis in auto.basis) {
                            
@@ -1997,7 +1997,7 @@ lm.ma.Est <- function(y=NULL,
                     ## predictors)
                     
                     if(basis=="auto") {
-                        cv.min <- Inf
+                        cv.val <- cv.min <- Inf
                         fit.spline.min <- NULL
                         for(b.basis in auto.basis) {
                             basis.singular <- logical(1)
