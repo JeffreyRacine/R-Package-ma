@@ -1515,9 +1515,25 @@ lm.ma.Est <- function(y=NULL,
             } else {
                 auto.reduce.flag <- TRUE
             }
-            
+
             if(auto.reduce.num.attempts==100) stop("auto.reduce failed - see comments in Notes section (?lm.ma))")
             
+        }
+
+        ill.dimensioned.vec <- logical(P.num)
+
+        if(auto.reduce) {
+            for(p in 1:P.num) {
+                DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])
+                if(vc & !is.null(num.z)) {
+                    dim.P <- dim.bs(basis="additive",kernel=TRUE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
+                } else {
+                    dim.P <- dim.bs(basis="additive",kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
+                }
+                if(dim.P/num.obs >= 0.95) ill.dimensioned.vec[p] <- TRUE
+            }
+            DKL.mat <- DKL.mat[!ill.dimensioned.vec,,drop=FALSE]
+            P.num <- NROW(DKL.mat)
         }
 
     }
