@@ -1,3 +1,8 @@
+Changes from 1.01-6 to 1.0-7 [04-May-2017]
+
+- added option for auto.basis to remove (by default for the moment) the taylor basis from being evaluated (hopelessly inefficient for large numbers of predictors)
+- migrated Simon Wood's tensor.product.model.matrix() (he now uses more efficient C code, previously R code)
+
 Changes from 1.01-5 to 1.0-6 [28-Apr-2017]
 
 - added auto.reduce feature to restrict the number of candidate models to lie below an arbitrary (user-controlled) cutoff
