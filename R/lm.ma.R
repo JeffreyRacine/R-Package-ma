@@ -2203,7 +2203,6 @@ lm.ma.Est <- function(y=NULL,
     
             for(p in P.num:1) {
     
-    
                 DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])
                 include.vec <- include
                 if(!is.null(num.z) & vc) {
@@ -2359,13 +2358,14 @@ lm.ma.Est <- function(y=NULL,
                                     if(!is.null(weights)) L <- weights*L
                                     P <- suppressWarnings(prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p]))
                                     if(attr(P,"relevant")) {
+                                        P.eval <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
                                         if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                                             model.z.unique <- lm.wfit(cbind(1,P),y,L,singular.ok=singular.ok)
+                                            fit.spline[zz] <- cbind(1,P.eval)%*%coef(model.z.unique)
                                         } else {
                                             model.z.unique <- lm.wfit(P,y,L,singular.ok=singular.ok)
+                                            fit.spline[zz] <- P.eval%*%coef(model.z.unique)
                                         }
-                                        P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
-                                        fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                                     } else {
                                         model.z.unique <- lm(y~1,weights=L,singular.ok=singular.ok)
                                         fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(1:num.eval.obs))[zz])
@@ -2387,14 +2387,22 @@ lm.ma.Est <- function(y=NULL,
                                     dim.P.tensor <- NCOL(P)
                                     deriv.ind.vec <- logical(length=NCOL(P))
                                     if(basis.vec[p]=="additive") {
-                                        model <- lm(y~P,weights=weights,singular.ok=singular.ok)
+                                        if(is.null(weights)) {
+                                            model <- lm.fit(cbind(1,P),y,singular.ok=singular.ok)
+                                        } else {
+                                            model <- lm.wfit(cbind(1,P),y,weights,singular.ok=singular.ok)
+                                        }
                                         coef.model <- coef(model)[-1]
                                         dim.P.deriv <- sum(K.additive[kk,])
                                         deriv.start <- ifelse(kk!=1,sum(K.additive[1:(kk-1),])+1,1)
                                         deriv.end <- deriv.start+sum(K.additive[kk,])-1
                                         deriv.ind.vec[deriv.start:deriv.end] <- TRUE
                                     } else if(basis.vec[p]=="tensor") {
-                                        model <- lm(y~P-1,weights=weights,singular.ok=singular.ok)
+                                        if(is.null(weights)) {
+                                            model <- lm.fit(P,y,singular.ok=singular.ok)
+                                        } else {
+                                            model <- lm.wfit(P,y,weights,singular.ok=singular.ok)
+                                        }
                                         coef.model <- coef(model)
                                         deriv.ind.vec[1:dim.P.tensor] <- TRUE
                                     } else if(basis.vec[p]=="taylor") {
@@ -2414,18 +2422,25 @@ lm.ma.Est <- function(y=NULL,
     
                                 P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p]))
                                 if(attr(P,"relevant")) {
+                                    P.eval <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval.base.tmp,knots="quantiles",basis=basis.vec[p]))
                                     if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
-                                        model.ma <- lm(y~P,weights=weights,singular.ok=singular.ok)
+                                        if(is.null(weights)) {
+                                            model.ma <- lm.fit(cbind(1,P),y,singular.ok=singular.ok)
+                                        } else {
+                                            model.ma <- lm.wfit(cbind(1,P),y,weights,singular.ok=singular.ok)
+                                        }
+                                        fit.spline <- cbind(1,P.eval)%*%coef(model.ma)
                                     } else {
-                                        model.ma <- lm(y~P-1,weights=weights,singular.ok=singular.ok)
+                                        if(is.null(weights)) {
+                                            model.ma <- lm.fit(P,y,singular.ok=singular.ok)
+                                        } else {
+                                            model.ma <- lm.wfit(P,y,weights,singular.ok=singular.ok)
+                                        }
+                                        fit.spline <- P.eval%*%coef(model.ma)
                                     }
                                     
                                     zeval.base.tmp <- zeval
                                     zeval.base.tmp[,kk] <- zeval.base[1,kk]
-                                    
-                                    P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval.base.tmp,knots="quantiles",basis=basis.vec[p]))
-                                    
-                                    fit.spline <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                                 } else {
                                     model.ma <- lm(y~1,weights=weights,singular.ok=singular.ok)
                                     fit.spline <- suppressWarnings(predict(model.ma,newdata=data.frame(1:num.eval.obs)))
@@ -2501,13 +2516,14 @@ lm.ma.Est <- function(y=NULL,
                             if(!is.null(weights)) L <- weights*L
                             P <- suppressWarnings(prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p]))
                             if(attr(P,"relevant")) {
+                                P.eval <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
                                 if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                                     model.z.unique <- lm.wfit(cbind(1,P),y,L,singular.ok=singular.ok)
+                                    fit.spline[zz] <- cbind(1,P.eval)%*%coef(model.z.unique)
                                 } else {
                                     model.z.unique <- lm.wfit(P,y,L,singular.ok=singular.ok)
+                                    fit.spline[zz] <- P.eval%*%coef(model.z.unique)
                                 }
-                                P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
-                                fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                             } else {
                                 model.z.unique <- lm(y~1,weights=L,singular.ok=singular.ok)
                                 fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(1:num.eval.obs))[zz])
@@ -2522,16 +2538,25 @@ lm.ma.Est <- function(y=NULL,
                         
                         ## Regression spline formulation (no categorical
                         ## predictors)
-                        
+
                         P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p]))
                         if(attr(P,"relevant")) {
+                            P.eval <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p]))
                             if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
-                                model.ma <- lm(y~P,weights=weights,singular.ok=singular.ok)
+                                if(is.null(weights)) {
+                                    model.ma <- lm.fit(cbind(1,P),y,singular.ok=singular.ok)
+                                } else {
+                                    model.ma <- lm.wfit(cbind(1,P),y,weights,singular.ok=singular.ok)
+                                }
+                                fitted.mat[,p] <- cbind(1,P.eval)%*%coef(model.ma)
                             } else {
-                                model.ma <- lm(y~P-1,weights=weights,singular.ok=singular.ok)
+                                if(is.null(weights)) {
+                                    model.ma <- lm.fit(P,y,singular.ok=singular.ok)
+                                } else {
+                                    model.ma <- lm.wfit(P,y,weights,singular.ok=singular.ok)
+                                }
+                                fitted.mat[,p] <- P.eval%*%coef(model.ma)
                             }
-                            P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p]))
-                            fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                         } else {
                             model.ma <- lm(y~1,weights=weights,singular.ok=singular.ok)
                             fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(1:num.eval.obs)))
@@ -2608,13 +2633,14 @@ lm.ma.Est <- function(y=NULL,
                                     if(!is.null(weights)) L <- weights*L
                                     P <- suppressWarnings(prod.spline(x=x,K=DS,knots="quantiles",basis=basis.vec[p]))
                                     if(attr(P,"relevant")) {
+                                        P.eval <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
                                         if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                                             model.z.unique <- lm.wfit(cbind(1,P),y,L,singular.ok=singular.ok)
+                                            fit.spline[zz] <- cbind(1,P.eval)%*%coef(model.z.unique)
                                         } else {
                                             model.z.unique <- lm.wfit(P,y,L,singular.ok=singular.ok)
+                                            fit.spline[zz] <- P.eval%*%coef(model.z.unique)
                                         }
-                                        P <- suppressWarnings(prod.spline(x=x,K=DS,xeval=xeval[zz,,drop=FALSE],knots="quantiles",basis=basis.vec[p]))
-                                        fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(as.matrix(P))))
                                     } else {
                                         model.z.unique <- lm(y~1,weights=L,singular.ok=singular.ok)
                                         fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(1:num.eval.obs))[zz])
@@ -2636,14 +2662,22 @@ lm.ma.Est <- function(y=NULL,
                                     dim.P.tensor <- NCOL(P)
                                     deriv.ind.vec <- logical(length=NCOL(P))
                                     if(basis.vec[p]=="additive") {
-                                        model <- lm(y~P,weights=weights,singular.ok=singular.ok)
+                                        if(is.null(weights)) {
+                                            model <- lm.fit(cbind(1,P),y,singular.ok=singular.ok)
+                                        } else {
+                                            model <- lm.wfit(cbind(1,P),y,weights,singular.ok=singular.ok)
+                                        }
                                         coef.model <- coef(model)[-1]
                                         dim.P.deriv <- sum(K.additive[kk,])
                                         deriv.start <- ifelse(kk!=1,sum(K.additive[1:(kk-1),])+1,1)
                                         deriv.end <- deriv.start+sum(K.additive[kk,])-1
                                         deriv.ind.vec[deriv.start:deriv.end] <- TRUE
                                     } else if(basis.vec[p]=="tensor") {
-                                        model <- lm(y~P-1,weights=weights,singular.ok=singular.ok)
+                                        if(is.null(weights)) {
+                                            model <- lm.fit(P,y,singular.ok=singular.ok)
+                                        } else {
+                                            model <- lm.wfit(P,y,weights,singular.ok=singular.ok)
+                                        }
                                         coef.model <- coef(model)
                                         deriv.ind.vec[1:dim.P.tensor] <- TRUE
                                     } else if(basis.vec[p]=="taylor") {
@@ -2663,18 +2697,25 @@ lm.ma.Est <- function(y=NULL,
     
                                 P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p]))
                                 if(attr(P,"relevant")) {
+                                    P.eval <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval.base.tmp,knots="quantiles",basis=basis.vec[p]))
                                     if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
-                                        model.ma <- lm(y~P,weights=weights,singular.ok=singular.ok)
+                                        if(is.null(weights)) {
+                                            model.ma <- lm.fit(cbind(1,P),y,singular.ok=singular.ok)
+                                        } else {
+                                            model.ma <- lm.wfit(cbind(1,P),y,weights,singular.ok=singular.ok)
+                                        }
+                                        fit.spline <- cbind(1,P.eval)%*%coef(model.ma)
                                     } else {
-                                        model.ma <- lm(y~P-1,weights=weights,singular.ok=singular.ok)
+                                        if(is.null(weights)) {
+                                            model.ma <- lm.fit(P,y,singular.ok=singular.ok)
+                                        } else {
+                                            model.ma <- lm.wfit(P,y,weights,singular.ok=singular.ok)
+                                        }
+                                        fit.spline <- P.eval%*%coef(model.ma)
                                     }
                                     
                                     zeval.base.tmp <- zeval
                                     zeval.base.tmp[,kk] <- zeval.base[1,kk]
-                                    
-                                    P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval.base.tmp,knots="quantiles",basis=basis.vec[p]))
-                                    
-                                    fit.spline <- suppressWarnings(predict(model.ma,newdata=data.frame(as.matrix(P))))
                                 } else {
                                     model.ma <- lm(y~1,weights=weights,singular.ok=singular.ok)
                                     fit.spline <- suppressWarnings(predict(model.ma,newdata=data.frame(1:num.eval.obs)))
@@ -2685,11 +2726,10 @@ lm.ma.Est <- function(y=NULL,
                         }
                         
                         deriv.mat[,p,k] <- model.deriv
-    
+                        
                     }
 
                 }
-    
                 list(fitted.mat=fitted.mat[,p],
                      rank.vec=rank.vec[p],
                      deriv.mat=deriv.mat[,p,])
