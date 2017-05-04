@@ -1846,7 +1846,7 @@ lm.ma.Est <- function(y=NULL,
             cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
             registerDoParallel(cl)
 
-            ## Need p to be ascending in order for dopar inorder to function
+            ## Need p to be ascending in order for dopar in order to function
 
 		        output <- foreach(p=1:P.num,.verbose=FALSE) %dopar% {
 
@@ -2168,7 +2168,7 @@ lm.ma.Est <- function(y=NULL,
             while(qr(D)$rank<M) {
                 D <- D + diag(tol.ridge,M,M)
                 tol.ridge <- tol.ridge*10
-                if(trace) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when rebalancing (",tol.ridge,")",sep=""),immediate.=TRUE)
+                if(trace) warning(paste("Shrinkage factor added to D in solve.QP to ensure full rank when re-balancing (",tol.ridge,")",sep=""),immediate.=TRUE)
                 singular.D <- TRUE
             } 
             if(method=="mma") {
@@ -2192,7 +2192,7 @@ lm.ma.Est <- function(y=NULL,
             
             if(!isTRUE(all.equal(as.numeric(b[b>ma.weights.cutoff]),as.numeric(b.reb)))) {
                 if(trace) {
-                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>ma.weights.cutoff])," initial models, ",length(b.reb[b.reb>ma.weights.cutoff])," rebalanced ones)",sep=""),immediate.=TRUE)   
+                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>ma.weights.cutoff])," initial models, ",length(b.reb[b.reb>ma.weights.cutoff])," re-balanced ones)",sep=""),immediate.=TRUE)   
                     if(!isTRUE(all.equal(b[b>ma.weights.cutoff],b.reb[b.reb>ma.weights.cutoff]))) warning(all.equal(b[b>ma.weights.cutoff],b.reb[b.reb>ma.weights.cutoff]),immediate.=TRUE)
                 }
                 b[b>ma.weights.cutoff] <- b.reb
@@ -2493,7 +2493,7 @@ lm.ma.Est <- function(y=NULL,
             cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
             registerDoParallel(cl)
 
-            ## Need p to be ascending in order for dopar inorder to function
+            ## Need p to be ascending in order for dopar in order to function
 
 		        output <- foreach(p=1:P.num,.verbose=FALSE) %dopar% {
 		

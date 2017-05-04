@@ -360,6 +360,7 @@ summary(model.lm)
 model.ma <- lm.ma(lwage ~ female + married + educ + exper + tenure,
                   compute.deriv = TRUE,
                   basis = "additive",
+                  degree.by = 1,
                   vc = FALSE)
 
 summary(model.ma)

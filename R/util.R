@@ -239,7 +239,7 @@ dim.bs <- function(basis="additive",kernel=TRUE,degree=NULL,segments=NULL,includ
     }
     if(basis=="taylor") {
       dimen <- c(rowSums(K[K[,1]!=0,,drop=FALSE])-1,include*categories-1)
-      dimen <- dimen[dimen>0] ## Delete elements which are eqaul to 0.
+      dimen <- dimen[dimen>0] ## Delete elements which are equal to 0.
       dimen <- sort(dimen,decreasing=TRUE) ## Sort the array to save memory when doing the computation.
       k <-length(dimen)
       if(k==0) {
