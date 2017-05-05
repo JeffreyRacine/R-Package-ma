@@ -1773,6 +1773,7 @@ lm.ma.Est <- function(y=NULL,
                             if(cv.val < cv.min  & !basis.singular & (dim.P/num.obs < 0.95)) {
                                 cv.min <- cv.val
                                 fit.spline.min <- fitted(model.ma)
+                                htt.min <- htt
                                 model.ma.min <- model.ma
                                 basis.vec[p] <- b.basis
                                 basis.singular.vec[p] <- basis.singular
@@ -1784,6 +1785,7 @@ lm.ma.Est <- function(y=NULL,
                     
                         fit.spline <- fit.spline.min
                         model.ma <- model.ma.min
+                        htt <- htt.min
                         
                     } else {
 

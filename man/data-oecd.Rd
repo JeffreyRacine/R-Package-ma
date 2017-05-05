@@ -1,4 +1,3 @@
-% $ID$
 \name{oecdpanel}
 \docType{data}
 \alias{oecdpanel}
