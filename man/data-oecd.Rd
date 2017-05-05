@@ -48,15 +48,13 @@
 \source{ Thanasis Stengos }
 \examples{
 \dontrun{
-
 data(oecdpanel)
 attach(oecdpanel)
 oecd <- factor(oecd)
 year <- ordered(year)
-model.ma <- lm.ma(growth ~ oecd + year + initgdp + popgro + inv + humancap,
-                  parallel = TRUE)
+model.ma <- lm.ma(growth ~ oecd + year + initgdp + popgro + inv + humancap)
 summary(model.ma)
-plot(model.ma,plot.data=TRUE)
+plot(model.ma,plot.data=TRUE,plot.rug=TRUE)
 }
 }
 \references{
