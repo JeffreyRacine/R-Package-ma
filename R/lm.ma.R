@@ -921,6 +921,7 @@ summary.lm.ma <- function(object,
     cat(paste("\nNumber of observations: ", object$num.obs, sep=""))
     cat(paste("\nNumber of numeric predictors: ", object$num.x, sep=""))
     if(!is.null(object$num.z)) cat(paste("\nNumber of categorical predictors: ", object$num.z, sep=""))
+    cat(paste("\nNumber of candidate models: ", NROW(object$DKL.mat), sep=""))  
     cat(paste("\nEquivalent number of parameters: ", formatC(object$ma.model.rank,format="f",digits=2), sep=""))
     cat(paste("\nResidual standard error: ", format(sqrt(sum(object$residuals^2)/(object$num.obs-sum(object$rank.vec*object$ma.weights))),digits=4),
               " on ", formatC(object$num.obs-sum(object$rank.vec*object$ma.weights),format="f",digits=2)," degrees of freedom",sep=""))
