@@ -141,7 +141,7 @@ lm.ma(...)
 
   \item{degree.by}{increment in degree sequence (if \code{degree.min=0} sequence will include degree 0 then start at 1 in increments of \code{degree.by})}
 
-  \item{degree.max}{the maximum value for the basis degree in each dimension (defaults to \code{max(2,ceiling(log(n)-S*log(1+k)))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
+  \item{degree.max}{the maximum value for the basis degree in each dimension (the value defaults to \code{max(2,ceiling(log(n)-S*log(1+k)))} where \code{k} is the number of numeric predictors and \code{n} the number of observations}
 
   \item{degree.min}{the minimum value for the basis degree in each dimension}
 
@@ -303,8 +303,7 @@ When multivariate predictors are present, the number of candidate models can be 
 
 Note that \code{predict.ma} produces a vector of predictions or a list of predictions, confidence bounds, derivative matrices and their confidence bounds.
 
-See \code{demo(package="ma")} for illustrative demonstrations with real
-and simulated data (e.g., \code{demo(cps71,package="ma")}).
+See the examples contained in \code{demo(package="ma")} for illustrative demonstrations with real and simulated data (e.g., \code{demo(cps71,package="ma")}).
 
 }
 
