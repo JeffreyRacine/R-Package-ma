@@ -10,7 +10,7 @@ model <- lm.ma(lwage ~ female + married + educ + exper,
 
 apply(coef(model),2,summary)
 plot(model)
-plot(model,deriv=TRUE)
+plot(model,plot.deriv=TRUE)
 
 summary(model)
 
