@@ -10,5 +10,5 @@ model <- lm.ma(logwage~age,
 summary(model)
 
 par(mfrow=c(2,1))
-plot(model,plot.data=TRUE,plot.ci=TRUE,B=399)
-plot(model,plot.deriv=TRUE,plot.ci=TRUE,B=399)
+plot(model,plot.data=TRUE,plot.ci=TRUE,plot.B=399)
+plot(model,plot.deriv=TRUE,plot.ci=TRUE,plot.B=399)

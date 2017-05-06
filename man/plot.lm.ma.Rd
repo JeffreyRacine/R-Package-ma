@@ -4,7 +4,7 @@
 \description{Plots a model average model and its derivatives.}
 \usage{
 \method{plot}{lm.ma}(x,
-     B = 99,
+     plot.B = 99,
      plot.ci = FALSE,
      plot.data = FALSE,
      plot.deriv = FALSE,
@@ -16,7 +16,7 @@
 
 \arguments{
   \item{x}{an object of type \code{lm.ma}}
-  \item{B}{number of bootstrap replications used to construct nonparametric confidence intervals}
+  \item{plot.B}{number of bootstrap replications used to construct nonparametric confidence intervals}
   \item{plot.ci}{a logical value indicating whether to plot nonparametric confidence intervals or not}
   \item{plot.data}{a logical value indicating whether to plot the data or not}
   \item{plot.deriv}{a logical value indicating whether to compute derivatives or not}
@@ -30,10 +30,10 @@ This function plots an object returned by \code{lm.ma}. Typical usages are
 \preformatted{
     plot(model)
     plot(model,plot.data=TRUE)
-    plot(model,plot.ci=TRUE,B=99)    
-    plot(model,plot.data=TRUE,plot.ci=TRUE,B=199)
+    plot(model,plot.ci=TRUE,plot.B=99)    
+    plot(model,plot.data=TRUE,plot.ci=TRUE,plot.B=199)
     plot(model,plot.deriv=TRUE)    
-    plot(model,plot.deriv=TRUE,plot.ci=TRUE,B=399)        
+    plot(model,plot.deriv=TRUE,plot.ci=TRUE,plot.B=399)        
   }
 }
 \value{

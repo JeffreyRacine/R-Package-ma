@@ -165,7 +165,7 @@ lm.ma(...)
 
   \item{max.num.candidate.models}{an arbitrary upper bound on the maximum number of candidate models permitted before execution halts}
   
-  \item{method}{a character string indicating whether to use jackknife model averaging (\code{"jma"}, Hansen and Racine (2013)) or Mallows model averaging (\code{"mma"}, Hansen (2007))}
+  \item{method}{a character string indicating whether to use jackknife model averaging (\code{"jma"}, Hansen and Racine (2013)) or Mallows model averaging (\code{"mma"}, Hansen (2007) - both are frequentiest model average criterion)}
 
   \item{parallel}{a logical value indicating whether or not to run certain routines in parallel}
   
@@ -218,10 +218,10 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
 
     plot(model)
     plot(model,plot.data=TRUE)
-    plot(model,plot.ci=TRUE,B=199)    
-    plot(model,plot.data=TRUE,plot.ci=TRUE,B=199)
+    plot(model,plot.ci=TRUE,plot.B=199)    
+    plot(model,plot.data=TRUE,plot.ci=TRUE,plot.B=199)
     plot(model,plot.deriv=TRUE)    
-    plot(model,plot.deriv=TRUE,plot.ci=TRUE,B=399)        
+    plot(model,plot.deriv=TRUE,plot.ci=TRUE,plot.B=399)        
 
     summary(model)
     fitted(model)

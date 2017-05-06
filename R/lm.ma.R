@@ -1048,7 +1048,7 @@ predict.lm.ma <- function(object,
 ## Method for plotting.
 
 plot.lm.ma <- function(x,
-                       B=99,
+                       plot.B=99,
                        plot.ci=FALSE,
                        plot.data=FALSE,
                        plot.deriv=FALSE,
@@ -1104,7 +1104,7 @@ plot.lm.ma <- function(x,
                      ...)
                 if(numeric.logical[i] & plot.rug) suppressWarnings(rug(x$X[x$X[,i] >= xlim[1] & x$X[,i] <= xlim[2] ,i]))
                 cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))                
-                foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=B,...)    
+                foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=plot.B,...)    
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(numeric.logical[i]) {
                     lines(xzeval[,i],foo$fit,col=1)
@@ -1122,7 +1122,7 @@ plot.lm.ma <- function(x,
                 }
             } else {
                 cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))    
-                foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=B,...)
+                foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=plot.B,...)
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(!plot.ci) {
                     plot(xzeval[,i],foo$fit,
@@ -1176,7 +1176,7 @@ plot.lm.ma <- function(x,
             x$compute.deriv <- TRUE
             x$deriv.index <- i
 
-            foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=B,...)
+            foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=plot.B,...)
             if(!plot.ci) {
                 plot(xzeval[,i],foo$deriv[,1],
                      ylab=if(numeric.logical[i]){paste("d ",yname," / d ",xznames[i],sep="")}else{paste("Delta ",yname,sep="")},
