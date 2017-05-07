@@ -910,7 +910,7 @@ summary.lm.ma <- function(object,
     print(object$call)
     cat("\nModel Averaging Linear Regression",sep="")
     cat(paste(ifelse(object$vc, " (Varying Coefficient Specification)"," (Additive Dummy Specification)"),sep=""))
-    cat(paste("\nModel average criterion: ", ifelse(object$method=="jma","Jackknife (Hansen and Racine (2013))","Mallows  (Hansen (2007))"), sep=""))
+    cat(paste("\nModel average criterion: ", ifelse(object$method=="jma","Jackknife (Hansen and Racine (2013))","Mallows (Hansen (2007))"), sep=""))
     cat(paste("\nMinimum degree: ", object$degree.min, sep=""))  
     cat(paste("\nMaximum degree: ", object$degree.max, sep=""))
     if(object$knots) {
