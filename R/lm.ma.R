@@ -1849,7 +1849,8 @@ lm.ma.Est <- function(y=NULL,
             cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
             registerDoParallel(cl)
 
-            ## Need p to be ascending in order for dopar in order to function
+            ## Need p to be ascending in order for dopar to function
+            ## properly
 
 		        output <- foreach(p=1:P.num,.verbose=FALSE) %dopar% {
 
@@ -2126,8 +2127,7 @@ lm.ma.Est <- function(y=NULL,
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing model average weights...")
 
-        ## Solve the quadratic program for the Mallows model average
-        ## weights
+        ## Solve the quadratic program for the model average weights
         M <- ncol(ma.mat)
         D <- t(ma.mat)%*%ma.mat
         tol.ridge <- sqrt(.Machine$double.eps)
@@ -2159,9 +2159,9 @@ lm.ma.Est <- function(y=NULL,
         num.attempts <- 0
         while(singular.D & num.attempts < 10) {
             num.attempts <- num.attempts + 1
-            ## Re-solve the quadratic program for the non-zero Mallows
-            ## model average weights (trivial overhead and can only
-            ## improve upon the existing weights when D is not
+            ## Re-solve the quadratic program for the non-zero model
+            ## average weights (trivial overhead and can only improve
+            ## upon the existing weights when D is not
             ## well-conditioned)
             ma.mat.reb <- ma.mat[,b>ma.weights.cutoff,drop=FALSE]
             M <- ncol(ma.mat.reb)
