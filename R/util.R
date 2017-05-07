@@ -15,27 +15,13 @@ matrix.combn <- function(K.vec1,K.vec2=NULL,K.vec3=NULL,num.x=0,num.z=0) {
 
 }
 
-lambda.plugin <- function(z) {
-
-    ## Optimal bandwidth for univariate probability function estimation...
-
-    n <- length(z)
-    p.z <- prop.table(table(z))
-    C <- length(p.z)
-    Lambda.1 <- (1-C*p.z)/(C-1)
-    Lambda.2 <- (1+C**2*p.z - 2*C*p.z)/(C-1)**2
-    Lambda.3 <- p.z*(1+Lambda.1)
-    return(sum(Lambda.2)/(sum(Lambda.2-Lambda.1**2) + n*sum(Lambda.1**2)))
-
-}
-
 blank <- function(len){
   sapply(len, function(nb){
     paste(rep(' ', times = nb), collapse='')
   })
 }
 
-uocquantile = function(x, prob = 0.5) {
+uocquantile <- function(x, prob = 0.5) {
   if (is.ordered(x)){
     tq = unclass(table(x))
     tq = tq / sum(tq)
@@ -49,12 +35,6 @@ uocquantile = function(x, prob = 0.5) {
   } else {
     quantile(x, probs = prob, type = 1)
   }
-}
-
-is.fullrank <- function(x)
-{
-  e <- eigen(crossprod(as.matrix(x)), symmetric = TRUE, only.values = TRUE)$values
-  e[1] > 0 && abs(e[length(e)]/e[1]) > max(dim(x))*max(sqrt(abs(e)))*.Machine$double.eps
 }
 
 splitFrame <- function(xz, factor.to.numeric=FALSE) {
