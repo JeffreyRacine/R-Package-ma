@@ -2313,7 +2313,7 @@ lm.ma.Est <- function(y=NULL,
                 
                 ## Compute derivatives
     
-                 if(compute.deriv) {
+                if(compute.deriv) {
     
                     if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                         K.additive <- DS
@@ -2591,7 +2591,7 @@ lm.ma.Est <- function(y=NULL,
                 
                 ## Compute derivatives
     
-                 if(compute.deriv) {
+                if(compute.deriv) {
     
                     if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                         K.additive <- DS
