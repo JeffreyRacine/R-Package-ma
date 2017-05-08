@@ -2,7 +2,7 @@ Package: ma
 Type: Package
 Title: Model Averaging
 Version: 1.0-7
-Date: 2017-05-07
+Date: 2017-05-08
 Imports: doParallel, foreach, parallel, quadprog
 Suggests: crs, np, rgl
 Depends: R (>= 2.10)

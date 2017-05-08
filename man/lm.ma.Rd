@@ -37,7 +37,7 @@ lm.ma(...)
       ma.weights = NULL,
       ma.weights.cutoff = 1e-04,
       max.num.candidate.models = 2500,
-      method = c("jma","mma"),
+      method = c("mma","jma"),
       parallel = FALSE,
       parallel.cores = NULL,
       rank.vec = NULL,
@@ -84,7 +84,7 @@ lm.ma(...)
       ma.weights = NULL,
       ma.weights.cutoff = 1e-04,
       max.num.candidate.models = 2500,
-      method = c("jma","mma"),
+      method = c("mma","jma"),
       parallel = FALSE,
       parallel.cores = NULL,
       rank.vec = NULL,
@@ -165,7 +165,7 @@ lm.ma(...)
 
   \item{max.num.candidate.models}{an arbitrary upper bound on the maximum number of candidate models permitted before execution halts}
   
-  \item{method}{a character string indicating whether to use jackknife model averaging (\code{"jma"}, Hansen and Racine (2013)) or Mallows model averaging (\code{"mma"}, Hansen (2007) - both are frequentiest model average criterion)}
+  \item{method}{a character string indicating whether to use jackknife model averaging (\code{"jma"}, Hansen and Racine (2013)) or Mallows model averaging (\code{"mma"}, Hansen (2007) - both are frequentist model average criterion)}
 
   \item{parallel}{a logical value indicating whether or not to run certain routines in parallel}
   
@@ -302,6 +302,8 @@ If you wish to plot the object with the option \code{plot.ci=TRUE}, it is not ne
 When multivariate predictors are present, the number of candidate models can be quite large. When building the final model each candidate model must be constructed and evaluated. However, after solving for the model average weights, a number of candidate models may be assigned essentially zero weight. Subsequently, only the non-zero weight models need be evaluated (e.g. when constructing derivative estimates, predictions, confidence intervals and the like).
 
 Note that \code{predict.ma} produces a vector of predictions or a list of predictions, confidence bounds, derivative matrices and their confidence bounds.
+
+Note that \code{method="mma"} tends to select more parsimonious candidate models than \code{method="jma"}, particularly as the number of predictors increases (this is analogous to the fact that BIC model selection tends to favour more parsimonious models than AIC model selection).
 
 See the examples contained in \code{demo(package="ma")} for illustrative demonstrations with real and simulated data (e.g., \code{demo(cps71,package="ma")}).
 

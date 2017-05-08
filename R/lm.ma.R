@@ -34,7 +34,7 @@ lm.ma.formula <- function(formula,
                           ma.weights=NULL,
                           ma.weights.cutoff=1e-04,
                           max.num.candidate.models=2500,
-                          method=c("jma","mma"),
+                          method=c("mma","jma"),
                           parallel=FALSE,
                           parallel.cores=NULL,
                           rank.vec=NULL,
@@ -157,7 +157,7 @@ lm.ma.default <- function(y=NULL,
                           ma.weights=NULL,
                           ma.weights.cutoff=1e-04,
                           max.num.candidate.models=2500,
-                          method=c("jma","mma"),
+                          method=c("mma","jma"),
                           parallel=FALSE,
                           parallel.cores=NULL,
                           rank.vec=NULL,
@@ -1237,7 +1237,7 @@ lm.ma.Est <- function(y=NULL,
                       ma.weights=NULL,
                       ma.weights.cutoff=1e-04,
                       max.num.candidate.models=2500,
-                      method=c("jma","mma"),
+                      method=c("mma","jma"),
                       parallel=FALSE,
                       parallel.cores=NULL,
                       rank.vec=NULL,
@@ -1525,17 +1525,24 @@ lm.ma.Est <- function(y=NULL,
 
         if(auto.reduce) {
             for(p in 1:P.num) {
+                if(basis=="auto") {
+                    ill.basis <- "additive"
+                } else {
+                    ill.basis <- basis
+                }
                 DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])
                 if(vc & !is.null(num.z)) {
-                    dim.P <- dim.bs(basis="additive",kernel=TRUE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
+                    dim.P <- dim.bs(basis=ill.basis,kernel=TRUE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
                 } else {
-                    dim.P <- dim.bs(basis="additive",kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
+                    dim.P <- dim.bs(basis=ill.basis,kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
                 }
                 if(dim.P/num.obs >= 0.95) ill.dimensioned.vec[p] <- TRUE
             }
             DKL.mat <- DKL.mat[!ill.dimensioned.vec,,drop=FALSE]
             P.num <- NROW(DKL.mat)
         }
+
+        if(any(ill.dimensioned.vec)) warning("auto.reduce invoked, some ill-dimensioned rows of DKL.mat were culled")
 
     }
 
