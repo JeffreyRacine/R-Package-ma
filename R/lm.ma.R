@@ -1572,7 +1572,7 @@ lm.ma.Est <- function(y=NULL,
     }
 
     if(is.null(rank.vec)) rank.vec <- numeric(length=P.num)
-    sigsq <- numeric(length=P.num)
+    sigma.sq.vec <- numeric(length=P.num)
     ma.mat <- matrix(NA,num.obs,P.num)
     fitted.mat <- matrix(NA,if(is.null(X.eval)){num.obs}else{num.eval.obs},P.num)
 
@@ -1733,7 +1733,7 @@ lm.ma.Est <- function(y=NULL,
                     }
                     
                     rank.vec[p] <- model.z.unique$rank
-                    sigsq[p] <- sqrt(sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank))
+                    sigma.sq.vec[p] <- sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank)
                     
                 } else {
 
@@ -1839,7 +1839,7 @@ lm.ma.Est <- function(y=NULL,
                     
                     rank.vec[p] <- model.ma$rank
                     
-                    sigsq[p] <- sqrt(sum(residuals(model.ma)^2)/(num.obs-model.ma$rank))
+                    sigma.sq.vec[p] <- sum(residuals(model.ma)^2)/(num.obs-model.ma$rank)
                     
                 }
                 
@@ -2000,7 +2000,7 @@ lm.ma.Est <- function(y=NULL,
                     }
                     
                     rank.vec[p] <- model.z.unique$rank
-                    sigsq[p] <- sqrt(sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank))
+                    sigma.sq.vec[p] <- sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank)
                     
                 } else {
 
@@ -2104,7 +2104,7 @@ lm.ma.Est <- function(y=NULL,
                     
                     rank.vec[p] <- model.ma$rank
                     
-                    sigsq[p] <- sqrt(sum(residuals(model.ma)^2)/(num.obs-model.ma$rank))
+                    sigma.sq.vec[p] <- sum(residuals(model.ma)^2)/(num.obs-model.ma$rank)
                     
                 }
                 
@@ -2113,7 +2113,7 @@ lm.ma.Est <- function(y=NULL,
 		                 rank.vec=rank.vec[p],
 		                 basis.vec=basis.vec[p],
                      basis.singular.vec=basis.singular.vec[p],
-		                 sigsq=sigsq[p])
+		                 sigma.sq.vec=sigma.sq.vec[p])
 		
 		        }
 		
@@ -2123,7 +2123,7 @@ lm.ma.Est <- function(y=NULL,
                 rank.vec[p] <- output[[p]]$rank.vec
                 basis.vec[p] <- output[[p]]$basis.vec
                 basis.singular.vec[p] <- output[[p]]$basis.singular.vec
-                sigsq[p] <- output[[p]]$sigsq
+                sigma.sq.vec[p] <- output[[p]]$sigma.sq.vec
             }
 
             stopCluster(cl)
@@ -2146,7 +2146,7 @@ lm.ma.Est <- function(y=NULL,
             singular.D <- TRUE
         }
         if(method=="mma") {
-            d <- -sigsq[which.max(rank.vec)]*rank.vec
+            d <- -min(sigma.sq.vec)*rank.vec
         } else {
             d <- t(y)%*%ma.mat
         }        
@@ -2183,7 +2183,7 @@ lm.ma.Est <- function(y=NULL,
             } 
             if(method=="mma") {
                 rank.vec.reb <- rank.vec[b>ma.weights.cutoff]
-                d <- -sigsq[which.max(rank.vec)]*rank.vec.reb
+                d <- -min(sigma.sq.vec)*rank.vec.reb
             } else {
                 d <- t(y)%*%ma.mat.reb
             }        
