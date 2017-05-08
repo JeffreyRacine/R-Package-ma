@@ -1314,6 +1314,7 @@ lm.ma.Est <- function(y=NULL,
         zeval.base <- zeval[1,,drop=FALSE]
         categories <- numeric(length=num.z)
         for(i in 1:num.z) categories[i] <- length(unique(z[,i]))
+        categories.vec <- categories
         if(basis=="additive") categories <- categories - 1
         if(vc) {
             for(i in 1:num.z) zeval.base[1,i] <- min(z[,i])
@@ -1731,8 +1732,13 @@ lm.ma.Est <- function(y=NULL,
                         htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
                         ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                     }
-                    
+
+                    ## Could use some tweaking... prod() gets all
+                    ## _possible_ combinations, nrow.z.unique those
+                    ## unique combinations in the training set...
+
                     rank.vec[p] <- model.z.unique$rank*nrow.z.unique
+                    if(any(lambda.vec==1)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec==1]))
                     sigma.sq.vec[p] <- sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank)
                     
                 } else {
@@ -2000,7 +2006,7 @@ lm.ma.Est <- function(y=NULL,
                     }
                     
                     rank.vec[p] <- model.z.unique$rank*nrow.z.unique
-
+                    if(any(lambda.vec==1)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec==1]))
                     sigma.sq.vec[p] <- sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank)
                     
                 } else {

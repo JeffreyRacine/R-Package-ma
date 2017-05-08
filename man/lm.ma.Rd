@@ -303,8 +303,6 @@ When multivariate predictors are present, the number of candidate models can be 
 
 Note that \code{predict.ma} produces a vector of predictions or a list of predictions, confidence bounds, derivative matrices and their confidence bounds.
 
-Note that \code{method="mma"} tends to select more parsimonious candidate models than \code{method="jma"}, particularly as the number of predictors increases (this is analogous to the fact that BIC model selection tends to favour more parsimonious models than AIC model selection).
-
 See the examples contained in \code{demo(package="ma")} for illustrative demonstrations with real and simulated data (e.g., \code{demo(cps71,package="ma")}).
 
 }
