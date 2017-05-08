@@ -249,7 +249,7 @@ lm.ma.default <- function(y=NULL,
                          verbose=verbose,
                          ...)
 
-        rank.vec <- Est$rank.vec ## needed?
+        rank.vec <- Est$rank.vec
         DKL.mat <- Est$DKL.mat
         basis.vec <- Est$basis.vec
 
@@ -1732,7 +1732,7 @@ lm.ma.Est <- function(y=NULL,
                         ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                     }
                     
-                    rank.vec[p] <- model.z.unique$rank
+                    rank.vec[p] <- model.z.unique$rank*nrow.z.unique
                     sigma.sq.vec[p] <- sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank)
                     
                 } else {
@@ -1999,7 +1999,8 @@ lm.ma.Est <- function(y=NULL,
                         ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                     }
                     
-                    rank.vec[p] <- model.z.unique$rank
+                    rank.vec[p] <- model.z.unique$rank*nrow.z.unique
+
                     sigma.sq.vec[p] <- sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank)
                     
                 } else {
