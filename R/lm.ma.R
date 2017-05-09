@@ -939,7 +939,7 @@ summary.lm.ma <- function(object,
     cat("\nNon-zero model average weights: ")
     cat(formatC(ma.weights,format="f",digits=5))
     cat("\nNon-zero weight model ranks: ")
-    cat(rank.vec)
+    cat(formatC(rank.vec,format="f",digits=1))
     if(object$basis=="auto") {
         cat("\nNon-zero weight model bases: ")
         cat(basis.vec)    
@@ -1606,7 +1606,7 @@ lm.ma.Est <- function(y=NULL,
                         if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),")",sep=""))
                         } else if(vc) {
-                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=3),collapse=","),")",sep=""))
+                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=2),collapse=","),")",sep=""))
                         }
                     } else {
                         if(is.null(num.z) | !vc) {
@@ -1738,7 +1738,7 @@ lm.ma.Est <- function(y=NULL,
                     ## unique combinations in the training set...
 
                     rank.vec[p] <- model.z.unique$rank*nrow.z.unique
-                    if(any(lambda.vec>=0.5)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec>=0.5]))
+                    if(any(lambda.vec==1)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec==1]))
                     sigma.sq.vec[p] <- sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank)
                     
                 } else {
@@ -1877,7 +1877,7 @@ lm.ma.Est <- function(y=NULL,
                         if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),")",sep=""))
                         } else if(vc) {
-                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=3),collapse=","),")",sep=""))
+                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=2),collapse=","),")",sep=""))
                         }
                     } else {
                         if(is.null(num.z) | !vc) {
@@ -2005,7 +2005,7 @@ lm.ma.Est <- function(y=NULL,
                     }
                     
                     rank.vec[p] <- model.z.unique$rank*nrow.z.unique
-                    if(any(lambda.vec>=0.5)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec>=0.5]))
+                    if(any(lambda.vec==1)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec==1]))
                     sigma.sq.vec[p] <- sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank)
                     
                 } else {
@@ -2245,7 +2245,7 @@ lm.ma.Est <- function(y=NULL,
                         if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),")",sep=""))
                         } else if(vc) {
-                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=3),collapse=","),")",sep=""))
+                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=2),collapse=","),")",sep=""))
                         }
                     } else {
                         if(is.null(num.z) | !vc) {
@@ -2288,7 +2288,7 @@ lm.ma.Est <- function(y=NULL,
                         }
                         
                         rank.vec[p] <- model.z.unique$rank*nrow.z.unique
-                        if(any(lambda.vec>=0.5)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec>=0.5]))
+                        if(any(lambda.vec==1)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec==1]))
                         fitted.mat[,p] <- fit.spline
                         
                     } else {
@@ -2524,7 +2524,7 @@ lm.ma.Est <- function(y=NULL,
                         if(is.null(num.z) | !vc) {
                             cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),")",sep=""))
                         } else if(vc) {
-                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=3),collapse=","),")",sep=""))
+                            cat(paste("\rCandidate model ",P.num-p+1," of ",P.num," (degree = ",paste(degree.seq,collapse=","),", lambda = ",paste(formatC(lambda.seq,format="f",digits=2),collapse=","),")",sep=""))
                         }
                     } else {
                         if(is.null(num.z) | !vc) {
@@ -2568,7 +2568,7 @@ lm.ma.Est <- function(y=NULL,
                         
                         fitted.mat[,p] <- fit.spline
                         rank.vec[p] <- model.z.unique$rank*nrow.z.unique
-                        if(any(lambda.vec>=0.5)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec>=0.5]))
+                        if(any(lambda.vec==1)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec==1]))
                         
                     } else {
                         
