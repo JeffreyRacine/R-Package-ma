@@ -1738,7 +1738,7 @@ lm.ma.Est <- function(y=NULL,
                     ## unique combinations in the training set...
 
                     rank.vec[p] <- model.z.unique$rank*nrow.z.unique
-                    if(any(lambda.vec==1)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec==1]))
+                    if(any(lambda.vec>=0.5)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec>=0.5]))
                     sigma.sq.vec[p] <- sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank)
                     
                 } else {
@@ -1844,7 +1844,6 @@ lm.ma.Est <- function(y=NULL,
                     }
                     
                     rank.vec[p] <- model.ma$rank
-                    
                     sigma.sq.vec[p] <- sum(residuals(model.ma)^2)/(num.obs-model.ma$rank)
                     
                 }
@@ -2006,7 +2005,7 @@ lm.ma.Est <- function(y=NULL,
                     }
                     
                     rank.vec[p] <- model.z.unique$rank*nrow.z.unique
-                    if(any(lambda.vec==1)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec==1]))
+                    if(any(lambda.vec>=0.5)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec>=0.5]))
                     sigma.sq.vec[p] <- sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank)
                     
                 } else {
@@ -2110,7 +2109,6 @@ lm.ma.Est <- function(y=NULL,
                     }
                     
                     rank.vec[p] <- model.ma$rank
-                    
                     sigma.sq.vec[p] <- sum(residuals(model.ma)^2)/(num.obs-model.ma$rank)
                     
                 }
@@ -2289,8 +2287,9 @@ lm.ma.Est <- function(y=NULL,
                             
                         }
                         
+                        rank.vec[p] <- model.z.unique$rank*nrow.z.unique
+                        if(any(lambda.vec>=0.5)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec>=0.5]))
                         fitted.mat[,p] <- fit.spline
-                        rank.vec[p] <- model.z.unique$rank
                         
                     } else {
                         
@@ -2568,7 +2567,8 @@ lm.ma.Est <- function(y=NULL,
                         }
                         
                         fitted.mat[,p] <- fit.spline
-                        rank.vec[p] <- model.z.unique$rank
+                        rank.vec[p] <- model.z.unique$rank*nrow.z.unique
+                        if(any(lambda.vec>=0.5)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec>=0.5]))
                         
                     } else {
                         
