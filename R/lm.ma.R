@@ -16,7 +16,7 @@ lm.ma.formula <- function(formula,
                           B=99,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
-                          bootstrap.ci=FALSE,
+                          boot.ci=FALSE,
                           compute.anova=FALSE,
                           compute.anova.boot=FALSE,
                           compute.anova.index=NULL,
@@ -79,7 +79,7 @@ lm.ma.formula <- function(formula,
                          B=B,
                          basis.vec=basis.vec,
                          basis=basis,
-                         bootstrap.ci=bootstrap.ci,
+                         boot.ci=boot.ci,
                          compute.anova=compute.anova,
                          compute.anova.boot=compute.anova.boot,
                          compute.anova.index=compute.anova.index,
@@ -143,7 +143,7 @@ lm.ma.default <- function(y=NULL,
                           B=99,
                           basis.vec=NULL,
                           basis=c("auto","tensor","taylor","additive"),
-                          bootstrap.ci=FALSE,
+                          boot.ci=FALSE,
                           compute.anova=FALSE,
                           compute.anova.boot=FALSE,
                           compute.anova.index=NULL,
@@ -183,7 +183,7 @@ lm.ma.default <- function(y=NULL,
     basis <- match.arg(basis)
     method <- match.arg(method)
 
-    if(!is.logical(bootstrap.ci)) stop("bootstrap.ci must be either TRUE or FALSE")
+    if(!is.logical(boot.ci)) stop("boot.ci must be either TRUE or FALSE")
     if(!is.logical(compute.deriv)) stop("compute.deriv must be either TRUE or FALSE")
     if(!is.logical(compute.mean)) stop("compute.mean must be either TRUE or FALSE")
     if(!is.logical(knots)) stop("knots must be either TRUE or FALSE")
@@ -207,6 +207,7 @@ lm.ma.default <- function(y=NULL,
     if(segments.max < 1) stop("segments.max must be a positive integer")
     if(segments.max < segments.min) stop("segments.mix must not exceed segments.max")
     if(segments.min < 1) stop("segments.min must be a positive integer")
+    if(compute.anova & degree.min==0) stop("when conducting anova, degree.min must exceed 0 (set degree.min=1)")
 
     ## First obtain weights, then in subsequent call computes fits and
     ## derivatives
@@ -316,7 +317,7 @@ lm.ma.default <- function(y=NULL,
 
     ## Bootstrap if requested uses pre-computed ma.weights
 
-    if(bootstrap.ci) {
+    if(boot.ci) {
 
         n <- n.eval <- NROW(X) 
         if(!is.null(X.eval)) {
@@ -625,8 +626,8 @@ lm.ma.default <- function(y=NULL,
                 ssr.rank <- 1
             }
 
-            F.stat[k] <- (num.obs-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
-            if(!compute.anova.boot) P.vec[k] <- pf(F.stat[k],ssu.rank-ssr.rank,num.obs-ssu.rank,lower.tail=FALSE)
+            F.stat[k] <- (num.obs-ssu.rank)*(ssr-ssu)/NZD((ssu.rank-ssr.rank)*ssu)
+            if(!compute.anova.boot) P.vec[k] <- pf(F.stat[k],max(ssu.rank-ssr.rank,.Machine$double.eps),num.obs-ssu.rank,lower.tail=FALSE)
 
             if(compute.anova.boot) {
 
@@ -742,7 +743,7 @@ lm.ma.default <- function(y=NULL,
                             ssr.boot <- sum((y.boot-mv.mean)^2)
                         }
 
-                        F.boot[b] <- (num.obs-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot)
+                        F.boot[b] <- (num.obs-ssu.rank)*(ssr.boot-ssu.boot)/NZD((ssu.rank-ssr.rank)*ssu.boot)
 
                     }
 
@@ -863,7 +864,7 @@ lm.ma.default <- function(y=NULL,
                             ssr.boot <- sum((y.boot-mv.mean)^2)
                         }
 
-                        list(F.boot=(num.obs-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot))
+                        list(F.boot=(num.obs-ssu.rank)*(ssr.boot-ssu.boot)/NZD((ssu.rank-ssr.rank)*ssu.boot))
 
                     }
 
@@ -888,7 +889,7 @@ lm.ma.default <- function(y=NULL,
     Est$compute.anova <- compute.anova
     Est$compute.anova.boot <- compute.anova.boot
     Est$compute.anova.index <- compute.anova.index
-    Est$bootstrap.ci <- bootstrap.ci
+    Est$boot.ci <- boot.ci
     Est$alpha <- alpha
 
     if(verbose) cat("\r                                                                                               ")
@@ -974,7 +975,11 @@ summary.lm.ma <- function(object,
         maxPvalLen <- max(ncp <- nchar(format.pval(object$P.vec)))
         maxrejLen <- max(ncr <- nchar(reject))
 
-        if(length(object$compute.anova.index)==1){cat("\n\nNonparametric significance test\n")}else{cat("\n\nNonparametric significance tests\n")}
+        if(object$compute.anova.boot) {
+            if(length(object$compute.anova.index)==1){cat("\n\nNonparametric significance test\n")}else{cat("\n\nNonparametric significance tests\n")}
+        } else {
+            if(length(object$compute.anova.index)==1){cat("\n\nAsymptotic significance test\n")}else{cat("\n\nAsymptotic significance tests\n")}
+        }
         cat(if(length(object$compute.anova.index)==1){"P Value:"}else{"P Values:"}, paste("\n", nm," ",
                                  blank(maxNameLen-nc),
                                  format.pval(object$P.vec),
@@ -1049,7 +1054,7 @@ predict.lm.ma <- function(object,
                              weights=object$weights,
                              ...)
 
-        if(object$bootstrap.ci | object$compute.deriv) {
+        if(object$boot.ci | object$compute.deriv) {
             return(list(fit=Est$fitted.values,
                         deriv=Est$deriv,
                         fit.low=Est$fitted.ci.l,
@@ -1083,7 +1088,7 @@ plot.lm.ma <- function(x,
     if(plot.xtrim<0 | plot.xtrim>=0.5) stop("plot.xtrim must lie in [0,0.5)")
 
     x$verbose <- FALSE
-    x$bootstrap.ci <- plot.ci
+    x$boot.ci <- plot.ci
     numeric.logical <- x$numeric.logical
 
     yname <- all.vars(x$call)[1]
@@ -1123,7 +1128,7 @@ plot.lm.ma <- function(x,
                      ...)
                 if(numeric.logical[i] & plot.rug) suppressWarnings(rug(x$X[x$X[,i] >= xlim[1] & x$X[,i] <= xlim[2] ,i]))
                 cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))
-                foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=plot.B,...)
+                foo <- predict(x,newdata=xzeval,boot.ci=plot.ci,B=plot.B,...)
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(numeric.logical[i]) {
                     lines(xzeval[,i],foo$fit,col=1)
@@ -1141,7 +1146,7 @@ plot.lm.ma <- function(x,
                 }
             } else {
                 cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))
-                foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=plot.B,...)
+                foo <- predict(x,newdata=xzeval,boot.ci=plot.ci,B=plot.B,...)
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(!plot.ci) {
                     plot(xzeval[,i],foo$fit,
@@ -1195,7 +1200,7 @@ plot.lm.ma <- function(x,
             x$compute.deriv <- TRUE
             x$deriv.index <- i
 
-            foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=plot.B,...)
+            foo <- predict(x,newdata=xzeval,boot.ci=plot.ci,B=plot.B,...)
             if(!plot.ci) {
                 plot(xzeval[,i],foo$deriv[,1],
                      ylab=if(numeric.logical[i]){paste("d ",yname," / d ",xznames[i],sep="")}else{paste("Delta ",yname,sep="")},

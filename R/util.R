@@ -248,3 +248,9 @@ dim.bs <- function(basis="additive",kernel=TRUE,degree=NULL,segments=NULL,includ
 
 }
 
+## No Zero Denominator, used in C code for kernel estimation...
+  
+NZD <- function(a) {
+  ifelse(a<0,pmin(-.Machine$double.eps,a),pmax(.Machine$double.eps,a))
+}
+

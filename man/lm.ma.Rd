@@ -19,7 +19,7 @@ lm.ma(...)
       B = 99,
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
-      bootstrap.ci = FALSE,
+      boot.ci = FALSE,
       compute.anova = FALSE,
       compute.anova.boot = FALSE,
       compute.anova.index = NULL,
@@ -68,7 +68,7 @@ lm.ma(...)
       B = 99,
       basis.vec = NULL,
       basis = c("auto","tensor","taylor","additive"),
-      bootstrap.ci = FALSE,
+      boot.ci = FALSE,
       compute.anova = FALSE,
       compute.anova.boot = FALSE,
       compute.anova.index = NULL,
@@ -132,7 +132,7 @@ lm.ma(...)
 
   \item{basis}{a character string indicating whether the generalized Taylor polynomial, additive or tensor product basis should be used (if \code{basis="auto"} then for each candidate model the most appropriate basis is determined via cross-validation)}
   
-  \item{bootstrap.ci}{a logical value indicating whether or not to construct nonparametric bootstrap confidence intervals}
+  \item{boot.ci}{a logical value indicating whether or not to construct nonparametric bootstrap confidence intervals}
 
   \item{compute.anova}{a logical value indicating whether or not to conduct an anova-based procedure to test for predictor significance}
 
@@ -212,7 +212,7 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
 \preformatted{
     model <- lm.ma(y~x1+x2)
     model <- lm.ma(y~x1+x2,compute.deriv=TRUE)
-    model <- lm.ma(y~x1+x2,bootstrap.ci=TRUE)  
+    model <- lm.ma(y~x1+x2,boot.ci=TRUE)  
     model <- lm.ma(y~x1+x2,compute.anova=TRUE)
     model <- lm.ma(y~x1+x2,parallel=TRUE)
     model <- lm.ma(y~x1+x2,parallel=TRUE,parallel.cores=2)    
@@ -305,7 +305,7 @@ The option \code{compute.anova} cannot be used in the presence of one or more fa
 
 Averaging over models with ill-conditioned bases is not advised. Pay attention to the warning \dQuote{Dimension basis is ill-conditioned - reduce \code{degree.max}} should it arise and reduce \code{degree.max} until this no longer is the case.
 
-If you wish to plot the object with the option \code{plot.ci=TRUE}, it is not necessary to use the option \code{bootstrap.ci=TRUE} in the call to \code{lm.ma()} (this will simply add to overhead)
+If you wish to plot the object with the option \code{plot.ci=TRUE}, it is not necessary to use the option \code{boot.ci=TRUE} in the call to \code{lm.ma()} (this will simply add to overhead)
 
 When multivariate predictors are present, the number of candidate models can be quite large. When building the final model each candidate model must be constructed and evaluated. However, after solving for the model average weights, a number of candidate models may be assigned essentially zero weight. Subsequently, only the non-zero weight models need be evaluated (e.g. when constructing derivative estimates, predictions, confidence intervals and the like).
 
