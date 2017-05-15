@@ -213,7 +213,7 @@ Models for lm.ma are specified symbolically. A typical model has the form \code{
     model <- lm.ma(y~x1+x2)
     model <- lm.ma(y~x1+x2,compute.deriv=TRUE)
     model <- lm.ma(y~x1+x2,boot.ci=TRUE)  
-    model <- lm.ma(y~x1+x2,compute.anova=TRUE)
+    model <- lm.ma(y~x1+x2,compute.anova=TRUE,compute.anova.boot=TRUE,degree.min=1)
     model <- lm.ma(y~x1+x2,parallel=TRUE)
     model <- lm.ma(y~x1+x2,parallel=TRUE,parallel.cores=2)    
     model <- lm.ma(y~x+z,lambda.S=3)
@@ -301,7 +301,9 @@ To elaborate further, when using the default settings in high dimensional situat
 
 When \code{compute.anova.boot=TRUE}, the option \code{compute.anova} uses a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it may be fairly fast, but as the model complexity increases it will require some patience.
 
-The option \code{compute.anova} cannot be used in the presence of one or more factors and exactly one numeric predictor since there is no numeric predictor present when testing for significance for the one numeric predictor.
+The option \code{compute.anova=TRUE} cannot be used in the presence of one or more factors and exactly one numeric predictor since there is no numeric predictor present when testing for significance for the one numeric predictor.
+
+Note that the option \code{compute.anova=TRUE} (not default) will halt when \code{degree.min=0} (default). The reason for this is because irrelevant predictors can be automatically removed without the need for pre-testing if the procedure selects the degree for any predictor to be 0 - in such cases the restricted and unrestricted models may coincide and the test is degenerate. Therefore if you use the default \code{degree.min} and select \code{compute.anova=TRUE} without modifying \code{degree.min}, the routine will halt with a helpful message.
 
 Averaging over models with ill-conditioned bases is not advised. Pay attention to the warning \dQuote{Dimension basis is ill-conditioned - reduce \code{degree.max}} should it arise and reduce \code{degree.max} until this no longer is the case.
 

@@ -5,7 +5,9 @@ data(cps71)
 attach(cps71)
 
 model <- lm.ma(logwage~age,
-               compute.anova=TRUE)
+               compute.anova=TRUE,
+               compute.anova.boot=TRUE,
+               degree.min=TRUE)
 
 summary(model)
 

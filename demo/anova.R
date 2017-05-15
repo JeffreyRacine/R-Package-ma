@@ -10,19 +10,19 @@ x2 <- runif(n)
 
 dgp <- sin(2*pi*x1)
 y <- dgp + rnorm(n,sd=0.25*sd(dgp))
-model <- lm.ma(y~x1+x2,compute.anova=TRUE)
+model <- lm.ma(y~x1+x2,compute.anova=TRUE,compute.anova.boot=TRUE,degree.min=1)
 summary(model)
 
 ## Both predictors relevant
 
 dgp <- sin(2*pi*x1)+cos(2*pi*x2)
 y <- dgp + rnorm(n,sd=0.25*sd(dgp))
-model <- lm.ma(y~x1+x2,compute.anova=TRUE)
+model <- lm.ma(y~x1+x2,compute.anova=TRUE,compute.anova.boot=TRUE,degree.min=1)
 summary(model)
 
 ## Both predictors irrelevant
 
 y <- rnorm(n,sd=0.25*sd(dgp))
-model <- lm.ma(y~x1+x2,compute.anova=TRUE)
+model <- lm.ma(y~x1+x2,compute.anova=TRUE,compute.anova.boot=TRUE,degree.min=1)
 summary(model)
 
