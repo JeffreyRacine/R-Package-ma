@@ -18,6 +18,7 @@ lm.ma.formula <- function(formula,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
                           compute.anova=FALSE,
+                          compute.anova.boot=FALSE,
                           compute.anova.index=NULL,
                           compute.deriv=FALSE,
                           compute.mean=TRUE,
@@ -33,6 +34,7 @@ lm.ma.formula <- function(formula,
                           lambda.num.max=NULL,
                           ma.weights=NULL,
                           ma.weights.cutoff=1e-04,
+                          max.dim.candidate.models=5000,
                           max.num.candidate.models=2500,
                           method=c("jma","mma"),
                           parallel=FALSE,
@@ -50,18 +52,18 @@ lm.ma.formula <- function(formula,
                           verbose=TRUE,
                           weights=NULL,
                           ...) {
-    
+
     if(exists(".Random.seed", .GlobalEnv)) {
         save.seed <- get(".Random.seed", .GlobalEnv)
         exists.seed = TRUE
     } else {
         exists.seed = FALSE
     }
-    
+
     set.seed(rng.seed)
-    
+
     ptm <- proc.time()
-    
+
     mf <- model.frame(formula=formula, data=data)
     mt <- attr(mf, "terms")
     tydat <- model.response(mf)
@@ -79,6 +81,7 @@ lm.ma.formula <- function(formula,
                          basis=basis,
                          bootstrap.ci=bootstrap.ci,
                          compute.anova=compute.anova,
+                         compute.anova.boot=compute.anova.boot,
                          compute.anova.index=compute.anova.index,
                          compute.deriv=compute.deriv,
                          compute.mean=compute.mean,
@@ -94,6 +97,7 @@ lm.ma.formula <- function(formula,
                          lambda.num.max=lambda.num.max,
                          ma.weights=ma.weights,
                          ma.weights.cutoff=ma.weights.cutoff,
+                         max.dim.candidate.models=max.dim.candidate.models,
                          max.num.candidate.models=max.num.candidate.models,
                          method=method,
                          parallel=parallel,
@@ -111,20 +115,20 @@ lm.ma.formula <- function(formula,
                          verbose=verbose,
                          weights=weights,
                          ...)
-    
+
     Est$r.squared <- RSQfunc(tydat,Est$fitted.values)
     Est$residuals <- tydat - Est$fitted.values
-    
+
     Est$call <- match.call()
     Est$formula <- formula
     Est$terms <- mt
     Est$xlevels <- .getXlevels(mt, mf)
-    
+
     Est$ptm <- (proc.time() - ptm)[3]
     if(exists.seed) assign(".Random.seed", save.seed, .GlobalEnv)
-    
+
     return(Est)
-    
+
 }
 
 ## Default function.
@@ -141,6 +145,7 @@ lm.ma.default <- function(y=NULL,
                           basis=c("auto","tensor","taylor","additive"),
                           bootstrap.ci=FALSE,
                           compute.anova=FALSE,
+                          compute.anova.boot=FALSE,
                           compute.anova.index=NULL,
                           compute.deriv=FALSE,
                           compute.mean=TRUE,
@@ -156,6 +161,7 @@ lm.ma.default <- function(y=NULL,
                           lambda.num.max=NULL,
                           ma.weights=NULL,
                           ma.weights.cutoff=1e-04,
+                          max.dim.candidate.models=5000,
                           max.num.candidate.models=2500,
                           method=c("jma","mma"),
                           parallel=FALSE,
@@ -201,7 +207,7 @@ lm.ma.default <- function(y=NULL,
     if(segments.max < 1) stop("segments.max must be a positive integer")
     if(segments.max < segments.min) stop("segments.mix must not exceed segments.max")
     if(segments.min < 1) stop("segments.min must be a positive integer")
-    
+
     ## First obtain weights, then in subsequent call computes fits and
     ## derivatives
 
@@ -237,6 +243,7 @@ lm.ma.default <- function(y=NULL,
                          method=method,
                          ma.weights=ma.weights,
                          ma.weights.cutoff=ma.weights.cutoff,
+                         max.dim.candidate.models=max.dim.candidate.models,
                          max.num.candidate.models=max.num.candidate.models,
                          basis.vec=basis.vec,
                          parallel=parallel,
@@ -288,6 +295,7 @@ lm.ma.default <- function(y=NULL,
                          method=method,
                          ma.weights=if(is.null(Est)){ma.weights}else{Est$ma.weights},
                          ma.weights.cutoff=ma.weights.cutoff,
+                         max.dim.candidate.models=max.dim.candidate.models,
                          max.num.candidate.models=max.num.candidate.models,
                          basis.vec=if(is.null(Est)){basis.vec}else{Est$basis.vec},
                          parallel=parallel,
@@ -299,7 +307,7 @@ lm.ma.default <- function(y=NULL,
                          vc=vc,
                          verbose=verbose,
                          ...)
-        
+
         Est$rank.vec <- rank.vec
         Est$DKL.mat <- DKL.mat
         Est$basis.vec <- basis.vec
@@ -307,16 +315,16 @@ lm.ma.default <- function(y=NULL,
     }
 
     ## Bootstrap if requested uses pre-computed ma.weights
-    
+
     if(bootstrap.ci) {
 
         n <- n.eval <- NROW(X) 
         if(!is.null(X.eval)) {
             n.eval <- NROW(X.eval)
         }
-        
+
         ncol.X <- NCOL(X)
-    
+
         boot.mat <- matrix(NA,n.eval,B)
 
         if(is.null(deriv.index)) deriv.index <- 1:ncol.X
@@ -356,6 +364,7 @@ lm.ma.default <- function(y=NULL,
                                       method=method,
                                       ma.weights=Est$ma.weights,
                                       ma.weights.cutoff=ma.weights.cutoff,
+                                      max.dim.candidate.models=max.dim.candidate.models,
                                       max.num.candidate.models=max.num.candidate.models,
                                       basis.vec=Est$basis.vec,
                                       parallel=Est$parallel,
@@ -377,7 +386,6 @@ lm.ma.default <- function(y=NULL,
 
             cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
             registerDoParallel(cl)
-            
 
             output <- foreach(b=1:B,.verbose=FALSE) %dopar% {
                 if(verbose) cat(paste("\rBootstrap replication ",b," of ",B,sep=""))
@@ -409,6 +417,7 @@ lm.ma.default <- function(y=NULL,
                                       method=method,
                                       ma.weights=Est$ma.weights,
                                       ma.weights.cutoff=ma.weights.cutoff,
+                                      max.dim.candidate.models=max.dim.candidate.models,
                                       max.num.candidate.models=max.num.candidate.models,
                                       basis.vec=Est$basis.vec,
                                       parallel=FALSE,
@@ -428,16 +437,16 @@ lm.ma.default <- function(y=NULL,
                     list(boot.mat=out.boot$fitted)
                 }
             }
-            
+
             for(b in 1:B) {
                 boot.mat[,b] <- output[[b]]$boot.mat
                 if(compute.deriv) boot.deriv.array[,b,] <- output[[b]]$boot.deriv.array
             }
 
             stopCluster(cl)
-            
+
         }
-        
+
         if(verbose) cat("\r                                                                                               ")
         if(verbose) cat("\r")
         if(verbose) cat("\rComputing quantiles...")
@@ -445,13 +454,13 @@ lm.ma.default <- function(y=NULL,
         Est$fitted.ci.l <- apply(boot.mat,1,quantile,prob=alpha/2,type=1,na.rm=TRUE)
         Est$fitted.ci.u <- apply(boot.mat,1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE)
         Est$fitted.scale <- apply(boot.mat,1,mad,na.rm=TRUE)
-        
+
         if(compute.deriv) {
             Est$deriv.ci.l <- Est$deriv.ci.u <- Est$deriv.scale <- matrix(NA,n.eval,num.deriv)
             for(k in 1:num.deriv) {
                 Est$deriv.ci.l[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=alpha/2,type=1,na.rm=TRUE)
-                Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE)     
-                Est$deriv.scale[,k] <- apply(boot.deriv.array[,,k],1,mad,na.rm=TRUE)  
+                Est$deriv.ci.u[,k] <- apply(boot.deriv.array[,,k],1,quantile,prob=1-alpha/2,type=1,na.rm=TRUE) 
+                Est$deriv.scale[,k] <- apply(boot.deriv.array[,,k],1,mad,na.rm=TRUE)
             }
         }
         if(verbose) cat("\r                                                                                               ")
@@ -481,13 +490,13 @@ lm.ma.default <- function(y=NULL,
             num.pred <- num.x+num.z
             xzindex <- 1:num.pred
             xzindex[numeric.logical] <- 1:num.x
-            xzindex[!numeric.logical] <- 1:num.z            
+            xzindex[!numeric.logical] <- 1:num.z
         }
 
         P.vec <- numeric(length=num.tests)
         F.stat <- numeric(length=num.tests)
         F.boot <- numeric(length=B)
-        
+
         if(!is.null(X.eval)) {
             Est.ssu <- lm.ma.Est(y=y,
                                  X=X,
@@ -516,6 +525,7 @@ lm.ma.default <- function(y=NULL,
                                  method=method,
                                  ma.weights=Est$ma.weights,
                                  ma.weights.cutoff=ma.weights.cutoff,
+                                 max.dim.candidate.models=max.dim.candidate.models,
                                  max.num.candidate.models=max.num.candidate.models,
                                  basis.vec=Est$basis.vec,
                                  parallel=Est$parallel,
@@ -540,10 +550,9 @@ lm.ma.default <- function(y=NULL,
             if(verbose & num.tests==1) cat(paste("\rAnova for predictor ",compute.anova.index[k],sep=""))
 
             is.numeric.X.k <- is.numeric(X[,compute.anova.index[k]])
-            
+
             X.res <- X[,-compute.anova.index[k],drop=FALSE]
 
-            
             ## With > 1 predictor, restricted model does not incorporate the kth predictor
 
             if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
@@ -575,6 +584,7 @@ lm.ma.default <- function(y=NULL,
                                      method=method,
                                      ma.weights=Est.ssu$ma.weights,
                                      ma.weights.cutoff=ma.weights.cutoff,
+                                     max.dim.candidate.models=max.dim.candidate.models,
                                      max.num.candidate.models=max.num.candidate.models,
                                      basis.vec=Est.ssu$basis.vec,
                                      parallel=Est.ssu$parallel,
@@ -610,74 +620,34 @@ lm.ma.default <- function(y=NULL,
                 for(i in 1:nrow.z.unique) {
                     zz <- ind == ind.vals[i]
                     mv.mean[zz] <- mean(y[zz])
-                }     
+                } 
                 ssr <- sum((y-mv.mean)^2)
                 ssr.rank <- 1
             }
 
             F.stat[k] <- (num.obs-ssu.rank)*(ssr-ssu)/((ssu.rank-ssr.rank)*ssu)
+            if(!compute.anova.boot) P.vec[k] <- pf(F.stat[k],ssu.rank-ssr.rank,num.obs-ssu.rank,lower.tail=FALSE)
 
-            if(!parallel) {
+            if(compute.anova.boot) {
 
-                for(b in 1:B) {
-                    if(verbose & num.tests>1) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests," (bootstrap replication ",b," of ",B,")",sep=""))
-                    if(verbose & num.tests==1) cat(paste("\rAnova for predictor ",compute.anova.index[k]," (bootstrap replication ",b," of ",B,")",sep=""))
-                    ## Residual bootstrap from the null model, use
-                    ## original model configuration with bootstrap y
-                    
-                    if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
-                        y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(num.obs/(num.obs-ssr.rank)),size=num.obs,replace=TRUE)
-                    }  else if(num.pred == 1) {
-                        y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
-                    }  else if(num.pred>1 & num.x == 1 & is.numeric.X.k) {
-                        y.boot <- mv.mean + sample(y-mv.mean,replace=TRUE)                    
-                    }
-                    
-                    Est.ssu.boot <- lm.ma.Est(y=y.boot,
-                                              X=X,
-                                              X.eval=NULL,
-                                              all.combinations=all.combinations,
-                                              auto.basis=auto.basis,
-                                              auto.reduce=auto.reduce,
-                                              basis=basis,
-                                              compute.deriv=FALSE,
-                                              compute.mean=TRUE,
-                                              deriv.order=deriv.order,
-                                              degree.min=degree.min,
-                                              deriv.index=NULL,
-                                              degree.by=degree.by,
-                                              degree.max=degree.max,
-                                              eps.lambda=eps.lambda,
-                                              lambda.S=lambda.S,
-                                              lambda.num.max=lambda.num.max,
-                                              segments.by=segments.by,
-                                              segments.min=segments.min,
-                                              segments.max=segments.max,
-                                              singular.ok=singular.ok,
-                                              trace=trace,
-                                              knots=knots,
-                                              S=S,
-                                              method=method,
-                                              ma.weights=ma.weights,
-                                              ma.weights.cutoff=ma.weights.cutoff,
-                                              max.num.candidate.models=max.num.candidate.models,
-                                              basis.vec=basis.vec,
-                                              parallel=parallel,
-                                              parallel.cores=parallel.cores,
-                                              rank.vec=rank.vec,
-                                              restrict.sum.ma.weights=restrict.sum.ma.weights,
-                                              DKL.mat=DKL.mat,
-                                              weights=weights,
-                                              vc=vc,
-                                              verbose=FALSE,
-                                              ...)
-                    
-                    ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)  
-                    
-                    if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
-                        
-                        Est.ssr.boot <- lm.ma.Est(y=y.boot,
-                                                  X=X.res,
+                if(!parallel) {
+
+                    for(b in 1:B) {
+                        if(verbose & num.tests>1) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests," (bootstrap replication ",b," of ",B,")",sep=""))
+                        if(verbose & num.tests==1) cat(paste("\rAnova for predictor ",compute.anova.index[k]," (bootstrap replication ",b," of ",B,")",sep=""))
+                        ## Residual bootstrap from the null model, use
+                        ## original model configuration with bootstrap y
+
+                        if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
+                            y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(num.obs/(num.obs-ssr.rank)),size=num.obs,replace=TRUE)
+                        }  else if(num.pred == 1) {
+                            y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
+                        }  else if(num.pred>1 & num.x == 1 & is.numeric.X.k) {
+                            y.boot <- mv.mean + sample(y-mv.mean,replace=TRUE)
+                        }
+
+                        Est.ssu.boot <- lm.ma.Est(y=y.boot,
+                                                  X=X,
                                                   X.eval=NULL,
                                                   all.combinations=all.combinations,
                                                   auto.basis=auto.basis,
@@ -701,102 +671,104 @@ lm.ma.default <- function(y=NULL,
                                                   knots=knots,
                                                   S=S,
                                                   method=method,
-                                                  ma.weights=Est.ssu.boot$ma.weights,
+                                                  ma.weights=ma.weights,
                                                   ma.weights.cutoff=ma.weights.cutoff,
+                                                  max.dim.candidate.models=max.dim.candidate.models,
                                                   max.num.candidate.models=max.num.candidate.models,
-                                                  basis.vec=Est.ssu.boot$basis.vec,
-                                                  parallel=Est.ssu.boot$parallel,
-                                                  parallel.cores=Est.ssu.boot$parallel.cores,
-                                                  rank.vec=Est.ssu.boot$rank.vec,
-                                                  restrict.sum.ma.weights=Est.ssu.boot$restrict.sum.ma.weights,
-                                                  DKL.mat=if(is.numeric.X.k){Est.ssu.boot$DKL.mat[,c(-xzindex[compute.anova.index[k]],-(xzindex[compute.anova.index[k]]+num.x)),drop=FALSE]}else{Est.ssu.boot$DKL.mat},
+                                                  basis.vec=basis.vec,
+                                                  parallel=parallel,
+                                                  parallel.cores=parallel.cores,
+                                                  rank.vec=rank.vec,
+                                                  restrict.sum.ma.weights=restrict.sum.ma.weights,
+                                                  DKL.mat=DKL.mat,
                                                   weights=weights,
                                                   vc=vc,
                                                   verbose=FALSE,
                                                   ...)
-                        
-                        ssr.boot <- sum((y.boot-Est.ssr.boot$fitted.values)^2)         
-                        
-                    } else if(num.pred == 1) {
-                        ssr.boot <- sum((y.boot-mean(y.boot))^2)
-                    }   else if(num.pred>1 & num.x == 1 & is.numeric.X.k) {
-                        for(i in 1:nrow.z.unique) {
-                            zz <- ind == ind.vals[i]
-                            mv.mean[zz] <- mean(y.boot[zz])
-                        }     
-                        ssr.boot <- sum((y.boot-mv.mean)^2)
+
+                        ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)
+
+                        if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
+
+                            Est.ssr.boot <- lm.ma.Est(y=y.boot,
+                                                      X=X.res,
+                                                      X.eval=NULL,
+                                                      all.combinations=all.combinations,
+                                                      auto.basis=auto.basis,
+                                                      auto.reduce=auto.reduce,
+                                                      basis=basis,
+                                                      compute.deriv=FALSE,
+                                                      compute.mean=TRUE,
+                                                      deriv.order=deriv.order,
+                                                      degree.min=degree.min,
+                                                      deriv.index=NULL,
+                                                      degree.by=degree.by,
+                                                      degree.max=degree.max,
+                                                      eps.lambda=eps.lambda,
+                                                      lambda.S=lambda.S,
+                                                      lambda.num.max=lambda.num.max,
+                                                      segments.by=segments.by,
+                                                      segments.min=segments.min,
+                                                      segments.max=segments.max,
+                                                      singular.ok=singular.ok,
+                                                      trace=trace,
+                                                      knots=knots,
+                                                      S=S,
+                                                      method=method,
+                                                      ma.weights=Est.ssu.boot$ma.weights,
+                                                      ma.weights.cutoff=ma.weights.cutoff,
+                                                      max.dim.candidate.models=max.dim.candidate.models,
+                                                      max.num.candidate.models=max.num.candidate.models,
+                                                      basis.vec=Est.ssu.boot$basis.vec,
+                                                      parallel=Est.ssu.boot$parallel,
+                                                      parallel.cores=Est.ssu.boot$parallel.cores,
+                                                      rank.vec=Est.ssu.boot$rank.vec,
+                                                      restrict.sum.ma.weights=Est.ssu.boot$restrict.sum.ma.weights,
+                                                      DKL.mat=if(is.numeric.X.k){Est.ssu.boot$DKL.mat[,c(-xzindex[compute.anova.index[k]],-(xzindex[compute.anova.index[k]]+num.x)),drop=FALSE]}else{Est.ssu.boot$DKL.mat},
+                                                      weights=weights,
+                                                      vc=vc,
+                                                      verbose=FALSE,
+                                                      ...)
+
+                            ssr.boot <- sum((y.boot-Est.ssr.boot$fitted.values)^2) 
+
+                        } else if(num.pred == 1) {
+                            ssr.boot <- sum((y.boot-mean(y.boot))^2)
+                        }   else if(num.pred>1 & num.x == 1 & is.numeric.X.k) {
+                            for(i in 1:nrow.z.unique) {
+                                zz <- ind == ind.vals[i]
+                                mv.mean[zz] <- mean(y.boot[zz])
+                            } 
+                            ssr.boot <- sum((y.boot-mv.mean)^2)
+                        }
+
+                        F.boot[b] <- (num.obs-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot)
+
                     }
-                    
-                    F.boot[b] <- (num.obs-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot)
 
-                }
+                } else {
 
-            } else {
+                    ## parallel
 
-                ## parallel
+                    cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
+                    registerDoParallel(cl)
 
-                cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
-                registerDoParallel(cl)
-                
-                output <- foreach(b=1:B,.verbose=FALSE) %dopar% {
-                
-                    if(verbose) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests," (bootstrap replication ",b," of ",B,")",sep=""))
-                    ## Residual bootstrap from the null model, use
-                    ## original model configuration with bootstrap y
-                    
-                    if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
-                        y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(num.obs/(num.obs-ssr.rank)),size=num.obs,replace=TRUE)
-                    }  else if(num.pred == 1) {
-                        y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
-                    }  else if(num.pred>1 & num.x == 1 & is.numeric.X.k) {
-                        y.boot <- mv.mean + sample(y-mv.mean,replace=TRUE)                    
-                    }
-                    
-                    Est.ssu.boot <- lm.ma.Est(y=y.boot,
-                                              X=X,
-                                              X.eval=NULL,
-                                              all.combinations=all.combinations,
-                                              auto.basis=auto.basis,
-                                              auto.reduce=auto.reduce,
-                                              basis=basis,
-                                              compute.deriv=FALSE,
-                                              compute.mean=TRUE,
-                                              deriv.order=deriv.order,
-                                              degree.min=degree.min,
-                                              deriv.index=NULL,
-                                              degree.by=degree.by,
-                                              degree.max=degree.max,
-                                              eps.lambda=eps.lambda,
-                                              lambda.S=lambda.S,
-                                              lambda.num.max=lambda.num.max,
-                                              segments.by=segments.by,
-                                              segments.min=segments.min,
-                                              segments.max=segments.max,
-                                              singular.ok=singular.ok,
-                                              trace=trace,
-                                              knots=knots,
-                                              S=S,
-                                              method=method,
-                                              ma.weights=ma.weights,
-                                              ma.weights.cutoff=ma.weights.cutoff,
-                                              max.num.candidate.models=max.num.candidate.models,
-                                              basis.vec=basis.vec,
-                                              parallel=FALSE, ## override since already in parallel
-                                              parallel.cores=parallel.cores,
-                                              rank.vec=rank.vec,
-                                              restrict.sum.ma.weights=restrict.sum.ma.weights,
-                                              DKL.mat=DKL.mat,
-                                              weights=weights,
-                                              vc=vc,
-                                              verbose=FALSE,
-                                              ...)
-                    
-                    ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)  
-                    
-                    if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
-                        
-                        Est.ssr.boot <- lm.ma.Est(y=y.boot,
-                                                  X=X.res,
+                    output <- foreach(b=1:B,.verbose=FALSE) %dopar% {
+
+                        if(verbose) cat(paste("\rAnova for predictor ",compute.anova.index[k]," of ",num.tests," (bootstrap replication ",b," of ",B,")",sep=""))
+                        ## Residual bootstrap from the null model, use
+                        ## original model configuration with bootstrap y
+
+                        if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
+                            y.boot <- Est.ssr$fitted.values + sample(c(y-Est.ssr$fitted.values)*sqrt(num.obs/(num.obs-ssr.rank)),size=num.obs,replace=TRUE)
+                        }  else if(num.pred == 1) {
+                            y.boot <- mean(y) + sample(y-mean(y),replace=TRUE)
+                        }  else if(num.pred>1 & num.x == 1 & is.numeric.X.k) {
+                            y.boot <- mv.mean + sample(y-mv.mean,replace=TRUE)
+                        }
+
+                        Est.ssu.boot <- lm.ma.Est(y=y.boot,
+                                                  X=X,
                                                   X.eval=NULL,
                                                   all.combinations=all.combinations,
                                                   auto.basis=auto.basis,
@@ -820,59 +792,105 @@ lm.ma.default <- function(y=NULL,
                                                   knots=knots,
                                                   S=S,
                                                   method=method,
-                                                  ma.weights=Est.ssu.boot$ma.weights,
+                                                  ma.weights=ma.weights,
                                                   ma.weights.cutoff=ma.weights.cutoff,
+                                                  max.dim.candidate.models=max.dim.candidate.models,
                                                   max.num.candidate.models=max.num.candidate.models,
-                                                  basis.vec=Est.ssu.boot$basis.vec,
-                                                  parallel=FALSE,
-                                                  parallel.cores=Est.ssu.boot$parallel.cores,
-                                                  rank.vec=Est.ssu.boot$rank.vec,
-                                                  restrict.sum.ma.weights=Est.ssu.boot$restrict.sum.ma.weights,
-                                                  DKL.mat=if(is.numeric.X.k){Est.ssu.boot$DKL.mat[,c(-xzindex[compute.anova.index[k]],-(xzindex[compute.anova.index[k]]+num.x)),drop=FALSE]}else{Est.ssu.boot$DKL.mat},
+                                                  basis.vec=basis.vec,
+                                                  parallel=FALSE, ## override since already in parallel
+                                                  parallel.cores=parallel.cores,
+                                                  rank.vec=rank.vec,
+                                                  restrict.sum.ma.weights=restrict.sum.ma.weights,
+                                                  DKL.mat=DKL.mat,
                                                   weights=weights,
                                                   vc=vc,
                                                   verbose=FALSE,
                                                   ...)
-                        
-                        ssr.boot <- sum((y.boot-Est.ssr.boot$fitted.values)^2)         
-                        
-                    } else if(num.pred == 1) {
-                        ssr.boot <- sum((y.boot-mean(y.boot))^2)
-                    }   else if(num.pred>1 & num.x == 1 & is.numeric.X.k) {
-                        for(i in 1:nrow.z.unique) {
-                            zz <- ind == ind.vals[i]
-                            mv.mean[zz] <- mean(y.boot[zz])
-                        }     
-                        ssr.boot <- sum((y.boot-mv.mean)^2)
+
+                        ssu.boot <- sum((y.boot-Est.ssu.boot$fitted.values)^2)
+
+                        if(num.pred>1 & (num.x>1 | (num.x==1 & !is.numeric.X.k))) {
+
+                            Est.ssr.boot <- lm.ma.Est(y=y.boot,
+                                                      X=X.res,
+                                                      X.eval=NULL,
+                                                      all.combinations=all.combinations,
+                                                      auto.basis=auto.basis,
+                                                      auto.reduce=auto.reduce,
+                                                      basis=basis,
+                                                      compute.deriv=FALSE,
+                                                      compute.mean=TRUE,
+                                                      deriv.order=deriv.order,
+                                                      degree.min=degree.min,
+                                                      deriv.index=NULL,
+                                                      degree.by=degree.by,
+                                                      degree.max=degree.max,
+                                                      eps.lambda=eps.lambda,
+                                                      lambda.S=lambda.S,
+                                                      lambda.num.max=lambda.num.max,
+                                                      segments.by=segments.by,
+                                                      segments.min=segments.min,
+                                                      segments.max=segments.max,
+                                                      singular.ok=singular.ok,
+                                                      trace=trace,
+                                                      knots=knots,
+                                                      S=S,
+                                                      method=method,
+                                                      ma.weights=Est.ssu.boot$ma.weights,
+                                                      ma.weights.cutoff=ma.weights.cutoff,
+                                                      max.dim.candidate.models=max.dim.candidate.models,
+                                                      max.num.candidate.models=max.num.candidate.models,
+                                                      basis.vec=Est.ssu.boot$basis.vec,
+                                                      parallel=FALSE,
+                                                      parallel.cores=Est.ssu.boot$parallel.cores,
+                                                      rank.vec=Est.ssu.boot$rank.vec,
+                                                      restrict.sum.ma.weights=Est.ssu.boot$restrict.sum.ma.weights,
+                                                      DKL.mat=if(is.numeric.X.k){Est.ssu.boot$DKL.mat[,c(-xzindex[compute.anova.index[k]],-(xzindex[compute.anova.index[k]]+num.x)),drop=FALSE]}else{Est.ssu.boot$DKL.mat},
+                                                      weights=weights,
+                                                      vc=vc,
+                                                      verbose=FALSE,
+                                                      ...)
+
+                            ssr.boot <- sum((y.boot-Est.ssr.boot$fitted.values)^2) 
+
+                        } else if(num.pred == 1) {
+                            ssr.boot <- sum((y.boot-mean(y.boot))^2)
+                        }   else if(num.pred>1 & num.x == 1 & is.numeric.X.k) {
+                            for(i in 1:nrow.z.unique) {
+                                zz <- ind == ind.vals[i]
+                                mv.mean[zz] <- mean(y.boot[zz])
+                            } 
+                            ssr.boot <- sum((y.boot-mv.mean)^2)
+                        }
+
+                        list(F.boot=(num.obs-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot))
+
                     }
-                    
-                    list(F.boot=(num.obs-ssu.rank)*(ssr.boot-ssu.boot)/((ssu.rank-ssr.rank)*ssu.boot))
-                    
+
+                    for(b in 1:B) {
+                        F.boot[b] <- output[[b]]$F.boot
+                    }
+
+                    stopCluster(cl)
                 }
 
-                for(b in 1:B) {
-                    F.boot[b] <- output[[b]]$F.boot
-                }
-                
-                stopCluster(cl)
+                P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
+
+                if(verbose) cat("\r                                                                                               ")
+                if(verbose) cat("\r")
+
             }
-            
-            P.vec[k] <- mean(ifelse(F.boot>F.stat[k],1,0))
-            
-            if(verbose) cat("\r                                                                                               ")
-            if(verbose) cat("\r")
-
         }
-
         Est$P.vec <- P.vec
         Est$F.stat <- F.stat
     }
 
     Est$compute.anova <- compute.anova
+    Est$compute.anova.boot <- compute.anova.boot
     Est$compute.anova.index <- compute.anova.index
     Est$bootstrap.ci <- bootstrap.ci
     Est$alpha <- alpha
-    
+
     if(verbose) cat("\r                                                                                               ")
     if(verbose) cat("\r")
 
@@ -911,13 +929,13 @@ summary.lm.ma <- function(object,
     cat("\nModel Averaging Linear Regression",sep="")
     cat(paste(ifelse(object$vc, " (Varying Coefficient Specification)"," (Additive Dummy Specification)"),sep=""))
     cat(paste("\nModel average criterion: ", ifelse(object$method=="jma","Jackknife (Hansen and Racine (2013))","Mallows (Hansen (2007))"), sep=""))
-    cat(paste("\nMinimum degree: ", object$degree.min, sep=""))  
+    cat(paste("\nMinimum degree: ", object$degree.min, sep=""))
     cat(paste("\nMaximum degree: ", object$degree.max, sep=""))
     if(object$knots) {
-        cat(paste("\nMinimum number of interior knots: ", object$segments.min-1, sep=""))  
-        cat(paste("\nMaximum number of interior knots: ", object$segments.max-1, sep=""))  
+        cat(paste("\nMinimum number of interior knots: ", object$segments.min-1, sep=""))
+        cat(paste("\nMaximum number of interior knots: ", object$segments.max-1, sep=""))
     }
-    cat(paste("\nBasis: ", object$basis, sep=""))  
+    cat(paste("\nBasis: ", object$basis, sep=""))
     cat(paste("\nNumber of observations: ", object$num.obs, sep=""))
     cat(paste("\nNumber of numeric predictors: ", object$num.x, sep=""))
     if(!is.null(object$num.z)) cat(paste("\nNumber of categorical predictors: ", object$num.z, sep=""))
@@ -934,24 +952,24 @@ summary.lm.ma <- function(object,
     ma.weights <- ma.weights[order(rank.vec)]
     basis.vec <- basis.vec[order(rank.vec)]
     rank.vec <- rank.vec[order(rank.vec)]
-    
-    cat(paste("\n\nNumber of candidate models: ", NROW(object$DKL.mat), sep=""))  
+
+    cat(paste("\n\nNumber of candidate models: ", NROW(object$DKL.mat), sep=""))
     cat("\nNon-zero model average weights: ")
     cat(formatC(ma.weights,format="f",digits=5))
     cat("\nNon-zero weight model ranks: ")
     cat(formatC(rank.vec,format="f",digits=1))
     if(object$basis=="auto") {
         cat("\nNon-zero weight model bases: ")
-        cat(basis.vec)    
+        cat(basis.vec)
     }
     if(object$compute.anova) {
-        
+
         reject <- rep('', length(object$P.vec))
         reject[a <- (object$P.vec < 0.1)] <- '.'
         reject[a <- (object$P.vec < 0.05)] <- '*'
         reject[a <- (object$P.vec < 0.01)] <- '**'
         reject[a <- (object$P.vec < 0.001)] <- '***'
-      
+
         maxNameLen <- max(nc <- nchar(nm <- names(object$X[,object$compute.anova.index,drop=FALSE])))
         maxPvalLen <- max(ncp <- nchar(format.pval(object$P.vec)))
         maxrejLen <- max(ncr <- nchar(reject))
@@ -967,15 +985,15 @@ summary.lm.ma <- function(object,
                                  formatC(object$F.stat,format="f",digits=3),
                                  "]",
                                  sep=''))
-        
+
         cat("\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
-        
+
     }
 
     cat("\n\n")
 
     if(object$auto.reduce.invoked) cat("Note: auto.reduce invoked  - see comments in Notes section (?lm.ma)\n\n")
-    
+
 }
 
 ## Method for predicting given a new data frame.
@@ -983,7 +1001,7 @@ summary.lm.ma <- function(object,
 predict.lm.ma <- function(object,
                           newdata=NULL,
                           ...) {
-    
+
     if(is.null(newdata)) {
         return(fitted(object))
     } else{
@@ -1012,6 +1030,7 @@ predict.lm.ma <- function(object,
                              lambda.num.max=object$lambda.num.max,
                              ma.weights=object$ma.weights,
                              ma.weights.cutoff=object$ma.weights.cutoff,
+                             max.dim.candidate.models=object$max.dim.candidate.models,
                              max.num.candidate.models=object$max.num.candidate.models,
                              method=object$method,
                              parallel=object$parallel,
@@ -1038,11 +1057,11 @@ predict.lm.ma <- function(object,
                         deriv.low=Est$deriv.ci.l,
                         deriv.up=Est$deriv.ci.u))
         } else {
-            return(Est$fitted.values)    
+            return(Est$fitted.values)
         }
-        
+
     }
-    
+
 }
 
 ## Method for plotting.
@@ -1058,8 +1077,8 @@ plot.lm.ma <- function(x,
                        ...) {
 
     if(!is.logical(plot.deriv)) stop("plot.deriv must be either TRUE or FALSE") 
-    if(!is.logical(plot.ci)) stop("plot.ci must be either TRUE or FALSE")   
-    if(!is.logical(plot.data)) stop("plot.data must be either TRUE or FALSE")   
+    if(!is.logical(plot.ci)) stop("plot.ci must be either TRUE or FALSE") 
+    if(!is.logical(plot.data)) stop("plot.data must be either TRUE or FALSE") 
     if(plot.num.eval<1) stop("plot.num.eval must be positive")
     if(plot.xtrim<0 | plot.xtrim>=0.5) stop("plot.xtrim must lie in [0,0.5)")
 
@@ -1103,8 +1122,8 @@ plot.lm.ma <- function(x,
                      col="grey",
                      ...)
                 if(numeric.logical[i] & plot.rug) suppressWarnings(rug(x$X[x$X[,i] >= xlim[1] & x$X[,i] <= xlim[2] ,i]))
-                cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))                
-                foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=plot.B,...)    
+                cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))
+                foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=plot.B,...)
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(numeric.logical[i]) {
                     lines(xzeval[,i],foo$fit,col=1)
@@ -1121,7 +1140,7 @@ plot.lm.ma <- function(x,
                     }
                 }
             } else {
-                cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))    
+                cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))
                 foo <- predict(x,newdata=xzeval,bootstrap.ci=plot.ci,B=plot.B,...)
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(!plot.ci) {
@@ -1143,14 +1162,14 @@ plot.lm.ma <- function(x,
                         lines(xzeval[,i],foo$fit.up,col=2,lty=2)
                     } else {
                         points(xzeval[,i],foo$fit.low,bg=2,col=2,pch=21)
-                        points(xzeval[,i],foo$fit.up,bg=2,col=2,pch=21)                       
+                        points(xzeval[,i],foo$fit.up,bg=2,col=2,pch=21) 
                     }
                 }
             }
         }
-        
+
         if(ncol.X > 1) par(mfrow=c(1,1))
-        
+
     } else {
 
         ## Plot derivatives
@@ -1192,24 +1211,24 @@ plot.lm.ma <- function(x,
                      type=if(numeric.logical[i]){"l"}else{"p"},
                      ylim=ylim,
                      ...)
-                abline(h=0,lty=2,col="grey")                
+                abline(h=0,lty=2,col="grey")
                 if(numeric.logical[i]) {
                     lines(xzeval[,i],foo$deriv.low[,1],col=2,lty=2)
                     lines(xzeval[,i],foo$deriv.up[,1],col=2,lty=2)
                 } else {
                     points(xzeval[,i],foo$deriv.low[,1],bg=2,col=2,pch=21)
-                    points(xzeval[,i],foo$deriv.up[,1],bg=2,col=2,pch=21)                       
+                    points(xzeval[,i],foo$deriv.up[,1],bg=2,col=2,pch=21) 
                 }
             }
         }
-        
-        if(ncol.X > 1) par(mfrow=c(1,1))        
+
+        if(ncol.X > 1) par(mfrow=c(1,1))
 
     }
-        
+
     cat("\r                                                                                               ")
     cat("\r")
-    
+
 }
 
 ## The workhorse function.
@@ -1236,6 +1255,7 @@ lm.ma.Est <- function(y=NULL,
                       lambda.num.max=NULL,
                       ma.weights=NULL,
                       ma.weights.cutoff=1e-04,
+                      max.dim.candidate.models=5000,
                       max.num.candidate.models=2500,
                       method=c("jma","mma"),
                       parallel=FALSE,
@@ -1250,7 +1270,7 @@ lm.ma.Est <- function(y=NULL,
                       trace=TRUE,
                       vc=TRUE,
                       verbose=TRUE,
-                      weights=NULL,                      
+                      weights=NULL,
                       ...) {
 
     if(verbose) {
@@ -1305,7 +1325,7 @@ lm.ma.Est <- function(y=NULL,
         zeval <- z
     }
     rm(xztmp)
-    
+
     ## Construct base levels for computing differences for factors,
     ## only one row but keep as a data frame
 
@@ -1380,7 +1400,6 @@ lm.ma.Est <- function(y=NULL,
             if(trace) warning("only two numeric predictors present, two or less categorical predictors present, degree.by halved")
         }
     }
-        
 
     lambda.seq <- NULL
     if(vc) {
@@ -1406,7 +1425,7 @@ lm.ma.Est <- function(y=NULL,
     if(is.null(DKL.mat)) {
 
         auto.reduce.num.attempts <- 0
-    
+
         while(is.null(DKL.mat) & !auto.reduce.flag & auto.reduce.num.attempts <= 100) {
 
             if(verbose) {
@@ -1482,18 +1501,18 @@ lm.ma.Est <- function(y=NULL,
                     }
                 }
             }
-            
+
             if(!auto.reduce & P.num >= max.num.candidate.models) {
                 stop(paste("number of candidate models (",P.num,") exceeds maximum (",max.num.candidate.models,") - see comments in Notes section (?lm.ma)",""))
             }
-            
+
             if(auto.reduce & P.num >= max.num.candidate.models) {
-                if(vc & (length(lambda.seq) > 2)) lambda.seq <- lambda.seq[-(length(lambda.seq)-1)]
+                if(vc & !is.null(num.z) & (length(lambda.seq) > 2)) lambda.seq <- lambda.seq[-(length(lambda.seq)-1)]
                 if(knots & (length(segments.seq) > 1)) segments.seq <- segments.seq[-length(segments.seq)]
                 if(length(degree.seq) > 2 & (length(lambda.seq) <= 2)) degree.seq <- degree.seq[-length(degree.seq)]
                 if(trace) warning(paste("number of candidate models (",P.num,") exceeds maximum (",max.num.candidate.models,") - see comments in Notes section (?lm.ma)",sep=""),immediate.=TRUE)
                 if(trace) warning(paste("degree.seq = ",paste(degree.seq,collapse=","),sep=""),immediate.=TRUE)
-                if(vc & trace) warning(paste("lambda.seq = ",paste(lambda.seq,collapse=","),""),immediate.=TRUE)
+                if(vc& !is.null(num.z) & trace) warning(paste("lambda.seq = ",paste(lambda.seq,collapse=","),""),immediate.=TRUE)
                 if(knots & trace) warning(paste("segments.seq = ",paste(segments.seq,collapse=","),sep=""),immediate.=TRUE)
                 if(verbose) warning("auto.reduce invoked (set trace=TRUE to see details - see comments in Notes section (?lm.ma))")
                 DKL.mat <- NULL
@@ -1519,7 +1538,7 @@ lm.ma.Est <- function(y=NULL,
             }
 
             if(auto.reduce.num.attempts==100) stop("auto.reduce failed - see comments in Notes section (?lm.ma))")
-            
+
         }
 
         ill.dimensioned.vec <- logical(P.num)
@@ -1537,7 +1556,7 @@ lm.ma.Est <- function(y=NULL,
                 } else {
                     dim.P <- dim.bs(basis=ill.basis,kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
                 }
-                if(dim.P/num.obs >= 0.95) ill.dimensioned.vec[p] <- TRUE
+                if(dim.P/num.obs > 0.95 | dim.P > max.dim.candidate.models) ill.dimensioned.vec[p] <- TRUE
             }
             DKL.mat <- DKL.mat[!ill.dimensioned.vec,,drop=FALSE]
             P.num <- NROW(DKL.mat)
@@ -1557,7 +1576,7 @@ lm.ma.Est <- function(y=NULL,
     }
 
     P.num <- NROW(DKL.mat)
-        
+
     basis.singular.vec <- logical(length=P.num)
 
     if(is.null(deriv.index)) deriv.index <- 1:ncol.X
@@ -1619,9 +1638,9 @@ lm.ma.Est <- function(y=NULL,
 
                 ## This function is a bit odd, but when called with
                 ## weights this part is not evaluated, otherwise it is.
-                
+
                 if(vc & !is.null(num.z)) {
-                    
+
                     ## Varying coefficient regression spline formulation -
                     ## must have categorical predictors
 
@@ -1629,13 +1648,13 @@ lm.ma.Est <- function(y=NULL,
                         cv.val <- cv.min <- Inf
                         fit.spline.min <- NULL
                         for(b.basis in auto.basis) {
-                           
+ 
                             fit.spline <- numeric(length=num.obs)
                             htt <- numeric(length=num.obs)
                             basis.singular <- logical(length=nrow.z.unique)
                             for(i in 1:nrow.z.unique) {
                                 dim.P <- dim.bs(basis=b.basis,kernel=TRUE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
-                                if(dim.P/num.obs < 0.95) {
+                                if(dim.P/num.obs <= 0.95 & dim.P <= max.dim.candidate.models){
                                     zz <- ind == ind.vals[i]
                                     L <- prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
                                     if(!is.null(weights)) L <- weights*L
@@ -1663,13 +1682,13 @@ lm.ma.Est <- function(y=NULL,
                                     htt <- NULL
                                 }
                             }
-                            
+
                             if(!any(basis.singular==TRUE)) {
                                 htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
                                 cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
                             }
-                            
-                            if(cv.val < cv.min & !any(basis.singular==TRUE) & (dim.P/num.obs < 0.95)) {
+
+                            if(cv.val < cv.min & !any(basis.singular==TRUE) & dim.P/num.obs <= 0.95 & dim.P <= max.dim.candidate.models) {
                                 cv.min <- cv.val
                                 fit.spline.min <- fit.spline
                                 htt.min <- htt
@@ -1677,15 +1696,15 @@ lm.ma.Est <- function(y=NULL,
                                 basis.singular.vec[p] <- any(basis.singular==TRUE)
                                 basis.vec[p] <- b.basis
                             }
-                            
+
                         }
 
                         if(is.null(fit.spline.min)) stop("all bases are ill-conditioned - reduce degree.max")
-                        
+
                         fit.spline <- fit.spline.min
                         htt <- htt.min
                         model.z.unique$rank <- rank.min
-                        
+
                     } else {
 
                         ## Varying coefficient specification, non-auto basis
@@ -1694,7 +1713,7 @@ lm.ma.Est <- function(y=NULL,
                         basis.singular <- logical(length=nrow.z.unique)
                         for(i in 1:nrow.z.unique) {
                             dim.P <- dim.bs(basis=basis.vec[p],kernel=TRUE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
-                            if(dim.P/num.obs < 0.95) {
+                            if(dim.P/num.obs <= 0.95 & dim.P <= max.dim.candidate.models){
                                 zz <- ind == ind.vals[i]
                                 L <- prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
                                 if(!is.null(weights)) L <- weights*L
@@ -1725,7 +1744,7 @@ lm.ma.Est <- function(y=NULL,
 
                     if(basis.singular.vec[p]) stop("basis is ill-conditioned - reduce degree.max")
                     fitted.mat[,p] <- fit.spline
-                    
+
                     if(method=="mma") {
                         ma.mat[,p] <- y - fit.spline
                     } else {
@@ -1740,19 +1759,19 @@ lm.ma.Est <- function(y=NULL,
                     rank.vec[p] <- model.z.unique$rank*nrow.z.unique
                     if(any(lambda.vec==1)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec==1]))
                     sigma.sq.vec[p] <- sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank)
-                    
+
                 } else {
 
                     ## Regression spline formulation (no categorical
                     ## predictors)
-                    
+
                     if(basis=="auto") {
                         cv.val <- cv.min <- Inf
                         fit.spline.min <- NULL
                         for(b.basis in auto.basis) {
                             basis.singular <- logical(1)
                             dim.P <- dim.bs(basis=b.basis,kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
-                            if(dim.P/num.obs < 0.95) {
+                            if(dim.P/num.obs <= 0.95 & dim.P <= max.dim.candidate.models){
                                 P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=b.basis))
                                 if(attr(P,"relevant")) {
                                     if(b.basis=="additive" | b.basis=="taylor") {
@@ -1783,7 +1802,7 @@ lm.ma.Est <- function(y=NULL,
                                 cv.val <- Inf
                                 htt <- NULL
                             }
-                            if(cv.val < cv.min  & !basis.singular & (dim.P/num.obs < 0.95)) {
+                            if(cv.val < cv.min & !basis.singular & dim.P/num.obs <= 0.95 & dim.P <= max.dim.candidate.models) {
                                 cv.min <- cv.val
                                 fit.spline.min <- fitted(model.ma)
                                 htt.min <- htt
@@ -1791,19 +1810,19 @@ lm.ma.Est <- function(y=NULL,
                                 basis.vec[p] <- b.basis
                                 basis.singular.vec[p] <- basis.singular
                             }
-                                
+
                         }
-                        
+
                         if(is.null(fit.spline.min)) stop("all bases are ill-conditioned - reduce degree.max")
-                    
+
                         fit.spline <- fit.spline.min
                         model.ma <- model.ma.min
                         htt <- htt.min
-                        
+
                     } else {
 
                         dim.P <- dim.bs(basis=basis.vec[p],kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
-                        if(dim.P/num.obs < 0.95) {
+                        if(dim.P/num.obs <= 0.95 & dim.P <= max.dim.candidate.models){
                             P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p]))
                             if(attr(P,"relevant")) {
                                 if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
@@ -1835,36 +1854,36 @@ lm.ma.Est <- function(y=NULL,
 
                     if(basis.singular.vec[p]) stop("basis is ill-conditioned - reduce degree.max")
                     fitted.mat[,p] <- fit.spline
-                    
+
                     if(method=="mma") {
                         ma.mat[,p] <- y - fit.spline
                     } else {
                         htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
                         ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                     }
-                    
+
                     rank.vec[p] <- model.ma$rank
                     sigma.sq.vec[p] <- sum(residuals(model.ma)^2)/(num.obs-model.ma$rank)
-                    
+
                 }
-                
+
             }
-            
+
         } else {
-            
+
             if(verbose) cat("\r                                                                                               ")
             if(verbose) cat("\r")
             if(verbose) cat("\rGenerating candidate models...")
 
             ## Parallel
-            
+
             cl<-makeCluster(if(is.null(parallel.cores)){detectCores(logical=FALSE)}else{parallel.cores})
             registerDoParallel(cl)
 
             ## Need p to be ascending in order for dopar to function
             ## properly
 
-		        output <- foreach(p=1:P.num,.verbose=FALSE) %dopar% {
+            output <- foreach(p=1:P.num,.verbose=FALSE) %dopar% {
 
                 DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])
                 include.vec <- include
@@ -1890,9 +1909,9 @@ lm.ma.Est <- function(y=NULL,
 
                 ## This function is a bit odd, but when called with
                 ## weights this part is not evaluated, otherwise it is.
-                
+
                 if(vc & !is.null(num.z)) {
-                    
+
                     ## Varying coefficient regression spline formulation -
                     ## must have categorical predictors
 
@@ -1900,13 +1919,13 @@ lm.ma.Est <- function(y=NULL,
                         cv.val <- cv.min <- Inf
                         fit.spline.min <- NULL
                         for(b.basis in auto.basis) {
-                           
+ 
                             fit.spline <- numeric(length=num.obs)
                             htt <- numeric(length=num.obs)
                             basis.singular <- logical(length=nrow.z.unique)
                             for(i in 1:nrow.z.unique) {
                                 dim.P <- dim.bs(basis=b.basis,kernel=TRUE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
-                                if(dim.P/num.obs < 0.95) {
+                                if(dim.P/num.obs <= 0.95 & dim.P <= max.dim.candidate.models){
                                     zz <- ind == ind.vals[i]
                                     L <- prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
                                     if(!is.null(weights)) L <- weights*L
@@ -1934,13 +1953,13 @@ lm.ma.Est <- function(y=NULL,
                                     htt <- NULL
                                 }
                             }
-                            
+
                             if(!any(basis.singular==TRUE)) {
                                 htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
                                 cv.val <- mean((y - fit.spline)^2/(1-htt)^2)
                             }
-                            
-                            if(cv.val < cv.min & !any(basis.singular==TRUE) & (dim.P/num.obs < 0.95)) {
+
+                            if(cv.val < cv.min & !any(basis.singular==TRUE) & dim.P/num.obs <= 0.95 & dim.P <= max.dim.candidate.models) {
                                 cv.min <- cv.val
                                 fit.spline.min <- fit.spline
                                 htt.min <- htt
@@ -1948,15 +1967,15 @@ lm.ma.Est <- function(y=NULL,
                                 basis.singular.vec[p] <- any(basis.singular==TRUE)
                                 basis.vec[p] <- b.basis
                             }
-                            
+
                         }
 
                         if(is.null(fit.spline.min)) stop("all bases are ill-conditioned - reduce degree.max")
-                        
+
                         fit.spline <- fit.spline.min
                         htt <- htt.min
                         model.z.unique$rank <- rank.min
-                        
+
                     } else {
 
                         ## Varying coefficient specification, non-auto basis
@@ -1965,7 +1984,7 @@ lm.ma.Est <- function(y=NULL,
                         basis.singular <- logical(length=nrow.z.unique)
                         for(i in 1:nrow.z.unique) {
                             dim.P <- dim.bs(basis=basis.vec[p],kernel=TRUE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
-                            if(dim.P/num.obs < 0.95) {
+                            if(dim.P/num.obs <= 0.95 & dim.P <= max.dim.candidate.models){
                                 zz <- ind == ind.vals[i]
                                 L <- prod.kernel(Z=z,z=z.unique[ind.vals[i],],lambda=lambda.vec,is.ordered.z=is.ordered.z)
                                 if(!is.null(weights)) L <- weights*L
@@ -1996,30 +2015,30 @@ lm.ma.Est <- function(y=NULL,
 
                     if(basis.singular.vec[p]) stop("basis is ill-conditioned - reduce degree.max")
                     fitted.mat[,p] <- fit.spline
-                    
+
                     if(method=="mma") {
                         ma.mat[,p] <- y - fit.spline
                     } else {
                         htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
                         ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                     }
-                    
+
                     rank.vec[p] <- model.z.unique$rank*nrow.z.unique
                     if(any(lambda.vec==1)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec==1]))
                     sigma.sq.vec[p] <- sum((y - fit.spline)^2)/(num.obs-model.z.unique$rank)
-                    
+
                 } else {
 
                     ## Regression spline formulation (no categorical
                     ## predictors)
-                    
+
                     if(basis=="auto") {
                         cv.val <- cv.min <- Inf
                         fit.spline.min <- NULL
                         for(b.basis in auto.basis) {
                             basis.singular <- logical(1)
                             dim.P <- dim.bs(basis=b.basis,kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
-                            if(dim.P/num.obs < 0.95) {
+                            if(dim.P/num.obs <= 0.95 & dim.P <= max.dim.candidate.models){
                                 P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=b.basis))
                                 if(attr(P,"relevant")) {
                                     if(b.basis=="additive" | b.basis=="taylor") {
@@ -2050,25 +2069,25 @@ lm.ma.Est <- function(y=NULL,
                                 cv.val <- Inf
                                 htt <- NULL
                             }
-                            if(cv.val < cv.min  & !basis.singular & (dim.P/num.obs < 0.95)) {
+                            if(cv.val < cv.min & !basis.singular & dim.P/num.obs <= 0.95 & dim.P <= max.dim.candidate.models) {
                                 cv.min <- cv.val
                                 fit.spline.min <- fitted(model.ma)
                                 model.ma.min <- model.ma
                                 basis.vec[p] <- b.basis
                                 basis.singular.vec[p] <- basis.singular
                             }
-                                
+
                         }
-                        
+
                         if(is.null(fit.spline.min)) stop("all bases are ill-conditioned - reduce degree.max")
-                    
+
                         fit.spline <- fit.spline.min
                         model.ma <- model.ma.min
-                        
+
                     } else {
 
                         dim.P <- dim.bs(basis=basis.vec[p],kernel=FALSE,degree=DS[,1],segments=DS[,2],include=include,categories=categories)
-                        if(dim.P/num.obs < 0.95) {
+                        if(dim.P/num.obs <= 0.95 & dim.P <= max.dim.candidate.models){
                             P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p]))
                             if(attr(P,"relevant")) {
                                 if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
@@ -2100,28 +2119,28 @@ lm.ma.Est <- function(y=NULL,
 
                     if(basis.singular.vec[p]) stop("basis is ill-conditioned - reduce degree.max")
                     fitted.mat[,p] <- fit.spline
-                    
+
                     if(method=="mma") {
                         ma.mat[,p] <- y - fit.spline
                     } else {
                         htt <- ifelse(htt < 1, htt, 1-.Machine$double.eps)
                         ma.mat[,p] <- fit.spline - htt*(y - fit.spline)/(1-htt)
                     }
-                    
+
                     rank.vec[p] <- model.ma$rank
                     sigma.sq.vec[p] <- sum(residuals(model.ma)^2)/(num.obs-model.ma$rank)
-                    
+
                 }
-                
-		            list(fitted.mat=fitted.mat[,p],
-		                 ma.mat=ma.mat[,p],
-		                 rank.vec=rank.vec[p],
-		                 basis.vec=basis.vec[p],
+
+                list(fitted.mat=fitted.mat[,p],
+                     ma.mat=ma.mat[,p],
+                     rank.vec=rank.vec[p],
+                     basis.vec=basis.vec[p],
                      basis.singular.vec=basis.singular.vec[p],
-		                 sigma.sq.vec=sigma.sq.vec[p])
-		
-		        }
-		
+                     sigma.sq.vec=sigma.sq.vec[p])
+
+            }
+
             for(p in 1:P.num) {
                 fitted.mat[,p] <- output[[p]]$fitted.mat
                 ma.mat[,p] <- output[[p]]$ma.mat
@@ -2154,7 +2173,7 @@ lm.ma.Est <- function(y=NULL,
             d <- -min(sigma.sq.vec)*rank.vec
         } else {
             d <- t(y)%*%ma.mat
-        }        
+        }
         if(restrict.sum.ma.weights) {
             A <- cbind(rep(1,M),diag(1,M,M))
             b0 <- c(1,rep(0,M))
@@ -2191,7 +2210,7 @@ lm.ma.Est <- function(y=NULL,
                 d <- -min(sigma.sq.vec)*rank.vec.reb
             } else {
                 d <- t(y)%*%ma.mat.reb
-            }        
+            }
             if(restrict.sum.ma.weights) {
                 A <- cbind(rep(1,M),diag(1,M,M))
                 b0 <- c(1,rep(0,M))
@@ -2204,10 +2223,10 @@ lm.ma.Est <- function(y=NULL,
                 ## as we construct weighted averages
                 b.reb <- b.reb/sum(b.reb)
             }
-            
+
             if(!isTRUE(all.equal(as.numeric(b[b>ma.weights.cutoff]),as.numeric(b.reb)))) {
                 if(trace) {
-                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>ma.weights.cutoff])," initial models, ",length(b.reb[b.reb>ma.weights.cutoff])," re-balanced ones)",sep=""),immediate.=TRUE)   
+                    warning(paste("Re-running solve.QP on non-zero weight models (",length(b[b>ma.weights.cutoff])," initial models, ",length(b.reb[b.reb>ma.weights.cutoff])," re-balanced ones)",sep=""),immediate.=TRUE) 
                     if(!isTRUE(all.equal(b[b>ma.weights.cutoff],b.reb[b.reb>ma.weights.cutoff]))) warning(all.equal(b[b>ma.weights.cutoff],b.reb[b.reb>ma.weights.cutoff]),immediate.=TRUE)
                 }
                 b[b>ma.weights.cutoff] <- b.reb
@@ -2218,28 +2237,28 @@ lm.ma.Est <- function(y=NULL,
 
         fitted.mat <- as.matrix(fitted.mat * attr(y, 'scaled:scale') + attr(y, 'scaled:center'))
         y <- as.numeric(y * attr(y, 'scaled:scale') + attr(y, 'scaled:center'))
-            
+
     } else if(!is.null(ma.weights))  {
 
         if(!parallel) {
 
             ## Weights passed, copy to b for computation of fit and/or
             ## derivatives
-    
+
             b <- ma.weights
-    
+
             ## NOTE - if only the derivatives are needed, can skip
             ## computing the fitted values UNLESS derivatives are for
             ## categorical predictors.
-    
+
             for(p in P.num:1) {
-    
+
                 DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])
                 include.vec <- include
                 if(!is.null(num.z) & vc) {
                     lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
                 }
-		
+
                 if(verbose) {
                     if(length(degree.seq) < 11) {
                         if(is.null(num.z) | !vc) {
@@ -2257,14 +2276,14 @@ lm.ma.Est <- function(y=NULL,
                 }
 
                 if(compute.mean) {
-    
+
                     ## Compute fitted values
-                     
+ 
                     if(vc & !is.null(num.z)) {
-                        
+
                         ## Varying coefficient regression spline formulation -
                         ## must have categorical predictors
-                        
+
                         fit.spline <- numeric(length=num.eval.obs)
                         for(i in 1:nrow.zeval.unique) {
                             zz <- ind.zeval == ind.zeval.vals[i]
@@ -2284,15 +2303,15 @@ lm.ma.Est <- function(y=NULL,
                                 model.z.unique <- lm(y~1,weights=L,singular.ok=singular.ok)
                                 fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(1:num.eval.obs))[zz])
                             }
-                            
+
                         }
-                        
+
                         rank.vec[p] <- model.z.unique$rank*nrow.z.unique
                         if(any(lambda.vec==1)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec==1]))
                         fitted.mat[,p] <- fit.spline
-                        
+
                     } else {
-                        
+
                         ## Regression spline formulation (no categorical
                         ## predictors)
 
@@ -2319,32 +2338,32 @@ lm.ma.Est <- function(y=NULL,
                             fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(1:num.eval.obs)))
                         }
                         rank.vec[p] <- model.ma$rank
-                        
+
                     }
-                    
+
                 }
-                
+
                 ## Compute derivatives
-    
+
                 if(compute.deriv) {
-    
+
                     if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                         K.additive <- DS
                         K.additive[,2] <- ifelse(DS[,1]==0,0,DS[,2])
                         K.additive[,1] <- ifelse(DS[,1]>0,DS[,1]-1,DS[,1])
                     }
-    
+
                     for(k in 1:num.deriv) {
-    
+
                         kk <- xzindex[deriv.index[k]]
-    
+
                         if(vc & !is.null(num.z)) {
-                            
+
                             if(numeric.logical[deriv.index[k]]) {
-    
+
                                 ## Compute numeric derivatives for the
                                 ## varying coefficient formulation
-    
+
                                 if(DS[kk,1] != 0) {
                                     deriv.spline <- numeric(length(num.eval.obs))
                                     for(i in 1:nrow.zeval.unique) {
@@ -2371,18 +2390,18 @@ lm.ma.Est <- function(y=NULL,
                                 } else {
                                     deriv.spline <- rep(0,num.eval.obs)
                                 }
-                                
+
                                 model.deriv <- deriv.spline
-    
+
                             } else {
-    
+
                                 ## Compute factor `derivatives' for the
                                 ## regression spline formulation
                                 ## (differences), require base levels
-    
+
                                 zeval.unique.tmp <- zeval.unique
                                 zeval.unique.tmp[,kk] <- zeval.base[,kk]
-    
+
                                 fit.spline <- numeric(length=num.eval.obs)
                                 for(i in 1:nrow.zeval.unique) {
                                     zz <- ind.zeval == ind.zeval.vals[i]
@@ -2402,17 +2421,17 @@ lm.ma.Est <- function(y=NULL,
                                         model.z.unique <- lm(y~1,weights=L,singular.ok=singular.ok)
                                         fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(1:num.eval.obs))[zz])
                                     }
-                                    
+
                                 }
                                 model.deriv <- fitted.mat[,p] - fit.spline
                             }
-    
+
                         } else {
-    
+
                             if(numeric.logical[deriv.index[k]]) {
-    
+
                                 ## Compute numeric derivatives
-    
+
                                 if(DS[kk,1] != 0) {
                                     P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p]))
                                     P.deriv <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p],deriv.index=kk,deriv=deriv.order))
@@ -2450,12 +2469,12 @@ lm.ma.Est <- function(y=NULL,
                                 } else {
                                     model.deriv <- rep(0, num.eval.obs)
                                 }
-                                
+
                             } else {
-    
+
                                 ## Compute factor `derivatives'
                                 ## (differences), require base levels
-    
+
                                 P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p]))
                                 if(attr(P,"relevant")) {
                                     zeval.base.tmp <- zeval
@@ -2482,26 +2501,26 @@ lm.ma.Est <- function(y=NULL,
                                 }
                                 model.deriv <- fitted.mat[,p] - fit.spline
                             }
-    
+
                         }
-                        
+
                         deriv.mat[,p,k] <- model.deriv
-                        
+
                     }
 
                 }
-                
+
             }
-    
+
         } else {
 
             ## parallel
 
             ## Weights passed, copy to b for computation of fit and/or
             ## derivatives
-    
+
             b <- ma.weights
-    
+
             ## NOTE - if only the derivatives are needed, can skip
             ## computing the fitted values UNLESS derivatives are for
             ## categorical predictors.
@@ -2511,14 +2530,14 @@ lm.ma.Est <- function(y=NULL,
 
             ## Need p to be ascending in order for dopar in order to function
 
-		        output <- foreach(p=1:P.num,.verbose=FALSE) %dopar% {
-		
+            output <- foreach(p=1:P.num,.verbose=FALSE) %dopar% {
+
                 DS <- cbind(DKL.mat[p,1:num.x],DKL.mat[p,(num.x+1):(2*num.x)])
                 include.vec <- include
                 if(!is.null(num.z) & vc) {
                     lambda.vec <- DKL.mat[p,(2*num.x+1):(2*num.x+num.z)]
                 }
-		
+
                 if(verbose) {
                     if(length(degree.seq) < 11) {
                         if(is.null(num.z) | !vc) {
@@ -2536,14 +2555,14 @@ lm.ma.Est <- function(y=NULL,
                 }
 
                 if(compute.mean) {
-    
+
                     ## Compute fitted values
-                     
+ 
                     if(vc & !is.null(num.z)) {
-                        
+
                         ## Varying coefficient regression spline formulation -
                         ## must have categorical predictors
-                        
+
                         fit.spline <- numeric(length=num.eval.obs)
                         for(i in 1:nrow.zeval.unique) {
                             zz <- ind.zeval == ind.zeval.vals[i]
@@ -2563,15 +2582,15 @@ lm.ma.Est <- function(y=NULL,
                                 model.z.unique <- lm(y~1,weights=L,singular.ok=singular.ok)
                                 fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(1:num.eval.obs))[zz])
                             }
-                            
+
                         }
-                        
+
                         fitted.mat[,p] <- fit.spline
                         rank.vec[p] <- model.z.unique$rank*nrow.z.unique
                         if(any(lambda.vec==1)) rank.vec[p] <- rank.vec[p]/min(nrow.z.unique,prod(categories.vec[lambda.vec==1]))
-                        
+
                     } else {
-                        
+
                         ## Regression spline formulation (no categorical
                         ## predictors)
 
@@ -2598,32 +2617,32 @@ lm.ma.Est <- function(y=NULL,
                             fitted.mat[,p] <- suppressWarnings(predict(model.ma,newdata=data.frame(1:num.eval.obs)))
                         }
                         rank.vec[p] <- model.ma$rank
-                        
+
                     }
-                    
+
                 }
-                
+
                 ## Compute derivatives
-    
+
                 if(compute.deriv) {
-    
+
                     if(basis.vec[p]=="additive" | basis.vec[p]=="taylor") {
                         K.additive <- DS
                         K.additive[,2] <- ifelse(DS[,1]==0,0,DS[,2])
                         K.additive[,1] <- ifelse(DS[,1]>0,DS[,1]-1,DS[,1])
                     }
-    
+
                     for(k in 1:num.deriv) {
-    
+
                         kk <- xzindex[deriv.index[k]]
-    
+
                         if(vc & !is.null(num.z)) {
-                            
+
                             if(numeric.logical[deriv.index[k]]) {
-    
+
                                 ## Compute numeric derivatives for the
                                 ## varying coefficient formulation
-    
+
                                 if(DS[kk,1] != 0) {
                                     deriv.spline <- numeric(length(num.eval.obs))
                                     for(i in 1:nrow.zeval.unique) {
@@ -2650,18 +2669,18 @@ lm.ma.Est <- function(y=NULL,
                                 } else {
                                     deriv.spline <- rep(0,num.eval.obs)
                                 }
-                                
+
                                 model.deriv <- deriv.spline
-    
+
                             } else {
-    
+
                                 ## Compute factor `derivatives' for the
                                 ## regression spline formulation
                                 ## (differences), require base levels
-    
+
                                 zeval.unique.tmp <- zeval.unique
                                 zeval.unique.tmp[,kk] <- zeval.base[,kk]
-    
+
                                 fit.spline <- numeric(length=num.eval.obs)
                                 for(i in 1:nrow.zeval.unique) {
                                     zz <- ind.zeval == ind.zeval.vals[i]
@@ -2681,17 +2700,17 @@ lm.ma.Est <- function(y=NULL,
                                         model.z.unique <- lm(y~1,weights=L,singular.ok=singular.ok)
                                         fit.spline[zz] <- suppressWarnings(predict(model.z.unique,newdata=data.frame(1:num.eval.obs))[zz])
                                     }
-                                    
+
                                 }
                                 model.deriv <- fitted.mat[,p] - fit.spline
                             }
-    
+
                         } else {
-    
+
                             if(numeric.logical[deriv.index[k]]) {
-    
+
                                 ## Compute numeric derivatives
-    
+
                                 if(DS[kk,1] != 0) {
                                     P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p]))
                                     P.deriv <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,xeval=xeval,zeval=zeval,knots="quantiles",basis=basis.vec[p],deriv.index=kk,deriv=deriv.order))
@@ -2729,12 +2748,12 @@ lm.ma.Est <- function(y=NULL,
                                 } else {
                                     model.deriv <- rep(0, num.eval.obs)
                                 }
-                                
+
                             } else {
-    
+
                                 ## Compute factor `derivatives'
                                 ## (differences), require base levels
-    
+
                                 P <- suppressWarnings(prod.spline(x=x,z=z,K=DS,I=include.vec,knots="quantiles",basis=basis.vec[p]))
                                 if(attr(P,"relevant")) {
                                     zeval.base.tmp <- zeval
@@ -2761,34 +2780,34 @@ lm.ma.Est <- function(y=NULL,
                                 }
                                 model.deriv <- fitted.mat[,p] - fit.spline
                             }
-    
+
                         }
-                        
+
                         deriv.mat[,p,k] <- model.deriv
-                        
+
                     }
 
                 }
                 list(fitted.mat=fitted.mat[,p],
                      rank.vec=rank.vec[p],
                      deriv.mat=deriv.mat[,p,])
-                
+
             }
-            
+
             for(p in 1:P.num) {
                 fitted.mat[,p] <- output[[p]]$fitted.mat
                 rank.vec[p] <- output[[p]]$rank.vec
                 if(compute.deriv) deriv.mat[,p,] <- output[[p]]$deriv.mat
             }
-            
+
             stopCluster(cl)
-                    
+
         } ## end parallel
-    
+
     }
 
     ## Compute fitted values and derivatives if requested
-    
+
     if(verbose) cat("\r                                                                                               ")
     if(verbose) cat("\r")
     if(verbose) cat("\rComputing fitted values...")
@@ -2810,7 +2829,7 @@ lm.ma.Est <- function(y=NULL,
             }
         }
     }
-    
+
     if(any(basis.singular.vec[b[b>ma.weights.cutoff]]) & verbose) warning("non-zero weight candidate model basis is ill-conditioned - reduce degree.max")
 
     if(verbose) {
@@ -2844,6 +2863,7 @@ lm.ma.Est <- function(y=NULL,
                 ma.model.rank=sum(rank.vec*abs(b)),
                 ma.weights=if(is.null(ma.weights)){abs(b)}else{ma.weights.orig},
                 ma.weights.cutoff=ma.weights.cutoff,
+                max.dim.candidate.models=max.dim.candidate.models,
                 max.num.candidate.models=max.num.candidate.models,
                 method=method,
                 num.obs=num.obs,

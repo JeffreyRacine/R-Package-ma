@@ -21,6 +21,7 @@ lm.ma(...)
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
       compute.anova = FALSE,
+      compute.anova.boot = FALSE,
       compute.anova.index = NULL,
       compute.deriv = FALSE,
       compute.mean = TRUE,
@@ -36,6 +37,7 @@ lm.ma(...)
       lambda.num.max = NULL,
       ma.weights = NULL,
       ma.weights.cutoff = 1e-04,
+      max.dim.candidate.models = 5000,
       max.num.candidate.models = 2500,
       method = c("jma","mma"),
       parallel = FALSE,
@@ -68,6 +70,7 @@ lm.ma(...)
       basis = c("auto","tensor","taylor","additive"),
       bootstrap.ci = FALSE,
       compute.anova = FALSE,
+      compute.anova.boot = FALSE,
       compute.anova.index = NULL,
       compute.deriv = FALSE,
       compute.mean = TRUE,
@@ -83,6 +86,7 @@ lm.ma(...)
       lambda.num.max = NULL,
       ma.weights = NULL,
       ma.weights.cutoff = 1e-04,
+      max.dim.candidate.models = 5000,
       max.num.candidate.models = 2500,
       method = c("jma","mma"),
       parallel = FALSE,
@@ -130,7 +134,9 @@ lm.ma(...)
   
   \item{bootstrap.ci}{a logical value indicating whether or not to construct nonparametric bootstrap confidence intervals}
 
-  \item{compute.anova}{a logical value indicating whether or not to conduct an anova-based bootstrap procedure to test for predictor significance}
+  \item{compute.anova}{a logical value indicating whether or not to conduct an anova-based procedure to test for predictor significance}
+
+  \item{compute.anova.boot}{a logical value indicating whether or not the test for predictor significance uses asymptotic or bootstrapped P-values}
 
   \item{compute.anova.index}{an optional vector of indices indicating which predictor(s) are to be tested (default is all predictors)}
 
@@ -163,7 +169,9 @@ lm.ma(...)
 
   \item{ma.weights.cutoff}{a small number below which a model weight is deemed to be essentially zero}
 
-  \item{max.num.candidate.models}{an arbitrary upper bound on the maximum number of candidate models permitted before execution halts}
+  \item{max.dim.candidate.models}{an arbitrary upper bound on the maximum dimension of candidate models permitted}
+  
+  \item{max.num.candidate.models}{an arbitrary upper bound on the maximum number of candidate models permitted}
   
   \item{method}{a character string indicating whether to use jackknife model averaging (\code{"jma"}, Hansen and Racine (2013)) or Mallows model averaging (\code{"mma"}, Hansen (2007) - both are frequentist model average criterion)}
 
@@ -291,7 +299,7 @@ Note that the purpose of this package is to attenuate bias arising from model mi
 
 To elaborate further, when using the default settings in high dimensional situations the number of candidate models may grow unreasonably large (say 2,500 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) set and restrict \code{degree.max}, iv) set and restrict \code{lambda.num.max} if categorical predictors are present, v) reduce \code{segments.max} (if \code{knots=TRUE}),  vi) set \code{all.combinations=FALSE}, or perhaps instead consider a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
 
-The option \code{compute.anova} uses a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it may be fairly fast, but as the model complexity increases it will require some patience.
+When \code{compute.anova.boot=TRUE}, the option \code{compute.anova} uses a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it may be fairly fast, but as the model complexity increases it will require some patience.
 
 The option \code{compute.anova} cannot be used in the presence of one or more factors and exactly one numeric predictor since there is no numeric predictor present when testing for significance for the one numeric predictor.
 
