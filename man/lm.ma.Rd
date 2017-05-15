@@ -299,7 +299,7 @@ Note that the purpose of this package is to attenuate bias arising from model mi
 
 To elaborate further, when using the default settings in high dimensional situations the number of candidate models may grow unreasonably large (say 2,500 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) set and restrict \code{degree.max}, iv) set and restrict \code{lambda.num.max} if categorical predictors are present, v) reduce \code{segments.max} (if \code{knots=TRUE}),  vi) set \code{all.combinations=FALSE}, or perhaps instead consider a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
 
-When \code{compute.anova.boot=TRUE}, the option \code{compute.anova} uses a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors it may be fairly fast, but as the model complexity increases it will require some patience.
+When \code{compute.anova.boot=TRUE}, the option \code{compute.anova} uses a bootstrap procedure that requires re-computation of the model average model for each bootstrap replication. With one or two predictors and \code{compute.anova.boot=TRUE} the procedure may be fairly fast, but as the model complexity increases the procedure will require some patience.
 
 The option \code{compute.anova=TRUE} cannot be used in the presence of one or more factors and exactly one numeric predictor since there is no numeric predictor present when testing for significance for the one numeric predictor.
 
