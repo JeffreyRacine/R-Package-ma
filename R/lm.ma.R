@@ -207,7 +207,10 @@ lm.ma.default <- function(y=NULL,
     if(segments.max < 1) stop("segments.max must be a positive integer")
     if(segments.max < segments.min) stop("segments.mix must not exceed segments.max")
     if(segments.min < 1) stop("segments.min must be a positive integer")
-    if(compute.anova & degree.min==0) stop("when conducting anova, degree.min must exceed 0 (set degree.min=1)")
+    if(compute.anova & degree.min==0) {
+        warning("when conducting anova, degree.min must exceed 0 - degree.min has been modified and set to 1",immediate.=TRUE)
+        degree.min <- 1
+    }
 
     ## First obtain weights, then in subsequent call computes fits and
     ## derivatives
@@ -471,7 +474,7 @@ lm.ma.default <- function(y=NULL,
 
     if(compute.anova) {
 
-        if(Est$num.x==1 & !is.null(Est$num.z) & vc) stop("The combination vc=TRUE with factors and only one numeric predictor is not feasible")
+        if(Est$num.x==1 & !is.null(Est$num.z) & vc) stop("The combination vc=TRUE with factors and only one numeric predictor is not feasible - restart with option vc=FALSE")
 
         if(is.null(compute.anova.index)) {
             compute.anova.index <- 1:NCOL(X)
