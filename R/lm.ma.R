@@ -31,6 +31,7 @@ lm.ma.formula <- function(formula,
                           eps.lambda=1e-04,
                           knots=FALSE,
                           lambda.S=2,
+                          lambda.max=1,
                           lambda.num.max=NULL,
                           ma.weights=NULL,
                           ma.weights.cutoff=1e-04,
@@ -94,6 +95,7 @@ lm.ma.formula <- function(formula,
                          knots=knots,
                          eps.lambda=eps.lambda,
                          lambda.S=lambda.S,
+                         lambda.max=lambda.max,
                          lambda.num.max=lambda.num.max,
                          ma.weights=ma.weights,
                          ma.weights.cutoff=ma.weights.cutoff,
@@ -158,6 +160,7 @@ lm.ma.default <- function(y=NULL,
                           eps.lambda=1e-04,
                           knots=FALSE,
                           lambda.S=2,
+                          lambda.max=1,
                           lambda.num.max=NULL,
                           ma.weights=NULL,
                           ma.weights.cutoff=1e-04,
@@ -201,8 +204,10 @@ lm.ma.default <- function(y=NULL,
     if(!is.null(parallel.cores)) if(parallel.cores < 1) stop("the number of cores requested must be a positive integer")
     if(degree.min < 0) stop("minimum degree (degree.min) must be non-negative")
     if(eps.lambda < 0) stop("eps.lambda must be non-negative")
+    if(eps.lambda > lambda.max) stop("eps.lambda must be less than lambda.max")
     if(is.null(y) | is.null(X)) stop("You must provide data for y and X")
     if(lambda.S < 1) stop("lambda.S must be a positive integer")
+    if(lambda.max > 1 | lambda.max < 0) stop("lambda.max must lie between 0 and 1")
     if(max.num.candidate.models<1) stop("max.num.candidate.models must be a positive integer")
     if(segments.max < 1) stop("segments.max must be a positive integer")
     if(segments.max < segments.min) stop("segments.mix must not exceed segments.max")
@@ -210,6 +215,10 @@ lm.ma.default <- function(y=NULL,
     if(compute.anova & degree.min==0) {
         warning("when conducting anova, degree.min must exceed 0 - degree.min has been modified and set to 1",immediate.=TRUE)
         degree.min <- 1
+    }
+    if(compute.anova & vc & is.null(lambda.num.max)) {
+        warning("when conducting anova with vc=TRUE, lambda.max cannot equal 1 - lambda.num.max has been modified and set to 1",immediate.=TRUE)
+        lambda.num.max <- 1
     }
 
     ## First obtain weights, then in subsequent call computes fits and
@@ -236,6 +245,7 @@ lm.ma.default <- function(y=NULL,
                          degree.max=degree.max,
                          eps.lambda=eps.lambda,
                          lambda.S=lambda.S,
+                         lambda.max=lambda.max,
                          lambda.num.max=lambda.num.max,
                          segments.by=segments.by,
                          segments.min=segments.min,
@@ -288,6 +298,7 @@ lm.ma.default <- function(y=NULL,
                          degree.max=degree.max,
                          eps.lambda=eps.lambda,
                          lambda.S=lambda.S,
+                         lambda.max=lambda.max,
                          lambda.num.max=lambda.num.max,
                          segments.by=segments.by,
                          segments.min=segments.min,
@@ -357,6 +368,7 @@ lm.ma.default <- function(y=NULL,
                                       degree.max=degree.max,
                                       eps.lambda=eps.lambda,
                                       lambda.S=lambda.S,
+                                      lambda.max=lambda.max,
                                       lambda.num.max=lambda.num.max,
                                       segments.by=segments.by,
                                       segments.min=segments.min,
@@ -410,6 +422,7 @@ lm.ma.default <- function(y=NULL,
                                       degree.max=degree.max,
                                       eps.lambda=eps.lambda,
                                       lambda.S=lambda.S,
+                                      lambda.max=lambda.max,
                                       lambda.num.max=lambda.num.max,
                                       segments.by=segments.by,
                                       segments.min=segments.min,
@@ -475,7 +488,6 @@ lm.ma.default <- function(y=NULL,
     if(compute.anova) {
 
         if(Est$num.x==1 & !is.null(Est$num.z) & vc) stop("The combination vc=TRUE with factors and only one numeric predictor is not feasible - restart with option vc=FALSE")
-
         if(is.null(compute.anova.index)) {
             compute.anova.index <- 1:NCOL(X)
             num.tests <- NCOL(X)
@@ -518,6 +530,7 @@ lm.ma.default <- function(y=NULL,
                                  degree.max=degree.max,
                                  eps.lambda=eps.lambda,
                                  lambda.S=lambda.S,
+                                 lambda.max=lambda.max,
                                  lambda.num.max=lambda.num.max,
                                  segments.by=segments.by,
                                  segments.min=segments.min,
@@ -577,6 +590,7 @@ lm.ma.default <- function(y=NULL,
                                      degree.max=degree.max,
                                      eps.lambda=eps.lambda,
                                      lambda.S=lambda.S,
+                                     lambda.max=lambda.max,
                                      lambda.num.max=lambda.num.max,
                                      segments.by=segments.by,
                                      segments.min=segments.min,
@@ -666,6 +680,7 @@ lm.ma.default <- function(y=NULL,
                                                   degree.max=degree.max,
                                                   eps.lambda=eps.lambda,
                                                   lambda.S=lambda.S,
+                                                  lambda.max=lambda.max,
                                                   lambda.num.max=lambda.num.max,
                                                   segments.by=segments.by,
                                                   segments.min=segments.min,
@@ -710,6 +725,7 @@ lm.ma.default <- function(y=NULL,
                                                       degree.max=degree.max,
                                                       eps.lambda=eps.lambda,
                                                       lambda.S=lambda.S,
+                                                      lambda.max=lambda.max,
                                                       lambda.num.max=lambda.num.max,
                                                       segments.by=segments.by,
                                                       segments.min=segments.min,
@@ -787,6 +803,7 @@ lm.ma.default <- function(y=NULL,
                                                   degree.max=degree.max,
                                                   eps.lambda=eps.lambda,
                                                   lambda.S=lambda.S,
+                                                  lambda.max=lambda.max,
                                                   lambda.num.max=lambda.num.max,
                                                   segments.by=segments.by,
                                                   segments.min=segments.min,
@@ -831,6 +848,7 @@ lm.ma.default <- function(y=NULL,
                                                       degree.max=degree.max,
                                                       eps.lambda=eps.lambda,
                                                       lambda.S=lambda.S,
+                                                      lambda.max=lambda.max,
                                                       lambda.num.max=lambda.num.max,
                                                       segments.by=segments.by,
                                                       segments.min=segments.min,
@@ -1035,6 +1053,7 @@ predict.lm.ma <- function(object,
                              knots=object$knots,
                              DKL.mat=object$DKL.mat,
                              lambda.S=object$lambda.S,
+                             lambda.max=object$lambda.max,
                              lambda.num.max=object$lambda.num.max,
                              ma.weights=object$ma.weights,
                              ma.weights.cutoff=object$ma.weights.cutoff,
@@ -1260,6 +1279,7 @@ lm.ma.Est <- function(y=NULL,
                       DKL.mat=NULL,
                       knots=FALSE,
                       lambda.S=2,
+                      lambda.max=1,
                       lambda.num.max=NULL,
                       ma.weights=NULL,
                       ma.weights.cutoff=1e-04,
@@ -1412,7 +1432,7 @@ lm.ma.Est <- function(y=NULL,
     lambda.seq <- NULL
     if(vc) {
         l.pow <- 1
-        lambda.seq <- seq(eps.lambda,1,length=lambda.num.max)**l.pow
+        lambda.seq <- seq(eps.lambda,lambda.max,length=lambda.num.max)**l.pow
         n.lambda.seq <- length(lambda.seq)
     }
 
@@ -2866,6 +2886,7 @@ lm.ma.Est <- function(y=NULL,
                 deriv=deriv,
                 knots=knots,
                 lambda.S=lambda.S,
+                lambda.max=lambda.max,
                 lambda.num.max=lambda.num.max,
                 lambda.seq=lambda.seq,
                 ma.model.rank=sum(rank.vec*abs(b)),

@@ -34,6 +34,7 @@ lm.ma(...)
       eps.lambda = 1e-04,
       knots = FALSE,
       lambda.S = 2,
+      lambda.max = 1,
       lambda.num.max = NULL,
       ma.weights = NULL,
       ma.weights.cutoff = 1e-04,
@@ -83,6 +84,7 @@ lm.ma(...)
       eps.lambda = 1e-04,
       knots = FALSE,
       lambda.S = 2,
+      lambda.max = 1,
       lambda.num.max = NULL,
       ma.weights = NULL,
       ma.weights.cutoff = 1e-04,
@@ -162,6 +164,8 @@ lm.ma(...)
   \item{knots}{a logical value indicating whether or not to include interior knots}
 
   \item{lambda.S}{the constant in the data-driven rule for determining \code{lambda.num.max}}
+
+  \item{lambda.max}{largest value (<= 1) of the smoothing parameters used in the weight function for the categorical predictors when \code{vc=TRUE}}
 
   \item{lambda.num.max}{the maximum value for the smoothing parameter grid in each dimension (defaults to \code{max(2,ceiling(log(n)-S*log(1+p)))} where \code{p} is the number of categorical predictors and \code{n} the number of observations}
   
@@ -303,7 +307,7 @@ When \code{compute.anova.boot=TRUE}, the option \code{compute.anova} uses a boot
 
 The option \code{compute.anova=TRUE} cannot be used in the presence of one or more factors and exactly one numeric predictor since there is no numeric predictor present when testing for significance for the one numeric predictor.
 
-Note that the option \code{compute.anova=TRUE} (not default) will halt when \code{degree.min=0} (default). The reason for this is because irrelevant predictors can be automatically removed without the need for pre-testing if the procedure selects the degree for any predictor to be 0 - in such cases the restricted and unrestricted models may coincide and the test is degenerate. Therefore if you use the default \code{degree.min} and select \code{compute.anova=TRUE} without modifying \code{degree.min}, the routine will halt with a helpful message.
+Note that the option \code{compute.anova=TRUE} (not default) will warn immediately when \code{degree.min=0} (default) and rest to \code{degree.min=1}. The reason for this is because irrelevant predictors can be automatically removed without the need for pre-testing if the procedure selects the degree for any predictor to be 0 - in such cases the restricted and unrestricted models may coincide and the test is degenerate. The same holds for smoothing parameter values with \code{vc=TRUE} in the presence of categorical predictors (when \code{lambda=1} irrelevant categorical predictors are automatically removed without the need for pretesting, so we need to rule this case out when conducting hypothesis tests).
 
 Averaging over models with ill-conditioned bases is not advised. Pay attention to the warning \dQuote{Dimension basis is ill-conditioned - reduce \code{degree.max}} should it arise and reduce \code{degree.max} until this no longer is the case.
 
