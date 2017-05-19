@@ -13,6 +13,3 @@ plot(model)
 plot(model,plot.deriv=TRUE)
 
 summary(model)
-
-
-
