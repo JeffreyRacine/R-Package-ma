@@ -212,14 +212,6 @@ lm.ma.default <- function(y=NULL,
     if(segments.max < 1) stop("segments.max must be a positive integer")
     if(segments.max < segments.min) stop("segments.mix must not exceed segments.max")
     if(segments.min < 1) stop("segments.min must be a positive integer")
-    if(compute.anova & degree.min==0) {
-        warning("when conducting anova, degree.min must exceed 0 - degree.min has been modified and set to 1",immediate.=TRUE)
-        degree.min <- 1
-    }
-    if(compute.anova & vc & is.null(lambda.num.max)) {
-        warning("when conducting anova with vc=TRUE, lambda.max cannot equal 1 - lambda.num.max has been modified and set to 1",immediate.=TRUE)
-        lambda.num.max <- 1
-    }
 
     ## First obtain weights, then in subsequent call computes fits and
     ## derivatives
@@ -507,6 +499,16 @@ lm.ma.default <- function(y=NULL,
             xzindex <- 1:num.pred
             xzindex[numeric.logical] <- 1:num.x
             xzindex[!numeric.logical] <- 1:num.z
+        }
+
+        if(degree.min==0) {
+            warning("when conducting anova, degree.min must exceed 0 - degree.min has been modified and set to 1",immediate.=TRUE)
+            degree.min <- 1
+        }
+
+        if(!is.null(num.z) & vc & is.null(lambda.num.max)) {
+            warning("when conducting anova with vc=TRUE, lambda.max cannot equal 1 - lambda.num.max has been modified and set to 1",immediate.=TRUE)
+            lambda.num.max <- 1
         }
 
         P.vec <- numeric(length=num.tests)
