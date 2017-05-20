@@ -167,7 +167,7 @@ lm.ma(...)
 
   \item{lambda.max}{largest value (<= 1) of the smoothing parameters used in the weight function for the categorical predictors when \code{vc=TRUE}}
 
-  \item{lambda.num.max}{the maximum value for the smoothing parameter grid in each dimension (defaults to \code{max(2,ceiling(log(n)-S*log(1+p)))} where \code{p} is the number of categorical predictors and \code{n} the number of observations}
+  \item{lambda.num.max}{the maximum value for the smoothing parameter grid in each dimension (defaults to \code{max(2,ceiling(log(n)-lambda.S*log(1+p)))} where \code{p} is the number of categorical predictors and \code{n} the number of observations}
   
   \item{ma.weights}{a vector of model average weights obtained from a previous invocation (useful for bootstrapping etc.)}
 

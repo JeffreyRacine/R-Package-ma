@@ -2,9 +2,10 @@ Package: ma
 Type: Package
 Title: Model Averaging
 Version: 1.0-8
-Date: 2017-05-19
+Date: 2017-05-20
 Imports: doParallel, foreach, parallel, quadprog
-Suggests: crs, np, rgl
+Suggests: crs, np, rgl, knitr, rmarkdown
+VignetteBuilder: knitr
 Depends: R (>= 2.10)
 Authors@R: person(given = "Jeffrey S.", family = "Racine", role = c("aut","cre"), email = "racinej@mcmaster.ca")
 Author: Jeffrey S. Racine [aut, cre]

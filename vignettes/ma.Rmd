@@ -1,0 +1,135 @@
+---
+author:
+  - name: Jeffrey Racine
+    affiliation: McMaster University
+    address: >
+      Department of Economics
+      Kenneth Taylor Hall, Room 426 McMaster University
+      1280 Main Street West
+      Hamilton, Ontario, Canada, L8S 4M4
+    email: \email{racinej@mcmaster.ca}
+    url: https://socialsciences.mcmaster.ca/people/racinej
+title:
+  formatted: "Model Averaging - The R Package \\pkg{ma}"
+  plain:     "Model Averaging - The ma Package"
+  short:     "\\pkg{ma}: Model Averaging"
+abstract: >
+  There exist a number of \proglang{R} packages that perform model averaging (see \pkg{AICcmodavg}, \pkg{BMA}, \pkg{glmulti} and \pkg{MuMLn} by way of illustration). Though existing packages contain a rich set of features, they rely on the practitioner to supply the set of candidate models and they tend to focus on parameters common to all candidate models (i.e., coefficients on linear predictors). The \pkg{ma} package takes a somewhat different approach. Using heuristics that can be modified by the user, we strive to automatically generate a rich set of candidate models that are subsequently averaged, and we avoid focusing on parameters per se, instead focusing on conditional mean models, their derivatives, and nonparametric inferential prcocedures. Categorical predictors can be modelled in a variety of ways including a kernel-smoothed varying coefficient approach. The resulting models are competitive with fully nonparametric methods and attenuate bias arising from model misspecification.
+keywords:
+  formatted: [parametric, weighted average, "\\proglang{R}"]
+  plain:     [parametric, weighted average, R]
+preamble: >
+  \usepackage{amsmath}
+output: rticles::jss_article
+bibliography: [ma.bib]
+biblio-style: jss
+link-citations: yes
+---
+
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{R Package ma}
+-->
+
+# Introduction
+
+Practitioners frequently wrestle with issues arising from model uncertainty, and model *selection* is perhaps one of the most widely used solutions to this problem. Model selection deals with model uncertainty by selecting one model from among a set of candidate models based on a selection criterion. Model selection has a long history, and a variety of methods have been proposed, each based on distinct estimation criteria. These include Akaike's *An Information Criterion* (AIC; @AKAIKE:1970, @AKAIKE:1973), Mallows' $C_p$ (@MALLOWS:1973), the *Bayesian Information Criterion* (BIC; @SCHWARZ:1978), *delete-one cross-validation* (@STONE:1974), *generalized cross-validation* (@CRAVEN_WAHBA:1979), and the *Focused Information Criterion* (FIC) (@CLAESKENS_HJORT:2003), to name but a few.
+
+Model *averaging* deals with model uncertainty not by having the user select one model from among a set of candidate models according to a criterion such as $C_p$, AIC or BIC, but instead by averaging over the set of candidate models in a particular manner. The goal is to reduce estimation variance while controlling misspecification bias. There is a longstanding literature on Bayesian model averaging; see @HOETING_MADIGAN_RAFTERY_VOLINSKY:1999 for a comprehensive review. There is also a rapidly-growing literature on frequentist methods for model averaging, including @BUCKLAND_BURNHAMN_AUGUSTIN:1997, @HANSEN:2007,
+@WAN:2010, and @HANSEN_RACINE:2012, among others.
+
+The \proglang{R} package \pkg{ma} aims to automate the process of model averaging thereby freeing the practitioner from tedious details.  The \pkg{ma} package adopts a frequentist approach; for those interested in a Bayesian approach see the \proglang{R} package \pkg{BMA}. It is assumed that the practitioner is using regression techniques and is concerned about the impact of model mis-specification on inference and prediction. As far as possible, the interface is designed to mimic that for \code{lm()} with some notable exceptions outlined below.
+
+# Implementation of the Model Average Procedure
+
+Consider a nonparametric regression model containing both categorical and continuous predictors where one is interested in modeling the unknown conditional mean in the following location-scale model,
+\begin{equation}
+  Y=g\left( \mathbf{X},\mathbf{Z}\right) +\sigma \left( \mathbf{X},\mathbf{Z}
+  \right) \varepsilon ,  \label{MOD:csm}
+\end{equation}
+where $g(\mathbf{x},\mathbf{z})=E[Y|\mathbf{X}=\mathbf{x},\mathbf{Z}=\mathbf{z}]$ is an unknown function, $\mathbf{X=}\left(
+  X_{1},\ldots ,X_{q}\right) ^{\mathrm{T}}$ is a $q$-dimensional
+vector of continuous predictors, and $\mathbf{Z}=\left( Z_{1},\ldots
+  ,Z_{r}\right) ^{\mathrm{T}}$ is an $r$-dimensional vector of
+categorical predictors. Letting $\mathbf{z} =\left( z_{s}\right) _{s=1}^{r}$, we assume that $z_{s}$ takes $c_{s}$ different values in $D_{s}\equiv \left\{0,1,\ldots ,c_{s}-1\right\}$, $s=1,\ldots ,r$, and let $c_{s}$ be a finite positive constant. 
+
+## Categorical Predictors and Candidate Model Selection
+
+To handle the presence of categorical predictors, we might estimate $g(\cdot)$ by tensor-product polynomial splines weighted by categorical kernel functions. Let $\mathcal{B}\left( \mathbf{x}\right)$ be the tensor-product polynomial splines and $L\left(\mathbf{Z},\mathbf{z}, \mathbf{\lambda }\right)$ be a product categorical kernel function. Then the nonparametric function $g\left(\mathbf{x},\mathbf{z}\right)$ can be approximated by $\mathcal{B}\left( \mathbf{x}\right) ^{\mathrm{T}}\beta \left(\mathbf{z}\right)$, where $\beta\left( \mathbf{z}\right)$ is a $\mathbf{K}_{n}\times 1$ vector with $\mathbf{K}_{n}\rightarrow \infty$ as $n\rightarrow \infty$. We estimate $\beta \left(\mathbf{z}\right)$ by minimizing the following weighted least squares criterion,
+\begin{equation}
+  \widehat{\beta }\left( \mathbf{z}\right) =\arg \min_{\beta \in {R}^{\mathbf{K}_{n}}}\sum\limits_{i=1}^{n}\left\{ Y_{i}-
+    \mathcal{B}\left( \mathbf{X}_{i}\right) ^{\mathrm{T}}\beta\right\} ^{2}L\left( \mathbf{Z}_{i},\mathbf{z},\mathbf{\lambda }
+  \right) .  \label{EQ:betahatz}
+\end{equation}
+Thus $g\left( \mathbf{x},\mathbf{z}\right)$ is estimated by $\widehat{g}\left(\mathbf{x},\mathbf{z}\right)=\mathcal{B}\left(   \mathbf{x}\right)^{\mathrm{T}}\widehat{\beta}\left(\mathbf{z}\right)$. If $\mathcal{B}\left(   \mathbf{x}\right)=\mathbf{x}$ (i.e., the identity basis) the we are conducting standard linear (in predictors) weighted least squares estimation (i.e., $\widehat{g}\left(\mathbf{x},\mathbf{z}\right)= \mathbf{x}^{\mathrm{T}}\widehat{\beta}\left(\mathbf{z}\right)$). If in addition we introduced the categorical predictors as additive factors instead of using kernel weighting, we are conducting standard linear least squares with additive dummy variables (i.e., $\widehat{g}\left(\mathbf{x},\mathbf{z}\right)=\mathbf{z}^{\mathrm{T}}\widehat{\alpha}+\mathbf{x}^{\mathrm{T}}\widehat{\beta}$). Each of these possibilities can be entertained among the set of candidate models implemented in the \pkg{ma} package.
+
+## Candidate Model Basis Function Choice
+
+Note that $\mathcal{B}\left( \mathbf{x}\right)$ need not necessarily be a tensor product. It could be additive (semiparametric) or a
+Taylor-type basis, perhaps augmented to allow for differing orders in each dimension. Regardless of the nature of the basis, each candidate model used in the model average will differ in terms of its spline degree in each dimension, number of knots, and smoothing parameters. Denote the $m$th such model as $\widehat{g}_m\left( \mathbf{x},\mathbf{z}\right)$. Having enumerated the $M$ candidate models over which the averaging is to take place, we will require a model averaging criterion. The \pkg{ma} package allows for two such criteria.
+
+## Hansen's (2007) Mallows Model Average Criterion
+
+The Mallows [@MALLOWS:1973] criterion for the model average estimator [@HANSEN:2007] is 
+\begin{equation*}
+  C_n(w)=w'\hat{\mathbf{E}}'\hat{\mathbf{E}}w+2\sigma^2K'w,
+\end{equation*}
+where $\hat{\mathbf{E}}$ is the $T\times M$ matrix with columns containing the
+residual vector from the $m$th candidate estimating equation, $K$ the
+$M\times 1$ vector of the number of parameters in each model, and
+$\sigma^2$ the variance from the largest dimensional
+model. This criterion is used to select
+the weight vector $\hat w$, i.e.,
+\begin{equation*}
+  \hat w = \operatorname{argmin}_w C_n(w).
+\end{equation*}
+Because $\operatorname{argmin}_w C_n(w)$ has no closed-form solution, the weight vector is found numerically. The solution involves constrained minimization subject to non-negativity and summation constraints, which constitutes a classic quadratic programming problem. This criterion involves nothing more than computing the residuals for each candidate estimating equation, obtaining the rank of each candidate estimating equation, and solving a simple quadratic program. The Mallows model averaging (MMA) $C_n(w)$ criterion provides an estimate of the average squared error from the model average fit, and has been shown to be asymptotically optimal in the sense of achieving the lowest possible squared error in a class of model average estimators. See @HANSEN:2007 for further details. 
+
+## Hansen and Racine's (2012) Jackknife Model Average Criterion
+
+@HANSEN_RACINE:2012 propose an alternative jackknife model averaging (JMA) criterion for the model average estimator given by
+\begin{equation*}
+  CV_{n}(w)=\frac{1}{n}(y-\tilde{\mathbf{Y}}w)'(y-\tilde{\mathbf{Y}}w),
+\end{equation*}
+where $\tilde{\mathbf{Y}}$ is the $T\times M$ matrix with columns containing the jackknife estimator from the $m$th candidate estimating equation formed by deleting the $t$ observation when constructing the $t$th prediction. Like its Mallows counterpart, this involves solving a quadratic program where we minimize $(y-\tilde{\mathbf{Y}}w)'(y-\tilde{\mathbf{Y}}w)=y'y+w'\tilde{\mathbf{Y}}'\tilde{\mathbf{Y}}w-2y'\tilde{\mathbf{Y}}w$ and the first term is ignorable as it does not involve the weight vector $w$. In the presence of homoskedastic errors, JMA and MMA are nearly equivalent, but when the errors are heteroskedastic, JMA delivers models with significantly lower MSE.
+
+Whether using JMA or MMA, both involve solving a simple quadratic program (the \proglang{R} package \pkg{quadprog} is invoked for its solution).
+
+# R Function Interface and Defaults
+
+The main function is called \code{lm.ma()}. Models are specified symbolically. A typical model has the form response ~ terms where response is the (numeric) response vector and terms is a series of terms which specifies a linear predictor for response. Note that, unlike \code{lm()} in which the formula interface specifies functional form, in \code{lm.ma()} the formula interface is strictly for listing the variables involved and the procedure will determine an appropriate model averaged functional form. Do not incorporate transformations, interactions and the like in the formula interface for lm.ma as these will most surely fail.
+
+The function \code{lm.ma()} computes a model that is the weighted average of a set of least squares candidate models whose predictors are generated by common basis functions (additive, generalized Taylor polynomial, or tensor products). The candidate models increase in complexity from linear bases (if \code{degree.min=1}) through higher order ones up to degree.max. All bases are of the Bernstein polynomial class, as opposed to raw polynomials, and allow for differing degrees across multivariate predictors. When \code{knots=TRUE}, interior knots are used and the Bernstein polynomials become B-spline bases and we are then averaging over regression spline models. When the number of numeric predictors is two or more, the generalized Taylor polynomial includes interaction terms up to order degree minus one. Since we are averaging over models that are nonlinear in the predictors, derivatives will be vectors that potentially depend on the values of every predictor. An ad-hoc formula is used to determine the relationship between the largest (most complex) model, the sample size, and the number of predictors. This ad-hoc rule was set so that, as the sample size increases, we can approximate ever more complex functions while necessarily restricting the size of the largest model in small sample settings. Categorical predictors can enter additively and linearly (if \code{vc=FALSE}) or in a parsimonious manner by exploiting recent developments in semiparametric varying coefficient models along the lines of @LI_OUYANG_RACINE:2013. With the options \code{knots=TRUE} and \code{vc=TRUE}, we are averaging over varying-coefficient regression splines.
+
+The heuristic used for \code{degree.max}, the maximum value for the basis degree in each dimension, defaults to \code{max(2,ceiling(log(n)-2*log(1+k)))} where \code{k} is the number of numeric predictors and \code{n} the number of observations. 
+
+The heuristic used for \code{lambda.num.max}, the maximum value for the smoothing parameter grid in each dimension, defaults to \code{max(2,ceiling(log(n)-2*log(1+p)))} where \code{p} is the number of categorical predictors and \code{n} the number of observations.
+
+# Illustration
+
+By way of illustration, consider the following chunk of \proglang{R} code. We simulate data from a nonlinear data generating process (DGP). The practitioner might consider, say, linear regression via \code{lm(y~x)} but this model would clearly be misspecified as might other models they consider. Instead, consider the model produced by \code{lm.ma(y~x)}. The fitted model and data are plotted in Figure \ref{sinfig}.
+
+```{r}
+library(ma)
+set.seed(42)
+n <- 1000
+x <- runif(n)
+dgp <- sin(4*pi*x)
+y <- dgp + rnorm(n,sd=0.25*sd(dgp))
+model <- lm.ma(y~x,verbose=FALSE)
+summary(model)
+```
+
+\begin{figure}[!ht]
+```{r,results='hide',echo=FALSE}
+plot(model,plot.data=TRUE)
+lines(x[order(x)],dgp[order(x)],lty=3,col=3)
+abline(lm(y~x),col=2,lty=2)
+legend("topright",c("Model Average","lm(y~x)","DGP"),col=1:3,lty=1:3,bty="n",cex=0.75)
+```
+\caption{\label{sinfig}Simulated illustration, $n=1000$ observations.}
+\end{figure}
+
+Figure \ref{sinfig} reveals that the model average estimator is more faithful to the underlying DGP than the naive linear regression model. Of course no serious practitioner would likely have settled for the naive linear model, but that is besides the point. The point to be made is that the model average approach is known to possess a number of appealing characteristics, and this simple illustration a number of them.
+
+# References {-}
