@@ -125,7 +125,6 @@ x <- runif(n)
 dgp <- sin(4*pi*x)
 y <- dgp + rnorm(n,sd=0.25*sd(dgp))
 model <- lm.ma(y~x,verbose=FALSE)
-summary(model)
 ```
 
 \begin{figure}[!ht]
@@ -180,6 +179,16 @@ Extensive simulations reveal that the test is correctly sized and displays power
 
 # Parallel Computation
 
-Parallel processing can be enabled by adding the option \code{parallel=TRUE}. This can cut computation by up to \code{1/parallel.cores}, particularly for multiple predictor models where computation of each candidate model may be non-trivial. Note that the default number of cores invoked is the number of cores present in the CPU on which the code is executed. Note that, when \code{parallel=TRUE}, this applies to all all computation *except* for solving the quadratic program. Solving the quadratic program invokes a call to  \code{solve.QP} from the \proglang{R} package \pkg{quadprog} which, at this time, does not support parallel processing.
+Parallel processing can be enabled by adding the option \code{parallel=TRUE}. This can cut computation by up to \code{1/parallel.cores}, particularly for multiple predictor models where computation of each candidate model may be non-trivial. Note that the default number of cores invoked is the number of cores present in the CPU on which the code is executed. Note also that, when \code{parallel=TRUE}, this applies to all computation *except* for solving the quadratic program which invokes a call to  \code{solve.QP} from the \proglang{R} package \pkg{quadprog} that, at this time, does not support parallel processing.
+
+# Limitations and Caveats
+
+The model average approach implemented in the \pkg{ma} package is capable of statistically consistent estimation of certain classes of smooth functions (e.g., analytic) at rates approaching or equal to those of correctly specified parametric models (extensive simulations highlighting this feature are available upon request). In this sense the approach is competitive with and even more efficient than some popular nonparametric approaches such as locally weighted kernel estimation. This is achieved automatically and without input by the user. This stands in contrast to the model average approaches embodied in the \proglang{R} packages listed previously that rely on a set of candidate models provided by the user that may not be imbued with this feature *unless* the user similarly ties the dimensions of their candidate models to the available sample information, among other important aspects (such as including interactions among predictors and allowing for a sufficiently high polynomial order in the candidate models to capture a sufficiently rich set of nonlinearities).
+ 
+It should come as no surprise that this approach, like its nonparametreic peers, will face the *curse of dimensionality*. To partially address this shortcoming, in order for our model average approach to deliever statistically consistent estimation of broad classes of functions, the complexity of the maximal basis function in the set of candidate models to be averaged over must increase with the amount of sample information present, among other important aspects. However, for a finite sample size, the maximum dimension of the basis is constrained by this limit. Some heuristics already mentioned seek to trade off consistency versus computational feasibility given the data at hand. Of course, default settings appropriate for one DGP may be inappropriate for another, so some sensitivity analysis may be called for to ensure that the final results are not upset by modifying the default configuration.
+
+When using the default settings in high dimensional situations, the number of candidate models may grow unreasonably large (say 2,500 or more). Furthermore, the dimension of the maximal basis may similarly grow unreasonably large (say 5,000 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) set and restrict \code{degree.max}, iv) set and restrict \code{lambda.num.max} if categorical predictors are present, v) reduce \code{segments.max} (if \code{knots=TRUE}),  vi) set \code{all.combinations=FALSE}, or perhaps instead consider a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
+
+It is therefore prudent to recollect that the goal of model averaging is to outperform model assertion or model selection by reducing estimation variance while controlling mis-specification bias. The goal is not to obtain statistically consistent estimators - that remains the domain of fully nonparametric estimation.
 
 # References {-}

@@ -22,8 +22,14 @@ for(m in 1:M) {
         x2 <- runif(n,-1,1)
         dgp <- sin(pi*x1) + x2**2 + x1*x2     
         y <- dgp + rnorm(n,sd=0.5*sd(dgp))
-        mse.ma[i] <- mean((fitted(lm.ma(y~x1+x2,verbose=FALSE))-dgp)^2)
-        mse.np[i] <- mean((fitted(npreg(y~x1+x2,ckertype="epanechnikov"))-dgp)^2)
+        ## Predict outcomes for independent data drawn from the DGP
+        newdata <- data.frame(x1=runif(n,-1,1),x2=runif(n,-1,1))
+        dgp.eval <- sin(pi*newdata$x1) + newdata$x2**2 + newdata$x1*newdata$x2 
+        model.ma <- lm.ma(y~x1+x2,verbose=FALSE)
+        model.np <- npreg(y~x1+x2,ckertype="epanechnikov")
+        ## Compute MSE for independent data drawn from the DGP
+        mse.ma[i] <- mean((predict(model.ma,newdata=newdata)-dgp.eval)^2)
+        mse.np[i] <- mean((predict(model.np,newdata=newdata)-dgp.eval)^2)
         nobs[i] <- n
         i <- i + 1
     }
