@@ -29,5 +29,6 @@
 data(cps71)
 model <- lm.ma(logwage~age,compute.anova=TRUE,data=cps71)
 summary(model)
+plot(model,plot.data=TRUE,plot.ci=TRUE,plot.B=999)
 }
 }
