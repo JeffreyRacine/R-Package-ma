@@ -7,6 +7,7 @@ extern void gsl_bspline_deriv(void *, void *, void *, void *, void *, void *, vo
 extern void RuniqueCombs(void *, void *, void *, void *);
 
 R_CallMethodDef CallMethods[] = {
+  { "taylor_model_tmm",(DL_FUNC)&taylor_model_tmm,7}, 
   { "mgcv_tmm",(DL_FUNC)&mgcv_tmm,5}, 
   {NULL, NULL, 0}
 };

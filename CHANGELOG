@@ -1,3 +1,7 @@
+Changes from 1.01-7 to 1.0-8 [26-May-2017]
+
+- Zhenghua worked his magic to furnish a computationally efficient taylor.model.matrix using a C backend similar to Simon Wood's C backend for his tensor.product.model.matrix
+
 Changes from 1.01-6 to 1.0-7 [04-May-2017]
 
 - pushed lm.fit/lm.wfit throughout... 20-20% speed gain, more robust than lm
