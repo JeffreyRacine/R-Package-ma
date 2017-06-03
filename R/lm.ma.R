@@ -1772,7 +1772,8 @@ lm.ma.Est <- function(y=NULL,
                         basis.singular.vec[p] <- any(basis.singular==TRUE)
                     }
 
-                    if(basis.singular.vec[p]) stop("basis is ill-conditioned - reduce degree.max")
+                    if(basis.singular.vec[p] & !singular.ok) stop("basis is ill-conditioned - reduce degree.max")
+                    if(basis.singular.vec[p] & singular.ok & trace) warning("basis is ill-conditioned - reduce degree.max")                    
                     fitted.mat[,p] <- fit.spline
 
                     if(method=="mma") {
@@ -1882,7 +1883,9 @@ lm.ma.Est <- function(y=NULL,
                         }
                     }
 
-                    if(basis.singular.vec[p]) stop("basis is ill-conditioned - reduce degree.max")
+                    if(basis.singular.vec[p] & !singular.ok) stop("basis is ill-conditioned - reduce degree.max")
+                    if(basis.singular.vec[p] & singular.ok & trace) warning("basis is ill-conditioned - reduce degree.max")
+
                     fitted.mat[,p] <- fit.spline
 
                     if(method=="mma") {
@@ -2043,7 +2046,9 @@ lm.ma.Est <- function(y=NULL,
                         basis.singular.vec[p] <- any(basis.singular==TRUE)
                     }
 
-                    if(basis.singular.vec[p]) stop("basis is ill-conditioned - reduce degree.max")
+                    if(basis.singular.vec[p] & !singular.ok) stop("basis is ill-conditioned - reduce degree.max")
+                    if(basis.singular.vec[p] & singular.ok & trace) warning("basis is ill-conditioned - reduce degree.max")
+
                     fitted.mat[,p] <- fit.spline
 
                     if(method=="mma") {
@@ -2147,7 +2152,9 @@ lm.ma.Est <- function(y=NULL,
                         }
                     }
 
-                    if(basis.singular.vec[p]) stop("basis is ill-conditioned - reduce degree.max")
+                    if(basis.singular.vec[p] & !singular.ok) stop("basis is ill-conditioned - reduce degree.max")
+                    if(basis.singular.vec[p] & singular.ok & trace) warning("basis is ill-conditioned - reduce degree.max")         
+
                     fitted.mat[,p] <- fit.spline
 
                     if(method=="mma") {

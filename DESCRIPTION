@@ -2,7 +2,7 @@ Package: ma
 Type: Package
 Title: Model Averaging
 Version: 1.0-8
-Date: 2017-05-26
+Date: 2017-06-03
 Imports: doParallel, foreach, parallel, quadprog
 Suggests: crs, np, rgl, knitr, rmarkdown
 VignetteBuilder: knitr

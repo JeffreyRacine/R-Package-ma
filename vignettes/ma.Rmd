@@ -31,6 +31,11 @@ link-citations: yes
 %\VignetteIndexEntry{R Package ma}
 -->
 
+```{r global_options, include=FALSE, cache=FALSE}
+knitr::opts_chunk$set(cache=TRUE,
+                      fig.align='center')
+```
+
 # Introduction
 
 Practitioners frequently wrestle with issues surrounding model uncertainty, and model *selection* is perhaps one of the most widely used solutions to this problem. Model selection deals with model uncertainty by selecting one model from among a set of candidate models based on a selection criterion. Model selection has a long history, and a variety of methods have been proposed, each based on distinct estimation criteria. These include Akaike's *An Information Criterion* (AIC; @AKAIKE:1970, @AKAIKE:1973), Mallows' $C_p$ (@MALLOWS:1973), the *Bayesian Information Criterion* (BIC; @SCHWARZ:1978), *delete-one cross-validation* (@STONE:1974), *generalized cross-validation* (@CRAVEN_WAHBA:1979), and the *Focused Information Criterion* (FIC) (@CLAESKENS_HJORT:2003), to name but a few.
@@ -55,18 +60,19 @@ categorical predictors. Letting $\mathbf{z} =\left( z_{s}\right) _{s=1}^{r}$, we
 
 ## Categorical Predictors and Candidate Model Selection
 
-To handle the presence of categorical predictors, we might estimate $g(\cdot)$ by tensor-product polynomial splines weighted by categorical kernel functions. Let $\mathcal{B}\left( \mathbf{x}\right)$ be the tensor-product polynomial splines and $L\left(\mathbf{Z},\mathbf{z}, \mathbf{\lambda }\right)$ be a product categorical kernel function. Then the nonparametric function $g\left(\mathbf{x},\mathbf{z}\right)$ can be approximated by $\mathcal{B}\left( \mathbf{x}\right) ^{\mathrm{T}}\beta \left(\mathbf{z}\right)$, where $\beta\left( \mathbf{z}\right)$ is a $\mathbf{K}_{n}\times 1$ vector with $\mathbf{K}_{n}\rightarrow \infty$ as $n\rightarrow \infty$. We estimate $\beta \left(\mathbf{z}\right)$ by minimizing the following weighted least squares criterion,
+To handle the presence of categorical predictors, we might estimate $g(\cdot)$ by tensor-product polynomial splines weighted by categorical kernel functions as proposed by @MA_RACINE_YANG:2015. Let $\mathcal{B}\left( \mathbf{x}\right)$ be the tensor-product polynomial splines and $L\left(\mathbf{Z},\mathbf{z}, \mathbf{\lambda }\right)$ be a product categorical kernel function. Then the nonparametric function $g\left(\mathbf{x},\mathbf{z}\right)$ can be approximated by $\mathcal{B}\left( \mathbf{x}\right) ^{\mathrm{T}}\beta \left(\mathbf{z}\right)$, where $\beta\left( \mathbf{z}\right)$ is a $\mathbf{K}_{n}\times 1$ vector with $\mathbf{K}_{n}\rightarrow \infty$ as $n\rightarrow \infty$. We estimate $\beta \left(\mathbf{z}\right)$ by minimizing the following weighted least squares criterion,
 \begin{equation}
   \widehat{\beta }\left( \mathbf{z}\right) =\arg \min_{\beta \in {R}^{\mathbf{K}_{n}}}\sum\limits_{i=1}^{n}\left\{ Y_{i}-
     \mathcal{B}\left( \mathbf{X}_{i}\right) ^{\mathrm{T}}\beta\right\} ^{2}L\left( \mathbf{Z}_{i},\mathbf{z},\mathbf{\lambda }
   \right) .  \label{EQ:betahatz}
 \end{equation}
-Thus $g\left( \mathbf{x},\mathbf{z}\right)$ is estimated by $\widehat{g}\left(\mathbf{x},\mathbf{z}\right)=\mathcal{B}\left(   \mathbf{x}\right)^{\mathrm{T}}\widehat{\beta}\left(\mathbf{z}\right)$. If $\mathcal{B}\left(   \mathbf{x}\right)=\mathbf{x}$ (i.e., the identity basis) the we are conducting standard linear (in predictors) weighted least squares estimation (i.e., $\widehat{g}\left(\mathbf{x},\mathbf{z}\right)= \mathbf{x}^{\mathrm{T}}\widehat{\beta}\left(\mathbf{z}\right)$). If in addition we introduced the categorical predictors as additive factors instead of using kernel weighting, we are conducting standard linear least squares with additive dummy variables (i.e., $\widehat{g}\left(\mathbf{x},\mathbf{z}\right)=\mathbf{z}^{\mathrm{T}}\widehat{\alpha}+\mathbf{x}^{\mathrm{T}}\widehat{\beta}$). Each of these possibilities can be entertained among the set of candidate models implemented in the \pkg{ma} package.
+Thus $g\left( \mathbf{x},\mathbf{z}\right)$ is estimated by $\widehat{g}\left(\mathbf{x},\mathbf{z}\right)=\mathcal{B}\left(   \mathbf{x}\right)^{\mathrm{T}}\widehat{\beta}\left(\mathbf{z}\right)$. If $\mathcal{B}\left(   \mathbf{x}\right)=\mathbf{x}$ (i.e., the identity basis) the we are conducting standard linear (in predictors) weighted least squares estimation (i.e., $\widehat{g}\left(\mathbf{x},\mathbf{z}\right)= \mathbf{x}^{\mathrm{T}}\widehat{\beta}\left(\mathbf{z}\right)$). If in addition we introduced the categorical predictors as additive factors instead of using kernel weighting, we are conducting standard linear least squares with additive dummy variables (i.e., $\widehat{g}\left(\mathbf{x},\mathbf{z}\right)=\mathbf{z}^{\mathrm{T}}\widehat{\alpha}+\mathbf{x}^{\mathrm{T}}\widehat{\beta}$); see the related work of @MA_RACINE:2013. Each of these possibilities can be entertained among the set of candidate models implemented in the \pkg{ma} package.
 
 ## Candidate Model Basis Function Choice
 
-Note that $\mathcal{B}\left( \mathbf{x}\right)$ need not necessarily be a tensor product. It could be additive (semiparametric) or a
-Taylor-type basis, perhaps augmented to allow for differing orders in each dimension. Regardless of the nature of the basis, each candidate model used in the model average will differ in terms of its spline degree in each dimension, number of knots, and smoothing parameters. Denote the $m$th such model as $\widehat{g}_m\left( \mathbf{x},\mathbf{z}\right)$. Having enumerated the $M$ candidate models over which the averaging is to take place, we will require a model averaging criterion. The \pkg{ma} package allows for two such criteria.
+Note that $\mathcal{B}\left( \mathbf{x}\right)$ need not necessarily be a tensor product (i.e., a nonparametric basis per @MA_RACINE_YANG:2015). It could be additive (i.e, a *semiparametric* basis per @MA_RACINE:2013) or a perhaps a modified Taylor-type basis that admits differing orders in each dimension. Regardless of the nature of the basis, each candidate model used in the model average will differ in terms of its polynomial degree in each dimension, number of interior knots, and smoothing parameters for the kernel weighting function. 
+
+Denote the $m$th such model as $\widehat{g}_m\left( \mathbf{x},\mathbf{z}\right)$. Having fitted the $M$ candidate models over which the averaging is to take place, we will require a model averaging criterion; the \pkg{ma} package allows for two such criteria which we briefly outline below.
 
 ## Hansen's (2007) Mallows Model Average Criterion
 
@@ -76,14 +82,14 @@ The Mallows [@MALLOWS:1973] criterion for the model average estimator [@HANSEN:2
 \end{equation*}
 where $\hat{\mathbf{E}}$ is the $T\times M$ matrix with columns containing the
 residual vector from the $m$th candidate estimating equation, $K$ the
-$M\times 1$ vector of the number of parameters in each model, and
+$M\times 1$ vector whose elements are the number of parameters (i.e., rank) in each model, and
 $\sigma^2$ the variance from the largest dimensional
 model. This criterion is used to select
 the weight vector $\hat w$, i.e.,
 \begin{equation*}
   \hat w = \operatorname{argmin}_w C_n(w).
 \end{equation*}
-Because $\operatorname{argmin}_w C_n(w)$ has no closed-form solution, the weight vector is found numerically. The solution involves constrained minimization subject to non-negativity and summation constraints, which constitutes a classic quadratic programming problem. This criterion involves nothing more than computing the residuals for each candidate estimating equation, obtaining the rank of each candidate estimating equation, and solving a simple quadratic program. The Mallows model averaging (MMA) $C_n(w)$ criterion provides an estimate of the average squared error from the model average fit, and has been shown to be asymptotically optimal in the sense of achieving the lowest possible squared error in a class of model average estimators. See @HANSEN:2007 for further details. 
+Because $\operatorname{argmin}_w C_n(w)$ has no closed-form solution, the weight vector is found numerically. The solution involves constrained minimization subject to non-negativity and summation constraints, which constitutes a classic quadratic programming problem. This criterion involves nothing more than computing the residuals for each candidate estimating equation, obtaining the rank of each candidate estimating equation, and solving a simple quadratic program. The Mallows model averaging (MMA) criterion $C_n(w)$ provides an estimate of the average squared error from the model average fit, and has been shown to be asymptotically optimal in the sense of achieving the lowest possible squared error in a class of model average estimators. See @HANSEN:2007 for further details. 
 
 ## Hansen and Racine's (2012) Jackknife Model Average Criterion
 
@@ -91,7 +97,7 @@ Because $\operatorname{argmin}_w C_n(w)$ has no closed-form solution, the weight
 \begin{equation*}
   CV_{n}(w)=\frac{1}{n}(y-\tilde{\mathbf{Y}}w)'(y-\tilde{\mathbf{Y}}w),
 \end{equation*}
-where $\tilde{\mathbf{Y}}$ is the $T\times M$ matrix with columns containing the jackknife estimator from the $m$th candidate estimating equation formed by deleting the $t$ observation when constructing the $t$th prediction. Like its Mallows counterpart, this involves solving a quadratic program where we minimize $(y-\tilde{\mathbf{Y}}w)'(y-\tilde{\mathbf{Y}}w)=y'y+w'\tilde{\mathbf{Y}}'\tilde{\mathbf{Y}}w-2y'\tilde{\mathbf{Y}}w$ and the first term is ignorable as it does not involve the weight vector $w$. In the presence of homoskedastic errors, JMA and MMA are nearly equivalent, but when the errors are heteroskedastic, JMA delivers models with significantly lower MSE.
+where $\tilde{\mathbf{Y}}$ is the $T\times M$ matrix with columns containing the jackknife fitted value vector from the $m$th candidate estimating equation formed by deleting the $t$th observation when constructing the $t$th prediction. Like its Mallows counterpart, this involves solving a quadratic program where we minimize $(y-\tilde{\mathbf{Y}}w)'(y-\tilde{\mathbf{Y}}w)=y'y+w'\tilde{\mathbf{Y}}'\tilde{\mathbf{Y}}w-2y'\tilde{\mathbf{Y}}w$ and the first term is ignorable as it does not involve the weight vector $w$. In the presence of homoskedastic errors, JMA and MMA are nearly equivalent, but when the errors are heteroskedastic, JMA delivers models with significantly lower MSE.
 
 Whether using JMA or MMA, both involve solving a simple quadratic program (the \proglang{R} package \pkg{quadprog} is invoked for its solution).
 
@@ -99,11 +105,13 @@ Whether using JMA or MMA, both involve solving a simple quadratic program (the \
 
 The main function is called \code{lm.ma()}. Models are specified symbolically. A typical model has the form response ~ terms where response is the (numeric) response vector and terms is a series of terms which specifies a linear predictor for response. Note that, unlike \code{lm()} in which the formula interface specifies functional form, in \code{lm.ma()} the formula interface is strictly for listing the variables involved and the procedure will determine an appropriate model averaged functional form. Do not incorporate transformations, interactions and the like in the formula interface for lm.ma as these will most surely fail.
 
-The function \code{lm.ma()} computes a model that is the weighted average of a set of least squares candidate models whose predictors are generated by common basis functions (additive, generalized Taylor polynomial, or tensor products). The candidate models increase in complexity from linear bases (if \code{degree.min=1}) through higher order ones up to degree.max. All bases are of the Bernstein polynomial class, as opposed to raw polynomials, and allow for differing degrees across multivariate predictors. When \code{knots=TRUE}, interior knots are used and the Bernstein polynomials become B-spline bases and we are then averaging over regression spline models. When the number of numeric predictors is two or more, the generalized Taylor polynomial includes interaction terms up to order degree minus one. Since we are averaging over models that are nonlinear in the predictors, derivatives will be vectors that potentially depend on the values of every predictor. An ad-hoc formula is used to determine the relationship between the largest (most complex) model, the sample size, and the number of predictors. This ad-hoc rule was set so that, as the sample size increases, we can approximate ever more complex functions while necessarily restricting the size of the largest model in small sample settings. Categorical predictors can enter additively and linearly (if \code{vc=FALSE}) or in a parsimonious manner by exploiting recent developments in semiparametric varying coefficient models along the lines of @LI_OUYANG_RACINE:2013. With the options \code{knots=TRUE} and \code{vc=TRUE}, we are averaging over varying-coefficient regression splines.
+The function \code{lm.ma()} computes a model that is the weighted average of a set of least squares candidate models whose predictors are generated by common basis functions (additive, modified Taylor polynomial, or tensor products). The candidate models increase in complexity from linear bases (if \code{degree.min=1}) through higher order ones up to degree.max. All bases are of the Bernstein polynomial class, as opposed to raw polynomials, and allow for differing degrees across multivariate predictors regardless of the basis invoked. When \code{knots=TRUE}, interior *quantile* knots are used and the Bernstein polynomials become B-spline bases and we are then averaging over regression spline models (i.e., knots are placed at equi-probable quantiles for each predictor, so one interior knot would be placed at the median value of each predictor, three at the first, second, and third quartiles etc.). When the number of numeric predictors is two or more, the modified Taylor polynomial includes interaction terms (i.e., cross-partial derivatives) up to order degree minus one. Since we are averaging over models that are nonlinear in the predictors, derivatives will be vectors that potentially depend on the values of every predictor. An ad-hoc formula is used to determine the relationship between the largest (i.e., most complex) model, the sample size, and the number of predictors. This ad-hoc rule was set so that, as the sample size increases, we can approximate ever more complex functions while necessarily restricting the size of the largest model in small sample settings. Categorical predictors can enter additively and linearly (if \code{vc=FALSE}) or in a parsimonious manner by exploiting recent developments in semiparametric varying coefficient models along the lines of @LI_OUYANG_RACINE:2013. With the options \code{knots=TRUE} and \code{vc=TRUE}, we are averaging over varying-coefficient regression splines.
 
 The heuristic used for \code{degree.max}, the maximum value for the basis degree in each dimension, defaults to \code{max(2,ceiling(log(n)-2*log(1+k)))} where \code{k} is the number of numeric predictors and \code{n} the number of observations. 
 
 The heuristic used for \code{lambda.num.max}, the maximum value for the smoothing parameter grid in each dimension, defaults to \code{max(2,ceiling(log(n)-2*log(1+p)))} where \code{p} is the number of categorical predictors and \code{n} the number of observations.
+
+When there exist more than two predictors, the spline degree increases by 2 by default (this can be controlled by the option \code{degree.by}) so we would estimate polynomials of degree 1,3,5, etc. The option \code{all.combinations=FALSE} can be invoked in multivariate settings to control the number of candidate models (this option has the effect of using the same degree for each predictor in each candidate model rather than considering all possible combinations).
 
 ## Generic Accessor Functions
 
@@ -113,11 +121,11 @@ The function summary is used to obtain and print a summary of the results. The g
 
 The function \code{plot.lm.ma()} plots an \code{lm.ma} object. It can plot either the conditional mean (default) or partial derivatives of the conditional mean with respect to the predictors, whether of type \code{numeric} or \code{factor}. Nonparametric confidence intervals can be plotted via the option \code{plot.ci=TRUE}, while data (and a rug) can be included when \code{plot.data=TRUE} (\code{plot.rug=TRUE}).
 
-# Illustration
+# Simulated Univariate Illustration
 
 By way of illustration, consider the following chunk of \proglang{R} code. We simulate data from a nonlinear data generating process (DGP). The practitioner might consider, say, linear regression via \code{lm(y~x)} but this model would clearly be mis-specified as might other models they consider. Instead, consider the model produced by \code{lm.ma(y~x)}. The fitted model and data are plotted in Figure \ref{sinfig}.
 
-```{r}
+```{r simul}
 library(ma)
 set.seed(42)
 n <- 1000
@@ -128,7 +136,7 @@ model <- lm.ma(y~x,verbose=FALSE)
 ```
 
 \begin{figure}[!ht]
-```{r,results='hide',echo=FALSE}
+```{r simulfig,results='hide',echo=FALSE}
 plot(model,plot.data=TRUE)
 lines(x[order(x)],dgp[order(x)],lty=3,col=3)
 abline(lm(y~x),col=2,lty=2)
@@ -137,7 +145,42 @@ legend("topright",c("Model Average","lm(y~x)","DGP"),col=1:3,lty=1:3,bty="n",cex
 \caption{\label{sinfig}Simulated illustration, $n=1000$ observations, model average estimate, linear (in predictor) estimate, and data generating process (DGP) (figure created via \code{plot(model,plot.data=TRUE)}).}
 \end{figure}
 
-Figure \ref{sinfig} reveals that the model average estimator is more faithful to the underlying DGP than the naive linear regression model. Of course no serious practitioner would likely have settled for the naive linear model, but that is besides the point. The point to be made is that the model average approach is known to possess a number of appealing characteristics, and this simple illustration a number of them.
+Figure \ref{sinfig} reveals that the model average estimator is more faithful to the underlying DGP than the naive linear regression model. Of course no serious practitioner would likely have settled for the naive linear model, but that is besides the point. The point to be made is that the model average approach is known to possess a number of appealing characteristics and by automating the choice of the candidate models we can provide an interface for model averaging that may be of use for practitioners.
+
+## Illustrative Application
+
+Next we consider an application based on the Demographic and Health Survey data on childhood nutrition in India [@KOENKER:2011]. This dataset involves 37,623 observations and we consider three numeric predictors and three categorical predictors. The dependent variable is the child's height (centimeters) and we consider predictors child's age (months), mother's BMI (kilograms per meter squared), mother's years of education, child's sex, whether or not child is a twin, and birth order of the child. We consider an additive basis with additive dummies for the candidate models. Results for the conditional mean are presented in partial plots (i.e., the off-axis predictors are held constant at their respective medians/modes) in Figure \ref{indiamean}. We also present the marginal effects (i.e., derivatives) in Figure \ref{indiaderiv}.
+
+```{r india,echo=FALSE,results='hide'}
+data(india)
+attach(india)
+
+faccsex <- factor(csex)
+facctwin <- factor(ctwin)
+faccbirthorder <- factor(cbirthorder)
+
+model <- lm.ma(cheight ~ cage + mbmi + medu +
+               faccsex + facctwin + faccbirthorder,
+               basis="additive",
+               verbose=FALSE,
+               vc=FALSE)
+```
+
+Figures \ref{indiamean} and \ref{indiaderiv} would accord with one's expectations. There are clear nonlinearities at work with regards to the child's age that go beyond simple low order polynomials, while it is interesting to consider the marginal effect associated with, e.g., whether one has a twin and birth order.
+
+\begin{figure}[!ht]
+```{r indiamean,results='hide',echo=FALSE,fig.asp=1.5}
+plot(model,plot.data=TRUE)
+```
+\caption{\label{indiamean}India childhood nutrition derivative estimate.}
+\end{figure}
+
+\begin{figure}[!ht]
+```{r indiaderiv,results='hide',echo=FALSE,fig.asp=1.5}
+plot(model,plot.deriv=TRUE)
+```
+\caption{\label{indiaderiv}India childhood nutrition derivative estimate.}
+\end{figure}
 
 # ANOVA-Based Inference
 
@@ -166,7 +209,7 @@ The bootstrap procedure is straightforward.
   level of the test.
   
   
-```{r}
+```{r simulanova}
 model <- lm.ma(y~x,
                compute.anova=TRUE,
                compute.anova.boot=TRUE,
@@ -179,13 +222,13 @@ Extensive simulations reveal that the test is correctly sized and displays power
 
 # Parallel Computation
 
-Parallel processing can be enabled by adding the option \code{parallel=TRUE}. This can cut computation by up to \code{1/parallel.cores}, particularly for multiple predictor models where computation of each candidate model may be non-trivial. Note that the default number of cores invoked is the number of cores present in the CPU on which the code is executed. Note also that, when \code{parallel=TRUE}, this applies to all computation *except* for solving the quadratic program which invokes a call to  \code{solve.QP} from the \proglang{R} package \pkg{quadprog} that, at this time, does not support parallel processing.
+Parallel processing can be enabled by invoking the option \code{parallel=TRUE}. This can reduce computation by up to \code{1/parallel.cores}, particularly for multiple predictor models where computation of each candidate model may be non-trivial. Note that the default number of cores invoked is the number of cores present in the CPU on which the code is executed. Note also that, when \code{parallel=TRUE}, this applies to all computation *except* for solving the quadratic program which invokes a call to  \code{solve.QP} from the \proglang{R} package \pkg{quadprog} that, at this time, does not support parallel processing.
 
 # Limitations and Caveats
 
-The model average approach implemented in the \pkg{ma} package is capable of statistically consistent estimation of certain classes of smooth functions (e.g., analytic) at rates approaching or equal to those of correctly specified parametric models (extensive simulations highlighting this feature are available upon request). In this sense the approach is competitive with and even more efficient than some popular nonparametric approaches such as locally weighted kernel estimation. This is achieved automatically and without input by the user. This stands in contrast to the model average approaches embodied in the \proglang{R} packages listed previously that rely on a set of candidate models provided by the user that may not be imbued with this feature *unless* the user similarly ties the dimensions of their candidate models to the available sample information, among other important aspects (such as including interactions among predictors and allowing for a sufficiently high polynomial order in the candidate models to capture a sufficiently rich set of nonlinearities).
+The model average approach implemented in the \pkg{ma} package is capable of statistically consistent estimation of certain classes of smooth functions (e.g., analytic) at rates approaching or equal to those of correctly specified parametric models (extensive simulations highlighting this feature are available upon request). In this sense the approach is competitive with and even more efficient than some popular nonparametric approaches such as locally weighted kernel estimation. This is achieved automatically and without input by the user. This stands in contrast to the model average approaches embodied in the \proglang{R} packages listed previously that rely on a set of candidate models provided by the user that may not be endowed with this feature *unless* the user also ties the dimensions of their candidate models to the available sample information, among other important aspects (such as including interactions among predictors and allowing for a sufficiently high polynomial order in the candidate models to capture a sufficiently rich set of nonlinearities).
  
-It should come as no surprise that this approach, like its nonparametreic peers, will face the *curse of dimensionality*. To partially address this shortcoming, in order for our model average approach to deliever statistically consistent estimation of broad classes of functions, the complexity of the maximal basis function in the set of candidate models to be averaged over must increase with the amount of sample information present, among other important aspects. However, for a finite sample size, the maximum dimension of the basis is constrained by this limit. Some heuristics already mentioned seek to trade off consistency versus computational feasibility given the data at hand. Of course, default settings appropriate for one DGP may be inappropriate for another, so some sensitivity analysis may be called for to ensure that the final results are not upset by modifying the default configuration.
+It should come as no surprise that this approach, like its nonparametreic peers, will face the *curse of dimensionality*. To partially address this shortcoming, in order for our model average approach to deliver statistically consistent estimation of broad classes of functions, the complexity of the maximal basis function in the set of candidate models to be averaged over must increase with the amount of sample information present, among other important aspects. However, for a finite sample size, the maximum dimension of the basis is constrained by this limit. Some heuristics already mentioned seek to trade off consistency versus computational feasibility given the data at hand. Of course, default settings appropriate for one DGP may be inappropriate for another, so some sensitivity analysis may be called for to ensure that the final results are not upset by modifying the default configuration.
 
 When using the default settings in high dimensional situations, the number of candidate models may grow unreasonably large (say 2,500 or more). Furthermore, the dimension of the maximal basis may similarly grow unreasonably large (say 5,000 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) set and restrict \code{degree.max}, iv) set and restrict \code{lambda.num.max} if categorical predictors are present, v) reduce \code{segments.max} (if \code{knots=TRUE}),  vi) set \code{all.combinations=FALSE}, or perhaps instead consider a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
 
