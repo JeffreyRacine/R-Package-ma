@@ -149,7 +149,7 @@ Figure \ref{sinfig} reveals that the model average estimator is more faithful to
 
 ## Illustrative Application
 
-Next we consider an application based on the Demographic and Health Survey data on childhood nutrition in India [@KOENKER:2011]. This dataset involves 37,623 observations and we consider three numeric predictors and three categorical predictors. The dependent variable is the child's height (centimeters) and we consider predictors child's age (months), mother's BMI (kilograms per meter squared), mother's years of education, child's sex, whether or not child is a twin, and birth order of the child. We consider an additive basis with additive dummies for the candidate models. Results for the conditional mean are presented in partial plots (i.e., the off-axis predictors are held constant at their respective medians/modes) in Figure \ref{indiamean}. We also present the marginal effects (i.e., derivatives) in Figure \ref{indiaderiv}.
+Next we consider an application based on the Demographic and Health Survey data on childhood nutrition in India [@KOENKER:2011]. This dataset involves 37,623 observations and we consider three numeric predictors and three categorical predictors. The dependent variable is the child's height (centimeters) and we consider predictors child's age (months), mother's BMI (kilograms per meter squared), mother's years of education, child's sex, whether or not child is a twin, and birth order of the child. We consider an additive basis with additive dummies for the candidate models. Results for the conditional mean are presented in partial plots (i.e., the off-axis predictors are held constant at their respective medians/modes) in Figure \ref{indiamean}. We also present the marginal effects (i.e., derivatives) in Figure \ref{indiaderiv}. The model summary appears in Table \ref{tab:india}.
 
 ```{r india,echo=FALSE,results='hide'}
 data(india)
@@ -166,16 +166,24 @@ model <- lm.ma(cheight ~ cage + mbmi + medu +
                vc=FALSE)
 ```
 
+\begin{table}
+\caption{\label{tab:india}Model Summary For Childhood Nutrition Model.}
+\footnotesize
+```{r indiasummary}
+summary(model)
+```
+\end{table}
+
 Figures \ref{indiamean} and \ref{indiaderiv} would accord with one's expectations. There are clear nonlinearities at work with regards to the child's age that go beyond simple low order polynomials, while it is interesting to consider the marginal effect associated with, e.g., whether one has a twin and birth order.
 
-\begin{figure}[!ht]
+\begin{figure}[!p]
 ```{r indiamean,results='hide',echo=FALSE,fig.asp=1.5}
 plot(model,plot.data=TRUE)
 ```
 \caption{\label{indiamean}India childhood nutrition derivative estimate.}
 \end{figure}
 
-\begin{figure}[!ht]
+\begin{figure}[!p]
 ```{r indiaderiv,results='hide',echo=FALSE,fig.asp=1.5}
 plot(model,plot.deriv=TRUE)
 ```
@@ -208,7 +216,11 @@ The bootstrap procedure is straightforward.
 - Reject $H_0$ if $\hat P<\alpha$ where $\alpha$ is the nominal
   level of the test.
   
+A simulated example is presented in Table \ref{tab:anova}.
   
+\begin{table}
+\caption{\label{tab:anova}Simulated ANOVA Test of Significance.}
+\footnotesize
 ```{r simulanova}
 model <- lm.ma(y~x,
                compute.anova=TRUE,
@@ -217,6 +229,7 @@ model <- lm.ma(y~x,
                verbose=FALSE)
 summary(model)
 ```
+\end{table}
 
 Extensive simulations reveal that the test is correctly sized and displays power that increases with the departure from the null and the sample size.
 
@@ -232,6 +245,12 @@ It should come as no surprise that this approach, like its nonparametreic peers,
 
 When using the default settings in high dimensional situations, the number of candidate models may grow unreasonably large (say 2,500 or more). Furthermore, the dimension of the maximal basis may similarly grow unreasonably large (say 5,000 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) set and restrict \code{degree.max}, iv) set and restrict \code{lambda.num.max} if categorical predictors are present, v) reduce \code{segments.max} (if \code{knots=TRUE}),  vi) set \code{all.combinations=FALSE}, or perhaps instead consider a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
 
-It is therefore prudent to recollect that the goal of model averaging is to outperform model assertion or model selection by reducing estimation variance while controlling mis-specification bias. The goal is not to obtain statistically consistent estimators - that remains the domain of fully nonparametric estimation.
+It is therefore helpful to remember that the goal of model averaging is to outperform model assertion or model selection by reducing estimation variance while controlling mis-specification bias. The goal is not to obtain statistically consistent estimators - that remains the domain of fully nonparametric estimation. As @BOX:1979 famously remarked in a section titled "All models are wrong, but some are useful",
+
+> Now it would be very remarkable if any system existing in the real world could be exactly represented by any simple model. However, cunningly chosen parsimonious models often do provide remarkably useful approximations. For example, the law $PV = RT$ relating pressure $P$, volume $V$ and temperature $T$ of an "ideal" gas via a constant $R$ is not exactly true for any real gas, but it frequently provides a useful approximation and furthermore its structure is informative since it springs from a physical view of the behavior of gas molecules. 
+
+> For such a model there is no need to ask the question "Is the model true?". If "truth" is to be the "whole truth" the answer must be "No". The only question of interest is "Is the model illuminating and useful?".
+
+We might rephrase this as "Any single model is wrong but potentially useful. However, a model which is itself an average of a set of models is potentially even more illuminating and useful still."
 
 # References {-}

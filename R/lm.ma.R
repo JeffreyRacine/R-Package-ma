@@ -979,7 +979,7 @@ summary.lm.ma <- function(object,
 
     cat(paste("\n\nNumber of candidate models: ", NROW(object$DKL.mat), sep=""))
     cat("\nNon-zero model average weights: ")
-    cat(formatC(ma.weights,format="f",digits=5))
+    cat(formatC(ma.weights,format="f",digits=4))
     cat("\nNon-zero weight model ranks: ")
     cat(formatC(rank.vec,format="f",digits=1))
     if(object$basis=="auto") {
