@@ -1148,14 +1148,13 @@ plot.lm.ma <- function(x,
                      ylab=yname,
                      xlab=xznames[i],
                      cex=0.1,
-                     col="grey",
-                     ...)
+                     col="grey")
                 if(numeric.logical[i] & plot.rug) suppressWarnings(rug(x$X[x$X[,i] >= xlim[1] & x$X[,i] <= xlim[2] ,i]))
                 cat(paste("\rGenerating object ",i," of ",ncol.X," to plot...",sep=""))
                 foo <- predict(x,newdata=xzeval,boot.ci=plot.ci,B=plot.B,...)
                 if(!is.list(foo)) suppressWarnings(foo$fit <- foo)
                 if(numeric.logical[i]) {
-                    lines(xzeval[,i],foo$fit,col=1)
+                    lines(xzeval[,i],foo$fit,col=1,...)
                 } else {
                     points(xzeval[,i],foo$fit,bg=1,col=1,pch=21)
                 }

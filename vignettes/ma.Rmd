@@ -180,14 +180,14 @@ Figures \ref{indiamean} and \ref{indiaderiv} would accord with one's expectation
 ```{r indiamean,results='hide',echo=FALSE,fig.asp=1.5}
 plot(model,plot.data=TRUE)
 ```
-\caption{\label{indiamean}India childhood nutrition derivative estimate.}
+\caption{\label{indiamean}India childhood nutrition conditional mean estimates.}
 \end{figure}
 
 \begin{figure}[!p]
 ```{r indiaderiv,results='hide',echo=FALSE,fig.asp=1.5}
 plot(model,plot.deriv=TRUE)
 ```
-\caption{\label{indiaderiv}India childhood nutrition derivative estimate.}
+\caption{\label{indiaderiv}India childhood nutrition derivative estimates.}
 \end{figure}
 
 # ANOVA-Based Inference
@@ -245,7 +245,7 @@ It should come as no surprise that this approach, like its nonparametreic peers,
 
 When using the default settings in high dimensional situations, the number of candidate models may grow unreasonably large (say 2,500 or more). Furthermore, the dimension of the maximal basis may similarly grow unreasonably large (say 5,000 or more). In such cases you might want to i) increase \code{S}, ii) increase \code{lambda.S} (if categorical predictors are present and \code{vc=TRUE}), iii) set and restrict \code{degree.max}, iv) set and restrict \code{lambda.num.max} if categorical predictors are present, v) reduce \code{segments.max} (if \code{knots=TRUE}),  vi) set \code{all.combinations=FALSE}, or perhaps instead consider a semiparametric model (\code{basis="additive"} and \code{vc=FALSE} produces semiparametric additive candidate models - see the example in \code{?india} for an illustration).
 
-It is therefore helpful to remember that the goal of model averaging is to outperform model assertion or model selection by reducing estimation variance while controlling mis-specification bias. The goal is not to obtain statistically consistent estimators - that remains the domain of fully nonparametric estimation. As @BOX:1979 famously remarked in a section titled "All models are wrong, but some are useful",
+It is therefore helpful to remember that the goal of model averaging is to outperform model assertion or model selection by reducing estimation variance while controlling mis-specification bias. The goal is not to obtain statistically consistent estimators - that remains the domain of fully nonparametric estimation. As @BOX:1979 famously remarked in a section titled "All Models are Wrong, but Some are Useful",
 
 > Now it would be very remarkable if any system existing in the real world could be exactly represented by any simple model. However, cunningly chosen parsimonious models often do provide remarkably useful approximations. For example, the law $PV = RT$ relating pressure $P$, volume $V$ and temperature $T$ of an "ideal" gas via a constant $R$ is not exactly true for any real gas, but it frequently provides a useful approximation and furthermore its structure is informative since it springs from a physical view of the behavior of gas molecules. 
 
