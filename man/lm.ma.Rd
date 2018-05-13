@@ -291,7 +291,7 @@ An object of class "lm.ma" is a list containing at least the following component
 
   Hansen, B. E. & Racine, J. S. (2012), \dQuote{Jackknife Model Averaging,} Journal of Econometrics 167(1), 38-46.
 
-  Racine, J.S. and D. Zhang and Q. Li (2017), \dQuote{Model Averaged Categorical Regression Splines.}
+  Racine, J.S. and Q. Li and L. Zheng (2018), \dQuote{Optimal Model Averaging of Mixed-Data Kernel-Weighted Spline Regressions.}
 }
 \author{
 Jeffrey S. Racine
